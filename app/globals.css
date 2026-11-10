@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* Design tokens. Light first, dark via prefers-color-scheme. */
+:root {
+  --paper: #f6f3ec;
+  --paper-2: #efeadf;
+  --card: #fffdf8;
+  --ink: #1b1d1a;
+  --ink-2: #4a4d46;
+  --ink-3: #7b7e75;
+  --line: #ddd7c9;
+  --accent: #c2502b; /* terracotta */
+  --accent-soft: #f3dccf;
+  --sage: #3f6b55;
+  --sage-soft: #d9e6dc;
+  --plum: #6b4a7a;
+  --plum-soft: #e6dcea;
+  --gold: #a87a1f;
+  --gold-soft: #f1e4c4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141512;
+    --paper-2: #1b1c18;
+    --card: #1f201c;
+    --ink: #efebe1;
+    --ink-2: #c3bfb3;
+    --ink-3: #8c897f;
+    --line: #34352f;
+    --accent: #e57552;
+    --accent-soft: #3a2219;
+    --sage: #7fb398;
+    --sage-soft: #1d2b23;
+    --plum: #b994cb;
+    --plum-soft: #2c2232;
+    --gold: #d9ad55;
+    --gold-soft: #33291a;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --color-plum: var(--plum);
+  --color-plum-soft: var(--plum-soft);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Subtle paper grain */
+.grain {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--ink) 7%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.wave-bar {
+  transform-origin: center;
+  animation: wave 1.2s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar,
+  .rise {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
