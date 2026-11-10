@@ -1,10 +1,12 @@
 # Abhängigkeiten
 /node_modules
+# iCloud-Ausschluss (Desktop-Sync): echte Ordner heißen *.nosync, siehe CLAUDE.md
+*.nosync
 /.pnp
 .pnp.*
 
 # Next.js / Build
-/.next/
+/.next
 /out/
 /build
 *.tsbuildinfo
