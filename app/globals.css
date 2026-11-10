@@ -1,92 +1,235 @@
 @import "tailwindcss";
 
-/* Design tokens. Light first, dark via prefers-color-scheme. */
+/*
+ * CoFuture design tokens (Designsprache v1).
+ * Never hard-code colors in components, always use these tokens.
+ * Theme: follows the system, can be forced with data-theme="light|dark" on <html>.
+ */
 :root {
-  --paper: #f6f3ec;
-  --paper-2: #efeadf;
-  --card: #fffdf8;
-  --ink: #1b1d1a;
-  --ink-2: #4a4d46;
-  --ink-3: #7b7e75;
-  --line: #ddd7c9;
-  --accent: #c2502b; /* terracotta */
-  --accent-soft: #f3dccf;
-  --sage: #3f6b55;
-  --sage-soft: #d9e6dc;
-  --plum: #6b4a7a;
-  --plum-soft: #e6dcea;
-  --gold: #a87a1f;
-  --gold-soft: #f1e4c4;
+  --paper: #f8f6f1;
+  --sunken: #efebe2;
+  --card: #ffffff;
+  --line: #ddd8cc;
+  --border-strong: #7a8593;
+  --ink: #15202b;
+  --ink-muted: #55606d;
+  --primary: #1d4e89;
+  --primary-hover: #173f70;
+  --on-primary: #ffffff;
+  --primary-soft: #e8eef6;
+  --accent: #f2a33a;
+  --on-accent: #15202b;
+  --success: #1e7a52;
+  --on-success: #ffffff;
+  --success-soft: #e1f0e8;
+  --success-ink: #14573a;
+  --warning-soft: #fff1d6;
+  --warning-ink: #7a4a00;
+  --danger: #b3261e;
+  --on-danger: #ffffff;
+  --danger-soft: #fbe6e4;
+  --danger-ink: #8c1b15;
+  --focus-ring: var(--primary);
+  --overlay: #15202b99;
+  --cat-blau: #2f6fbf;
+  --cat-orange: #d9691e;
+  --cat-teal: #178a7a;
+  --cat-pflaume: #8b4fa0;
+  --cat-gold: #b8860b;
+  --cat-schiefer: #5e6b7c;
+  --cf-shadow-card: 0 1px 2px rgba(21, 32, 43, 0.08), 0 4px 12px rgba(21, 32, 43, 0.06);
+  --cf-shadow-overlay: 0 12px 32px rgba(21, 32, 43, 0.18);
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #141512;
-    --paper-2: #1b1c18;
-    --card: #1f201c;
-    --ink: #efebe1;
-    --ink-2: #c3bfb3;
-    --ink-3: #8c897f;
-    --line: #34352f;
-    --accent: #e57552;
-    --accent-soft: #3a2219;
-    --sage: #7fb398;
-    --sage-soft: #1d2b23;
-    --plum: #b994cb;
-    --plum-soft: #2c2232;
-    --gold: #d9ad55;
-    --gold-soft: #33291a;
+  :root:not([data-theme="light"]) {
+    --paper: #0e1621;
+    --sunken: #0a111a;
+    --card: #162131;
+    --line: #263447;
+    --border-strong: #6b7a8d;
+    --ink: #e9eef4;
+    --ink-muted: #9aa8b8;
+    --primary: #7fb2f0;
+    --primary-hover: #a3c8f5;
+    --on-primary: #0e1621;
+    --primary-soft: #263f66;
+    --accent: #f2b35c;
+    --on-accent: #0e1621;
+    --success: #5cc49a;
+    --on-success: #0e1621;
+    --success-soft: #14301f;
+    --success-ink: #8eddb9;
+    --warning-soft: #2b2112;
+    --warning-ink: #f5c77e;
+    --danger: #f2837b;
+    --on-danger: #0e1621;
+    --danger-soft: #3a1b19;
+    --danger-ink: #fbb4ae;
+    --overlay: #05090f99;
+    --cat-blau: #6fa3e6;
+    --cat-orange: #f09a5a;
+    --cat-teal: #4dc2ae;
+    --cat-pflaume: #c193d6;
+    --cat-gold: #e0b84a;
+    --cat-schiefer: #9aa8b8;
+    --cf-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+    --cf-shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0e1621;
+  --sunken: #0a111a;
+  --card: #162131;
+  --line: #263447;
+  --border-strong: #6b7a8d;
+  --ink: #e9eef4;
+  --ink-muted: #9aa8b8;
+  --primary: #7fb2f0;
+  --primary-hover: #a3c8f5;
+  --on-primary: #0e1621;
+  --primary-soft: #263f66;
+  --accent: #f2b35c;
+  --on-accent: #0e1621;
+  --success: #5cc49a;
+  --on-success: #0e1621;
+  --success-soft: #14301f;
+  --success-ink: #8eddb9;
+  --warning-soft: #2b2112;
+  --warning-ink: #f5c77e;
+  --danger: #f2837b;
+  --on-danger: #0e1621;
+  --danger-soft: #3a1b19;
+  --danger-ink: #fbb4ae;
+  --overlay: #05090f99;
+  --cat-blau: #6fa3e6;
+  --cat-orange: #f09a5a;
+  --cat-teal: #4dc2ae;
+  --cat-pflaume: #c193d6;
+  --cat-gold: #e0b84a;
+  --cat-schiefer: #9aa8b8;
+  --cf-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --cf-shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-paper: var(--paper);
-  --color-paper-2: var(--paper-2);
+  --color-sunken: var(--sunken);
   --color-card: var(--card);
-  --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
-  --color-ink-3: var(--ink-3);
   --color-line: var(--line);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
   --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-sage: var(--sage);
-  --color-sage-soft: var(--sage-soft);
-  --color-plum: var(--plum);
-  --color-plum-soft: var(--plum-soft);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
+  --color-on-accent: var(--on-accent);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-ink: var(--success-ink);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-ink: var(--warning-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-cat-blau: var(--cat-blau);
+  --color-cat-orange: var(--cat-orange);
+  --color-cat-teal: var(--cat-teal);
+  --color-cat-pflaume: var(--cat-pflaume);
+  --color-cat-gold: var(--cat-gold);
+  --color-cat-schiefer: var(--cat-schiefer);
+
+  --font-display: var(--font-manrope), system-ui, sans-serif;
+  --font-sans: var(--font-source-sans), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-card: var(--cf-shadow-card);
+  --shadow-overlay: var(--cf-shadow-overlay);
+}
+
+/* Type scale from the design system */
+@utility text-display {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 60px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+@utility text-h1 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 42px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
+}
+@utility text-body-lg {
+  font-size: 18px;
+  line-height: 28px;
+}
+@utility text-body {
+  font-size: 16px;
+  line-height: 24px;
+}
+@utility text-body-sm {
+  font-size: 14px;
+  line-height: 20px;
+}
+@utility text-label {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+@utility text-caption {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-body {
-  background: var(--paper);
-  color: var(--ink);
-}
-
 ::selection {
-  background: var(--accent-soft);
+  background: var(--primary-soft);
   color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-
-/* Subtle paper grain */
-.grain {
-  background-image: radial-gradient(
-    color-mix(in oklab, var(--ink) 7%, transparent) 1px,
-    transparent 1px
-  );
-  background-size: 22px 22px;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 @keyframes wave {
@@ -104,24 +247,8 @@ body {
   animation: wave 1.2s ease-in-out infinite;
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rise {
-  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .wave-bar,
-  .rise {
+  .wave-bar {
     animation: none;
   }
   html {

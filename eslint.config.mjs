@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // iCloud-excluded folders (see CLAUDE.md)
+    "*.nosync/**",
   ]),
 ]);
 

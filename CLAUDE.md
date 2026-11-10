@@ -50,7 +50,7 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 | --- | --- |
 | Sprache | TypeScript (strict) überall |
 | Frontend | Next.js 16 (App Router, Server Components), React 19 |
-| UI | Tailwind CSS 4, shadcn/ui (Radix), lucide-react |
+| UI | Tailwind CSS 4, shadcn/ui (Radix), lucide-react, CoFuture-Designsprache (siehe unten) |
 | Client-State / Formulare | TanStack Query, React Hook Form + Zod |
 | Audio | MediaRecorder API (WebM/Opus, iOS: MP4/AAC) |
 | Auslieferung | Web-App als PWA (kein Electron) |
@@ -70,6 +70,21 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 
 Offene Entscheidungen (bis Architektur-Review M3, 03.12.) werden als ADR in `docs/adr/` festgehalten.
 
+## Designsprache
+
+Quelle: Artefakt „CoFuture Designsprache“ (https://claude.ai/artifact/8MjwoAq9R8sXvAaSgC8Fbj). Die Tokens sind als CSS-Variablen in `app/globals.css` umgesetzt und als Tailwind-Klassen nutzbar (`bg-paper`, `text-ink-muted`, `bg-primary`, `text-h1` …).
+
+- **Ton:** Nutzer mit **Du** ansprechen. Kurze Sätze, konkret. Keine Superlative, keine Emojis, kein Ausrufezeichen. Buttons: Verb + Objekt („Runde starten“), nie „OK“ oder „Absenden“.
+- **KI ist Werkzeug:** „AsyncMeet fasst zusammen“, nie „Die KI entscheidet“. Jede Zusammenfassung zeigt ihre Quell-Beiträge.
+- **Schreibweisen:** `10.11.2026`, `12:00 Uhr`, `15 €`, Dezimalkomma. Produktnamen exakt: **CoFuture**, **AsyncMeet**.
+- **Farben:** Nur Tokens, nie Hex-Werte in Komponenten. `primary` (Blau) für Hauptaktion, Links, Fokus. `accent` (Bernstein) nur als Fläche oder Punkt, nie als Textfarbe, höchstens eine Akzent-Aktion je Ansicht. Status (`success`, `warning`, `danger`) immer mit Wort oder Icon. Perspektiven in `cat-blau`, `cat-orange`, `cat-teal`, `cat-pflaume`, `cat-gold`, `cat-schiefer` (diese Reihenfolge), nur für Punkte und Flächen.
+- **Schrift:** Manrope (`font-display`, 600/700/800) für Überschriften, Source Sans 3 (`font-sans`, 400/600) für Text, JetBrains Mono (`font-mono`) für IDs und Code. Skala: `text-display`, `text-h1`, `text-h2`, `text-h3`, `text-body-lg`, `text-body`, `text-body-sm`, `text-label`, `text-caption`. Nie unter 14 px Fließtext.
+- **Form:** 4-px-Raster. Radien: `rounded-md` 8 px (Buttons, Felder), `rounded-lg` 12 px (Karten, Dialoge), `rounded-full` (Badges). Schatten nur `shadow-card` und `shadow-overlay`. Keine Verläufe, keine farbigen Schatten, keine farbigen Randstreifen an Karten.
+- **Layout:** Inhalt max. 1120 px, Lesebreite max. 680 px, mobil zuerst, Touch-Ziele mindestens 44 px.
+- **Icons:** nur `lucide-react`, `strokeWidth={1.75}`, 20 px in Oberflächen, 16 px in Badges. Icon immer mit Text, sonst `aria-label`.
+- **Logo:** Komponente `components/logo.tsx` (`<Logo />`, `<LogoMark />`). Nie umfärben, nie unter 16 px, nie auf `accent`-Fläche.
+- **Barrierefreiheit:** Text ≥ 4,5:1, Fokusring 2 px in `focus-ring`, Zustände nie nur über Farbe, Animationen aus bei `prefers-reduced-motion`.
+
 ## Repo-Struktur
 
 ```txt
@@ -85,6 +100,7 @@ supabase/            # migrations/, functions/, seed.sql
 eval/                # Golden Dataset + Eval-Skript
 tests/               # unit/, integration/, e2e/, load/
 docs/adr/            # Architekturentscheidungen
+.github/             # CI, PR- und Issue-Vorlagen
 ```
 
 Nicht alle Ordner existieren schon. Neue Ordner nach diesem Schema anlegen.
@@ -99,6 +115,19 @@ corepack pnpm lint        # ESLint
 ```
 
 Tipp: Mit `corepack enable` geht danach einfach `pnpm …`.
+
+### Repo liegt in einem iCloud-Ordner (z. B. Desktop)?
+
+iCloud lagert Dateien aus `node_modules` aus, dann hängen Lint und Build. Lösung: Die echten Ordner heißen `node_modules.nosync` und `.next.nosync` (iCloud ignoriert `.nosync`), `node_modules` und `.next` sind Symlinks darauf:
+
+```bash
+rm -rf node_modules .next
+mkdir node_modules.nosync .next.nosync
+ln -s node_modules.nosync node_modules && ln -s .next.nosync .next
+corepack pnpm install
+```
+
+Besser noch: Repo außerhalb von iCloud klonen (z. B. `~/Developer/CoFuture`).
 
 ## Zusammenarbeit im Team über GitHub
 
