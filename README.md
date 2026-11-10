@@ -2,7 +2,7 @@
 
 **Entscheidungen, die alle verstehen.** Zusammenarbeit neu denken. Mit KI.
 
-[![CI](https://github.com/constantin-loesch/CoFuture/actions/workflows/ci.yml/badge.svg)](https://github.com/constantin-loesch/CoFuture/actions/workflows/ci.yml) ![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-1D4E89)
+[![CI](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml/badge.svg)](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml) ![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-1D4E89)
 
 CoFuture ist eine KI-gestützte Plattform, die Kommunikation und Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden automatisiert und für alle transparent macht. Die KI fasst zusammen, sortiert, protokolliert und verknüpft Wissen. Entscheiden tun die Menschen.
 
@@ -94,7 +94,7 @@ cofuture/
 Voraussetzungen: Node.js 22 (siehe `.nvmrc`), pnpm über corepack.
 
 ```bash
-git clone https://github.com/constantin-loesch/CoFuture.git
+git clone https://github.com/Co-Future/CoFuture.git
 cd CoFuture
 corepack pnpm install
 cp .env.example .env.local   # Werte eintragen, sobald Supabase und KI angebunden sind
