@@ -66,13 +66,13 @@ Asynchrone Abstimmungsrunden statt Live-Meetings:
 | --- | --- |
 | Sprache | TypeScript |
 | Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4, shadcn/ui, PWA |
-| API | Next.js Route Handlers, Zod |
+| API | Next.js Route Handlers (REST), Zod |
 | Datenbank | PostgreSQL bei Supabase (Frankfurt), Row Level Security, pgvector |
-| Auth & Storage | Supabase Auth (Magic Link), Supabase Storage |
-| Hintergrundjobs | Job-Queue + Worker, `pg_cron` |
-| KI | Whisper-API (Speech-to-Text), Claude oder OpenAI mit Structured Output |
-| E-Mail | Resend |
-| Hosting | Vercel + Supabase (EU) |
+| Auth & Storage | Supabase Auth (E-Mail + Passwort), Supabase Storage (Audio direkt aus dem Browser) |
+| Hintergrundjobs | Job-Queue + Worker als Next.js-Route auf Vercel, `pg_cron` |
+| KI | Whisper large-v3 über Groq (Speech-to-Text), Mistral mit Structured Output; Claude/OpenAI als Reserve |
+| E-Mail | später Resend |
+| Hosting | Vercel + Supabase (EU), Gratis-Tarife |
 | Tests | Vitest, Playwright, eigenes KI-Eval-Skript |
 
 ## Geplante Repo-Struktur
@@ -82,8 +82,9 @@ cofuture/
 ├─ app/             # Next.js Seiten und API
 ├─ components/      # UI-Komponenten
 ├─ lib/             # db/, ai/, stt/, validation/
+├─ docs/adr/        # Architekturentscheidungen
 ├─ prompts/         # versionierte Prompts
-├─ supabase/        # Migrationen, Edge Functions, Seed
+├─ supabase/        # Migrationen (inkl. RLS), Seed
 ├─ eval/            # Golden Dataset + Eval-Skript
 ├─ tests/           # unit, integration, e2e, load
 └─ .github/         # CI

@@ -52,23 +52,23 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 | Frontend | Next.js 16 (App Router, Server Components), React 19 |
 | UI | Tailwind CSS 4, shadcn/ui (Radix), lucide-react, CoFuture-Designsprache (siehe unten) |
 | Client-State / Formulare | TanStack Query, React Hook Form + Zod |
-| Audio | MediaRecorder API (WebM/Opus, iOS: MP4/AAC) |
+| Audio | MediaRecorder API (WebM/Opus, iOS: MP4/AAC), Bitrate in Sprachqualität (ca. 32 kbit/s) |
 | Auslieferung | Web-App als PWA (kein Electron) |
-| API | Next.js Route Handlers + Zod, einheitliches Fehlerformat |
+| API | Next.js Route Handlers (REST) + Zod, einheitliches Fehlerformat; Server Actions nur für kleine UI-Sachen |
 | Datenbank | PostgreSQL bei Supabase (Frankfurt), Row Level Security, pgvector |
 | Migrationen | Supabase CLI, SQL im Repo, generierte TS-Typen |
-| Auth | Supabase Auth (Magic Link), `@supabase/ssr` |
-| Storage | Supabase Storage, privater Bucket, Audio max. 24 h |
-| Jobs | Tabelle `analysis_jobs` + Worker, `pg_cron` für Fristen |
+| Auth | Supabase Auth mit E-Mail + Passwort (E-Mail-Bestätigung aus), `@supabase/ssr`; Magic Link später |
+| Storage | Supabase Storage, privater Bucket, Audio max. 24 h; Upload direkt aus dem Browser per signierter URL, nie durch eine Vercel-Funktion (Limit 4,5 MB) |
+| Jobs | Tabelle `analysis_jobs` + Worker als Next.js-Route auf Vercel (max. 300 s je Lauf, Arbeit in kleinen Schritten), `pg_cron` + `pg_net` für Fristen und Worker-Takt |
 | Live-Updates | Supabase Realtime, Fallback Polling |
-| Speech-to-Text | Whisper-API (hinter Adapter in `lib/stt/`) |
-| LLM | Claude oder OpenAI mit Structured Output (hinter Adapter in `lib/ai/`, Entscheidung im PoC) |
-| E-Mail | Resend |
-| Hosting | Vercel (Frankfurt) + Supabase EU |
+| Speech-to-Text | Whisper large-v3 über Groq, Gratis-Tarif (hinter Adapter in `lib/stt/`) |
+| LLM | Mistral (Experiment-Tarif, Training abgeschaltet) mit Structured Output; Claude oder OpenAI als Reserve (hinter Adapter in `lib/ai/`, Qualität im PoC prüfen) |
+| E-Mail | vorerst keine; später Resend + eigene Domain (für Magic Link und Benachrichtigungen) |
+| Hosting | Vercel Hobby (Functions Frankfurt) + Supabase Free EU (Projekte Staging und Prod) |
 | Tests | Vitest, Testing Library, Playwright + axe, k6, eigenes KI-Eval |
 | Paketmanager | **pnpm** (über `corepack`) |
 
-Offene Entscheidungen (bis Architektur-Review M3, 03.12.) werden als ADR in `docs/adr/` festgehalten.
+Entscheidungen stehen als ADR in `docs/adr/` (Stand 12.11.2026: Vorschläge, Zustimmung im Team bis Architektur-Review M3, 03.12.). Begründung und Kosten: Notion-Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
 
 ## Designsprache
 
@@ -185,7 +185,8 @@ Die genaue Verteilung steht in Notion (*Arbeitspakete & Aufgaben*, Ansicht *Vert
 - Erst den passenden Branch anlegen bzw. prüfen, dass man nicht auf `main` arbeitet.
 - Nicht selbstständig auf `main` pushen, mergen oder Force-Pushen. Pushen nur auf den eigenen Feature-Branch.
 - Bestehende Muster im Code übernehmen, statt neue Bibliotheken einzuführen. Neue Abhängigkeiten im PR begründen.
-- KI-Aufrufe immer über die Adapter in `lib/ai/` bzw. `lib/stt/`, nie direkt aus Komponenten.
+- KI-Aufrufe immer über die Adapter in `lib/ai/` bzw. `lib/stt/`, nie direkt aus Komponenten. Schwere Arbeit (Transkription, Analyse) läuft als Job im Worker, nie im Request.
+- An Gratis-KI-Tarife gehen nur ausgedachte Testdaten.
 - Jede Ausgabe der KI per Zod/JSON-Schema validieren; Aussagen ohne Quell-ID verwerfen.
 - UI-Texte auf Deutsch, Code (Variablen, Funktionen, Kommentare) auf Englisch.
 - Barrierefreiheit mitdenken: semantisches HTML, Fokus sichtbar, Kontraste, Tastaturbedienung.
