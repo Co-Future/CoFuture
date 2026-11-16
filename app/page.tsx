@@ -16,6 +16,7 @@ import {
   UserRoundCheck,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { PerspectiveMap } from "@/components/perspective-map";
 
@@ -103,12 +104,17 @@ export default function Home() {
             <a href="#prinzipien" className="hover:text-ink">Prinzipien</a>
             <a href="#module" className="hover:text-ink">Module</a>
           </div>
-          <a
-            href="#demo"
-            className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-label text-on-primary transition-colors hover:bg-primary-hover"
-          >
-            Demo ansehen
-          </a>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-label text-ink-muted hover:text-ink">
+              Anmelden
+            </Link>
+            <a
+              href="#demo"
+              className="inline-flex min-h-10 items-center rounded-md bg-primary px-4 text-label text-on-primary transition-colors hover:bg-primary-hover"
+            >
+              Demo ansehen
+            </a>
+          </div>
         </nav>
       </header>
 

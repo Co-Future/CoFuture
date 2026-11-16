@@ -38,7 +38,31 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Do not put code between client creation and this call: it triggers the refresh.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims);
+  const { pathname } = request.nextUrl;
+
+  // Optimistic redirects for a smooth flow. The real check is getCurrentUser() plus RLS.
+  if (!signedIn && isProtectedPath(pathname)) return redirectTo("/login", request, response);
+  if (signedIn && isAuthPath(pathname)) return redirectTo("/app", request, response);
 
   return response;
+}
+
+export function isProtectedPath(pathname: string): boolean {
+  return pathname === "/app" || pathname.startsWith("/app/");
+}
+
+export function isAuthPath(pathname: string): boolean {
+  return pathname === "/login" || pathname === "/registrieren";
+}
+
+/** Redirects while keeping any refreshed auth cookies from the session update. */
+function redirectTo(path: string, request: NextRequest, sessionResponse: NextResponse) {
+  const url = request.nextUrl.clone();
+  url.pathname = path;
+  url.search = "";
+  const redirect = NextResponse.redirect(url);
+  for (const cookie of sessionResponse.cookies.getAll()) redirect.cookies.set(cookie);
+  return redirect;
 }
