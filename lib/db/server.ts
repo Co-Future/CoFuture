@@ -8,8 +8,9 @@ import type { Database } from "./types";
  * Acts as the signed-in user (RLS applies). Create a new client per request.
  */
 export async function createClient() {
-  const env = publicEnv();
+  // Read cookies first: during prerendering this suspends, so a build never needs the env vars.
   const cookieStore = await cookies();
+  const env = publicEnv();
 
   return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
