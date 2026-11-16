@@ -70,7 +70,7 @@ Asynchrone Abstimmungsrunden statt Live-Meetings:
 | Datenbank | PostgreSQL bei Supabase (Frankfurt), Row Level Security, pgvector |
 | Auth & Storage | Supabase Auth (E-Mail + Passwort), Supabase Storage (Audio direkt aus dem Browser) |
 | Hintergrundjobs | Job-Queue + Worker als Next.js-Route auf Vercel, `pg_cron` |
-| KI | Whisper large-v3 über Groq (Speech-to-Text), Mistral mit Structured Output; Claude/OpenAI als Reserve |
+| KI | Whisper large-v3-turbo über Groq (Speech-to-Text), Gemini 3.5 Flash mit Structured Output; Groq qwen als Reserve |
 | E-Mail | später Resend |
 | Hosting | Vercel + Supabase (EU), Gratis-Tarife |
 | Tests | Vitest, Playwright, eigenes KI-Eval-Skript |

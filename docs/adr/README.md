@@ -15,8 +15,8 @@ Stand 12.11.2026: alle vorgeschlagen, Zustimmung im Team bis zum Architektur-Rev
 | [001](001-web-framework-nextjs.md) | Web-Framework | Next.js 16 |
 | [002](002-backend-datenbank-supabase.md) | Backend & Datenbank | Supabase (PostgreSQL, Frankfurt) |
 | [003](003-hosting-vercel.md) | Hosting | Vercel Hobby, Region Frankfurt |
-| [004](004-speech-to-text-groq-whisper.md) | Speech-to-Text | Whisper large-v3 über Groq |
-| [005](005-sprachmodell-mistral.md) | Sprachmodell | Mistral, Reserve Claude/OpenAI |
+| [004](004-speech-to-text-groq-whisper.md) | Speech-to-Text | Whisper large-v3-turbo über Groq |
+| [005](005-sprachmodell.md) | Sprachmodell | Gemini 3.5 Flash, Reserve Groq qwen |
 | [006](006-vektorsuche-pgvector.md) | Vektorsuche | pgvector |
 | [007](007-auslieferung-web-app-pwa.md) | Auslieferung | Web-App + PWA, kein Electron |
 | [008](008-login-email-passwort.md) | Login | E-Mail + Passwort, Magic Link später |
