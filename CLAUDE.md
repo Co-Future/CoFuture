@@ -62,7 +62,7 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 | Jobs | Tabelle `analysis_jobs` + Worker als Next.js-Route auf Vercel (max. 300 s je Lauf, Arbeit in kleinen Schritten), `pg_cron` + `pg_net` für Fristen und Worker-Takt |
 | Live-Updates | Supabase Realtime, Fallback Polling |
 | Speech-to-Text | Whisper large-v3-turbo über Groq, Gratis-Tarif (hinter Adapter in `lib/stt/`) |
-| LLM | Gemini 3.5 Flash (bezahlter Tarif) mit Structured Output; Groq qwen3.8-27b als Gratis-Reserve und für Tests (hinter Adapter in `lib/ai/`, PoC: `eval/poc/REPORT.md`) |
+| LLM | Gemini 3.5 Flash mit Structured Output (Gratistarif während der Entwicklung, bezahlt vor echten Nutzern); Groq qwen3.8-27b als Gratis-Reserve und für Tests (hinter Adapter in `lib/ai/`, PoC: `eval/poc/REPORT.md`) |
 | E-Mail | vorerst keine; später Resend + eigene Domain (für Magic Link und Benachrichtigungen) |
 | Hosting | Vercel Hobby (Functions Frankfurt) + Supabase Free EU (Projekte Staging und Prod) |
 | Tests | Vitest, Testing Library, Playwright + axe, k6, eigenes KI-Eval |
