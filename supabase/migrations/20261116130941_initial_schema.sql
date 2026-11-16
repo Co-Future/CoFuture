@@ -56,7 +56,7 @@ create table public.responses (
   id uuid primary key default gen_random_uuid(),
   round_id uuid not null references public.rounds (id) on delete cascade,
   author_id uuid not null default auth.uid() references public.profiles (id) on delete cascade,
-  pseudonym text not null,
+  pseudonym text not null default '', -- always set by the assign_pseudonym trigger
   source public.response_source not null default 'text',
   body text not null check (char_length(body) between 1 and 10000),
   created_at timestamptz not null default now(),

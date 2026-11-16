@@ -9,9 +9,9 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.ts",
-    "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --linked > lib/db/types.ts"
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "db:push": "supabase db push --remote=zdvxffleftcnomgexshy",
+    "db:types": "supabase gen types typescript --remote=zdvxffleftcnomgexshy --schema public > lib/db/types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

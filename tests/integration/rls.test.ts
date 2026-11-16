@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
+import type { Database } from "@/lib/db/types";
 import { publicEnv } from "@/lib/env";
 
 /**
@@ -11,8 +12,8 @@ import { publicEnv } from "@/lib/env";
 const env = publicEnv();
 const run = crypto.randomUUID().slice(0, 8);
 
-async function signUp(name: string): Promise<{ client: SupabaseClient; userId: string }> {
-  const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+async function signUp(name: string): Promise<{ client: SupabaseClient<Database>; userId: string }> {
+  const client = createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data, error } = await client.auth.signUp({
@@ -37,7 +38,7 @@ describe("row level security", () => {
 
     const team = await lead.client.rpc("create_team", { p_name: `Testteam ${run}` });
     expect(team.error).toBeNull();
-    teamId = team.data.id;
+    teamId = team.data!.id;
 
     const added = await lead.client.from("team_members").insert({ team_id: teamId, user_id: member.userId });
     expect(added.error).toBeNull();
