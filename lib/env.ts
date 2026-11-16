@@ -13,7 +13,7 @@ const publicSchema = z.object({
 const serverSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1).optional(),
   GROQ_API_KEY: z.string().min(1).optional(),
-  MISTRAL_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: z.string().min(1).optional(),
   WORKER_SECRET: z.string().min(16).optional(),
 });
 
