@@ -13,7 +13,8 @@ import {
 
 type Phase = "mvp" | "later";
 
-type PlannedFeature = {
+export type PlannedFeature = {
+  id: string;
   title: string;
   description: string;
   phase: Phase;
@@ -21,56 +22,65 @@ type PlannedFeature = {
 };
 
 // Mirrors the scope in CLAUDE.md (MVP + MoSCoW). Remove an entry once the feature ships.
-const features: PlannedFeature[] = [
+export const plannedFeatures: PlannedFeature[] = [
   {
+    id: "beschluesse",
     title: "Beschlüsse",
     description: "Aus einer Runde wird ein Beschluss mit Begründung, der an alle im Team geht.",
     phase: "mvp",
     Icon: Gavel,
   },
   {
+    id: "wissensspeicher",
     title: "Wissensspeicher",
     description: "Beschlüsse und Antworten bleiben auffindbar, auch mit Suche nach Bedeutung statt nur nach Wörtern.",
     phase: "mvp",
     Icon: BookOpen,
   },
   {
+    id: "rueckkanal",
     title: "Rückkanal",
     description: "Fragen und Hinweise an die Leitung, auf Wunsch pseudonym. Antworten sehen alle.",
     phase: "mvp",
     Icon: MessagesSquare,
   },
   {
+    id: "statusrunden",
     title: "Statusrunden",
     description: "Kurze, wiederkehrende Runden zu Fristen und offenen Aufgaben.",
     phase: "later",
     Icon: ListChecks,
   },
   {
+    id: "besprechungen",
     title: "Besprechungen",
     description: "Interne und externe Termine vor- und nachbereiten, mit Zusammenfassung und Aufgaben.",
     phase: "later",
     Icon: CalendarClock,
   },
   {
+    id: "e-mail",
     title: "E-Mail-Zusammenfassung",
     description: "Lange E-Mail-Verläufe kurz zusammengefasst, mit Verweis auf die Original-Nachrichten.",
     phase: "later",
     Icon: Mail,
   },
   {
+    id: "kundenkontakt",
     title: "Kundenkontakt",
     description: "Kundenanliegen gesammelt an einem Ort, damit das Team gemeinsam antworten kann.",
     phase: "later",
     Icon: Headset,
   },
   {
+    id: "webseiten-anfragen",
     title: "Webseiten-Anfragen",
     description: "Anfragen über die Webseite landen strukturiert im Team.",
     phase: "later",
     Icon: Globe,
   },
   {
+    id: "stimmungsbild",
     title: "Stimmungsbild",
     description: "Anonymes Bild für das Team als Ganzes. Keine Auswertung einzelner Personen.",
     phase: "later",
@@ -78,25 +88,27 @@ const features: PlannedFeature[] = [
   },
 ];
 
-const phaseLabel: Record<Phase, string> = {
+export const phaseLabel: Record<Phase, string> = {
   mvp: "In Arbeit",
   later: "Geplant",
 };
 
-export function PlannedFeatures() {
+export function PlannedFeatures({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2" }) {
+  const Heading = headingLevel;
   return (
     <section aria-labelledby="planned-heading">
-      <h2 id="planned-heading" className="text-h2">
+      <Heading id="planned-heading" className={headingLevel === "h1" ? "text-h1" : "text-h2"}>
         Kommt noch
-      </h2>
+      </Heading>
       <p className="mt-1 mb-4 max-w-[680px] text-body-sm text-ink-muted">
         Diese Funktionen sind geplant und noch nicht nutzbar. So siehst du schon jetzt, wohin CoFuture wächst.
       </p>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map(({ title, description, phase, Icon }) => (
+        {plannedFeatures.map(({ id, title, description, phase, Icon }) => (
           <li
-            key={title}
-            className="flex flex-col gap-2 rounded-lg border border-dashed border-line bg-paper p-4"
+            key={id}
+            id={id}
+            className="flex scroll-mt-24 flex-col gap-2 rounded-lg border border-dashed border-line bg-paper p-4 target:border-primary"
           >
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2 text-h3 text-ink-muted">

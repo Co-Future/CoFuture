@@ -1,4 +1,4 @@
-import { ArrowLeft, Hourglass, ShieldCheck, User } from "lucide-react";
+import { Hourglass, ShieldCheck, User } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -100,7 +100,7 @@ async function OrganizationDetail() {
                 ))}
               </ul>
             ) : (
-              <p className="text-body-sm text-ink-muted">Noch keine Teams. Leg eins in der Übersicht an.</p>
+              <p className="text-body-sm text-ink-muted">Noch keine Teams. Leg eins über „Team anlegen“ im Menü an.</p>
             )}
           </section>
         </aside>
@@ -111,14 +111,8 @@ async function OrganizationDetail() {
 
 export default function OrganizationPage() {
   return (
-    <>
-      <Link href="/app" className="mb-6 inline-flex min-h-11 items-center gap-2 text-label text-primary underline">
-        <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
-        Zur Übersicht
-      </Link>
-      <Suspense fallback={<p className="text-body text-ink-muted">Organisation wird geladen …</p>}>
-        <OrganizationDetail />
-      </Suspense>
-    </>
+    <Suspense fallback={<p className="text-body text-ink-muted">Organisation wird geladen …</p>}>
+      <OrganizationDetail />
+    </Suspense>
   );
 }
