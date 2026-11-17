@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/db/client";
+import { subscribeToChanges } from "@/lib/db/realtime";
 
 type Props = {
   /** Which rounds to watch: all of a team, or a single round. */
@@ -34,26 +35,12 @@ export function RoundsLiveRefresh({ filter, openDeadlines }: Props) {
       router.refresh();
     };
 
-    const supabase = createClient();
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    let cancelled = false;
-
-    // Hand the user's token to Realtime BEFORE joining. Otherwise the join runs as an
-    // anonymous visitor, and RLS (rightly) lets anonymous visitors see nothing.
-    void (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (cancelled || !data.session) return;
-      await supabase.realtime.setAuth(data.session.access_token);
-      if (cancelled) return;
-      channel = supabase
-        .channel(`rounds:${filter.column}:${filter.value}`)
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "rounds", filter: `${filter.column}=eq.${filter.value}` },
-          refresh,
-        )
-        .subscribe();
-    })();
+    const unsubscribe = subscribeToChanges(
+      createClient(),
+      `rounds:${filter.column}:${filter.value}`,
+      { table: "rounds", filter: `${filter.column}=eq.${filter.value}` },
+      refresh,
+    );
 
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
@@ -61,9 +48,8 @@ export function RoundsLiveRefresh({ filter, openDeadlines }: Props) {
     document.addEventListener("visibilitychange", onVisible);
 
     return () => {
-      cancelled = true;
       document.removeEventListener("visibilitychange", onVisible);
-      if (channel) void supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [filter.column, filter.value, router]);
 

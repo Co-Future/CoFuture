@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -32,7 +32,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
     supabase.from("responses").select("body, pseudonym").eq("round_id", round.id).maybeSingle(),
     supabase.rpc("round_response_count", { p_round_id: round.id }),
     supabase.from("team_members").select("role").eq("team_id", round.team_id).eq("user_id", user.id).eq("role", "lead").maybeSingle(),
-    supabase.from("round_responses").select("id, pseudonym, body, is_own").eq("round_id", round.id).order("pseudonym"),
+    supabase.from("round_responses").select("id, pseudonym, body, is_own, source").eq("round_id", round.id).order("pseudonym"),
   ]);
 
   const deadlinePassed = isPast(round.deadline);
@@ -95,9 +95,17 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               <ul className="flex flex-col gap-3">
                 {answers.map((answer) => (
                   <li key={answer.id} className="rounded-lg border border-line bg-card p-4 shadow-card">
-                    <p className="mb-2 font-mono text-body-sm text-ink-muted">
-                      {answer.pseudonym}
-                      {answer.is_own ? " (du)" : ""}
+                    <p className="mb-2 flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
+                      <span className="font-mono">
+                        {answer.pseudonym}
+                        {answer.is_own ? " (du)" : ""}
+                      </span>
+                      {answer.source === "voice" ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Mic size={16} strokeWidth={1.75} aria-hidden />
+                          per Sprache
+                        </span>
+                      ) : null}
                     </p>
                     <p className="whitespace-pre-line text-body">{answer.body}</p>
                   </li>
