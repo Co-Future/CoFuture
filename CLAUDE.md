@@ -69,7 +69,7 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 | Tests | Vitest, Testing Library, Playwright + axe, k6, eigenes KI-Eval |
 | Paketmanager | **pnpm** (über `corepack`) |
 
-Entscheidungen stehen als ADR in `docs/adr/` (Stand 12.11.2026: Vorschläge, Zustimmung im Team bis Architektur-Review M3, 03.12.). Begründung und Kosten: Notion-Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
+Entscheidungen stehen als ADR in `docs/adr/`. Eine ADR gilt, sobald Constantin oder Luca sie freigeben (siehe *Freigaben*). Begründung und Kosten: Notion-Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
 
 ## Designsprache
 
@@ -150,11 +150,15 @@ Wir sind fünf Leute, die parallel (oft jeweils mit Claude Code) am selben Repo 
 
 ### Pull Requests
 
-- Jede Änderung geht über einen PR mit **mindestens einem Review** einer anderen Person.
+- Jede Änderung geht über einen PR. **Freigabe:** Es reicht, wenn Constantin oder Luca „passt“ sagen (Kommentar oder Approve im PR, auch beim eigenen PR). Ein weiteres Review aus dem Team ist nicht nötig.
 - PRs klein halten (Richtwert < 400 geänderte Zeilen). Lieber mehrere PRs.
 - Im PR beschreiben: Was, warum, wie getestet, Screenshot bei UI-Änderungen, Link zur Notion-Aufgabe.
 - Vor dem PR müssen `pnpm lint` und `pnpm build` lokal durchlaufen.
 - Merge per **Squash**, Branch danach löschen.
+
+### Freigaben
+
+Constantin und Luca geben frei: PRs, ADRs und Änderungen an Regeln oder geteilten Dateien. Ein OK von einem der beiden genügt. Das Team muss nichts zusätzlich abnicken. Gemergt wird erst nach diesem OK und mit grüner CI.
 
 ### Konflikte vermeiden
 
@@ -168,7 +172,7 @@ Wir sind fünf Leute, die parallel (oft jeweils mit Claude Code) am selben Repo 
 - **Keine Schlüssel, Tokens oder echten Personendaten ins Repo.** Auch nicht in Tests oder Seed-Daten.
 - Benötigte Variablen stehen ohne Werte in `.env.example`. Echte Werte in `.env.local` (ignoriert) und in Vercel.
 
-### Zuständigkeiten (Hauptverantwortung, Reviews gern quer)
+### Zuständigkeiten (Hauptverantwortung, Reviews gern quer, Freigabe durch Constantin oder Luca)
 
 | Bereich | Verantwortlich |
 | --- | --- |
@@ -184,7 +188,7 @@ Die genaue Verteilung steht in Notion (*Arbeitspakete & Aufgaben*, Ansicht *Vert
 
 - **Next.js 16 weicht von älterem Wissen ab.** Vor neuem Next.js-Code die passende Doku in `node_modules/next/dist/docs/` lesen (siehe AGENTS.md).
 - Erst den passenden Branch anlegen bzw. prüfen, dass man nicht auf `main` arbeitet.
-- Nicht selbstständig auf `main` pushen, mergen oder Force-Pushen. Pushen nur auf den eigenen Feature-Branch.
+- Nicht selbstständig auf `main` pushen, mergen oder Force-Pushen. Pushen nur auf den eigenen Feature-Branch. Mergen erst, wenn Constantin oder Luca im Chat oder im PR ausdrücklich OK gegeben haben.
 - Bestehende Muster im Code übernehmen, statt neue Bibliotheken einzuführen. Neue Abhängigkeiten im PR begründen.
 - KI-Aufrufe immer über die Adapter in `lib/ai/` bzw. `lib/stt/`, nie direkt aus Komponenten. Schwere Arbeit (Transkription, Analyse) läuft als Job im Worker, nie im Request.
 - An Gratis-KI-Tarife gehen nur ausgedachte Testdaten.

@@ -230,7 +230,7 @@ Wir arbeiten zu fünft parallel im Repo. Kurzfassung:
 
 1. Branch von `main` anlegen: `feat/…`, `fix/…`, `docs/…`
 2. Kleine Commits im Format [Conventional Commits](https://www.conventionalcommits.org/de/)
-3. Pull Request mit Vorlage, mindestens ein Review, CI muss grün sein. Bauen PRs aufeinander auf, immer den ältesten zuerst mergen.
+3. Pull Request mit Vorlage, Freigabe durch Constantin oder Luca, CI muss grün sein. Bauen PRs aufeinander auf, immer den ältesten zuerst mergen.
 4. Squash-Merge, Branch löschen
 
 Alle Regeln stehen in [`CLAUDE.md`](CLAUDE.md#zusammenarbeit-im-team-über-github).
