@@ -164,6 +164,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invites_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -234,7 +241,15 @@ export type Database = {
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -530,17 +545,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
-      is_team_member: { Args: { p_team_id: string }; Returns: boolean }
-      round_response_count: { Args: { p_round_id: string }; Returns: number }
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
+      is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
+      is_team_member: { Args: { p_team_id: string }; Returns: boolean }
       my_organization_id: { Args: never; Returns: string }
       organization_people: {
         Args: { p_org_id: string }
         Returns: {
           display_name: string
-          email: string | null
+          email: string
           joined_at: string
           pending: boolean
           role: Database["public"]["Enums"]["org_role"]
@@ -551,6 +565,7 @@ export type Database = {
         Args: { p_org_id: string; p_user_id: string }
         Returns: undefined
       }
+      round_response_count: { Args: { p_round_id: string }; Returns: number }
       shares_org_with: { Args: { p_user_id: string }; Returns: boolean }
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
