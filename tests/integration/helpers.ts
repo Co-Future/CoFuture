@@ -24,3 +24,17 @@ export async function signUp(name: string): Promise<TestUser> {
 }
 
 export const testRun = run;
+
+/**
+ * Deletes all accounts of this run (and teams only they were in). Needs SUPABASE_SECRET_KEY;
+ * without it the hourly database job purge-test-users cleans up.
+ */
+export async function cleanUpTestRun(): Promise<void> {
+  const secret = process.env.SUPABASE_SECRET_KEY;
+  if (!secret) return;
+  const admin = createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, secret, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await admin.rpc("purge_test_users", { p_run: run });
+  if (error) console.warn(`Testnutzer konnten nicht gelöscht werden: ${error.message}`);
+}

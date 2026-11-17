@@ -568,6 +568,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      purge_test_users: {
+        Args: { p_older_than?: unknown; p_run?: string }
+        Returns: number
+      }
       remove_organization_member: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: undefined
