@@ -18,14 +18,30 @@ Jeder Fehler hat dieselbe Form:
 | `invalid_json`, `validation_failed` | 400 | Anfrage fehlerhaft |
 | `forbidden` | 403 | Keine Berechtigung |
 | `not_found`, `user_not_found` | 404 | Nicht vorhanden bzw. kein Konto zu dieser E-Mail |
-| `already_member`, `last_lead`, `round_closed`, `invalid_status` | 409 | Konflikt mit dem aktuellen Zustand |
+| `invite_invalid` | 410 | Zugangslink abgelaufen oder schon benutzt |
+| `already_member`, `email_exists`, `last_lead`, `last_admin`, `self`, `round_closed`, `invalid_status` | 409 | Konflikt mit dem aktuellen Zustand |
+
+## Organisationen und Zugang
+
+Organisationen bündeln Personen und Teams (ADR 011). Eine Person kann in mehreren sein. Welche gerade gewählt ist, steht im Cookie `cofuture_org`; die Datenbank prüft immer die Mitgliedschaft.
+
+| Methode | Pfad | Body | Antwort | Wer |
+| --- | --- | --- | --- | --- |
+| `POST` | `/api/organizations` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Admin; App wechselt dorthin |
+| `POST` | `/api/organizations/current` | `{ "organizationId": uuid }` | `204` | Mitglieder der Organisation |
+| `POST` | `/api/organizations/{orgId}/members` | `{ "displayName": string, "email": string, "teamId"?: uuid }` | `201 { userId, link }`, `link` ist `null`, wenn es schon ein Konto gab | Admins |
+| `POST` | `/api/organizations/{orgId}/members/{userId}/link` | – | `201 { link }` | Admins; macht ältere Links ungültig |
+| `DELETE` | `/api/organizations/{orgId}/members/{userId}` | – | `204` | Admins; entfernt auch aus allen Teams der Organisation |
+| `POST` | `/api/invites/accept` | `{ "token": string, "password": string }` | `200 { email }` | ohne Login, mit gültigem Link |
+
+Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert wird nur der SHA-256-Hash des Tokens, die Tabelle `invites` ist für Clients gesperrt. Personenlisten liefert die Funktion `organization_people`; E-Mail-Adressen sehen nur Admins.
 
 ## Teams
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/teams` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Leitung |
-| `POST` | `/api/teams/{teamId}/members` | `{ "email": string }` | `201 { status: "added" }` | Leitung |
+| `POST` | `/api/teams` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Leitung; Team gehört zur gewählten Organisation |
+| `POST` | `/api/teams/{teamId}/members` | `{ "userId": uuid }` oder `{ "email": string }` | `201 { status: "added" }` | Leitung; Teams einer Organisation nehmen nur Personen daraus auf |
 | `DELETE` | `/api/teams/{teamId}/members/{userId}` | – | `204` | Leitung (beliebige Mitglieder), alle (sich selbst) |
 
 ## Runden und Antworten
@@ -65,4 +81,4 @@ Der Aufruf startet einen wartenden Auftrag (`after()`), `claim_jobs` sorgt dafü
 
 Das Ergebnis steht in `analyses` (eine Zeile pro Runde, mit `provider`, `model`, `prompt_version`, `duration_ms`), lesbar für alle im Team, per Realtime.
 
-Lesen (Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.
+Lesen (Organisationen, Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.

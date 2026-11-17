@@ -2,91 +2,205 @@
 
 **Entscheidungen, die alle verstehen.** Zusammenarbeit neu denken. Mit KI.
 
-[![CI](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml/badge.svg)](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml) ![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-1D4E89)
+[![CI](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml/badge.svg)](https://github.com/Co-Future/CoFuture/actions/workflows/ci.yml) ![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-1D4E89) ![Next.js 16](https://img.shields.io/badge/Next.js-16-1D4E89) ![Supabase](https://img.shields.io/badge/Supabase-Frankfurt-1D4E89)
 
-CoFuture ist eine KI-gestützte Plattform, die Kommunikation und Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden automatisiert und für alle transparent macht. Die KI fasst zusammen, sortiert, protokolliert und verknüpft Wissen. Entscheiden tun die Menschen.
+CoFuture ist eine Plattform für Kommunikation und Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden. Die KI fasst zusammen, sortiert und belegt. Entscheiden tun die Menschen.
 
 > **Leitfrage:** Wie kann KI die Kommunikation und den Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden automatisieren, ohne dass Menschen die Entscheidung abgeben?
 
-Entstanden im Seminar „Zurück in die Digitale Zukunft“.
+> **Diese README ist der zentrale Ausgangspunkt** für Ziel, Scope, Stand und Planung. Es gibt kein separates Planungstool. Wer etwas fertigstellt oder den Plan ändert, passt die README im selben PR an.
 
-> **Diese README ist der zentrale Ausgangspunkt** für Ziel, Scope, Stand und Planung. Es gibt kein separates Tool (kein Notion, kein ClickUp). Wer etwas fertigstellt oder den Plan ändert, passt die README im selben PR an.
+**Inhalt:** [Überblick](#überblick) · [Stand](#stand) · [Roadmap](#roadmap) · [Architektur](#architektur) · [Lokal einrichten](#lokal-einrichten) · [Betrieb](#betrieb) · [Mitmachen](#mitmachen) · [Team](#team)
 
-## Problem
+---
+
+## Überblick
+
+### Problem
 
 - Meetings kosten viel Zeit, sind schwer zu koordinieren, und oft reden nur wenige.
 - Protokolle, Beschlüsse und Aufgaben gehen verloren.
-- Mailflut, verstreute Kundenanfragen, keine gemeinsame Kundenhistorie.
+- Kundenanfragen und E-Mails sind verstreut, es fehlt eine gemeinsame Historie.
 - Wissen steckt in Köpfen, Postfächern und Chats statt an einem durchsuchbaren Ort.
 - Stille Perspektiven gehen unter, Entscheidungen sind schwer nachvollziehbar.
 
-## Kernfeature: AsyncMeet
+### Kernfeature: AsyncMeet
 
 Asynchrone Abstimmungsrunden statt Live-Meetings:
 
-1. Eine Frage oder Entscheidungsvorlage wird eingestellt.
+1. Eine Frage oder Entscheidungsvorlage wird als Runde mit Frist eingestellt.
 2. Alle antworten per **Sprache oder Text**, wann und wo es passt.
-3. Die Sprachantwort wird transkribiert.
-4. Die KI erstellt eine **Perspektivenkarte**: Themen-Cluster, Konsens, Dissens, Einzelstimmen, jede Aussage mit Quelle.
-5. Rückfragen und Folgerunden führen zum Beschluss, der mit Begründung an alle zurückgeht.
+3. Sprachantworten werden transkribiert, das Audio wird danach gelöscht.
+4. AsyncMeet erstellt eine **Perspektivenkarte**: Themen, Konsens, Dissens, Einzelstimmen, jede Aussage mit Quelle.
+5. Rückfragen und Folgerunden führen zum Beschluss, der mit Begründung an alle geht.
 
-## Module
+### Gestaltungsprinzipien
 
-| Modul | Beschreibung |
+| Prinzip | Bedeutung |
 | --- | --- |
-| AsyncMeet | Asynchrone KI-Abstimmungsrunden mit Perspektivenkarte |
-| Besprechungen | Transkript, Zusammenfassung, Beschlüsse, Aufgaben, Protokoll |
-| E-Mails | Zusammenfassung, Priorisierung, Antwortentwürfe |
-| Kundenkontakt | Anfragen aus Mail, Webseite und Chat mit Kundenhistorie |
-| Webseite | Chat und Formular nehmen Anfragen strukturiert auf |
-| Wissensspeicher | Semantische Suche über alle Ergebnisse, mit Quellenangabe |
-| Rückkanal | Führung ↔ Mitarbeitende: Briefings, Statusrunden, Stimmungsbild |
+| Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. |
+| Inhalte statt Personen bewerten | Die KI prüft Fristen, Vollständigkeit und offene Aufgaben, nie die Leistung einzelner. |
+| Pseudonym als Standard | Antworten erscheinen als A01, A02 …, Klarnamen nur mit Zustimmung. |
+| Minderheiten sichtbar | Einzelstimmen werden markiert, nicht herausgemittelt. |
+| Belegbar | Jede KI-Aussage verweist auf mindestens eine Originalquelle, sonst wird sie verworfen. |
+| Mensch entscheidet | Die KI bereitet vor, Menschen beschließen. |
+| Datensparsam | An die KI gehen nur Pseudonyme und Texte. Alle Daten liegen in der EU. |
 
-## Gestaltungsprinzipien
+### Scope
 
-- **Gleiche Sicht für alle**: keine Sonderauswertungen nur für Führungskräfte.
-- **Inhalte statt Personen bewerten**: Die KI prüft Fristen und offene Aufgaben, bewertet aber keine Mitarbeitenden.
-- **Pseudonym als Standard**, namentlich nur mit Zustimmung.
-- **Minderheiten sichtbar**: Einzelstimmen werden markiert, nicht herausgemittelt.
-- **Belegbar**: Jede KI-Aussage verweist auf die Originalquelle.
-- **Mensch entscheidet**: Die KI bereitet vor, Team und Führung beschließen.
-- **Datenschutz**: DSGVO-konform, Hosting in der EU.
+| | Inhalt |
+| --- | --- |
+| **MVP** | Login, Organisationen und Teams, Dialogrunden, Antworten per Sprache und Text, Perspektivenkarte mit Quellen, Beschlüsse, Wissensspeicher, Rückkanal |
+| **Danach** (MoSCoW) | Statusrunden, Besprechungen, E-Mail-Zusammenfassung, Kundenkontakt, Webseiten-Anfragen, Stimmungsbild |
+| **Mandanten** | Organisationen bündeln Personen und Teams. Eine Person kann in mehreren sein ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)). |
+| **Nicht geplant** | Native Apps, Slack- oder Teams-Integration, SSO, Zahlungen |
+| **Erfolgskriterien** | End-to-End-Demo läuft, Analyse von 30 Antworten unter 60 s, 100 % der Antworten in der Karte abgedeckt, DSGVO-konform |
+| **Rahmen** | KI-Kosten unter 50 € gesamt, kostenlose Hosting-Tarife, Abgabe 05.02.2027 |
 
-## MVP-Scope
+---
 
-**Drin:** Login, Teams, Dialogrunden, Antworten per Sprache/Text, Perspektivenkarte mit Quellen, Beschluss-Workflow, Wissensspeicher, Rückkanal Führung ↔ Mitarbeitende.
+## Stand
 
-**Danach (nach MoSCoW):** Besprechungen, E-Mail, Kundenkontakt, Webseiten-Anfragen, Statusrunden, Stimmungsbild.
-
-**Nicht geplant:** native Apps, Slack/Teams-Integration, SSO, Zahlungsfunktionen.
-
-**Mandanten:** Organisationen bündeln Personen und Teams (ADR 011). Sie starten schlank und dürfen bei Bedarf ausgebaut werden.
-
-**Erfolgskriterien:** End-to-End-Demo läuft, Analyse von 30 Antworten in unter 60 s, 100 % der Antworten in der Karte abgedeckt, DSGVO-konforme Datenhaltung.
-
-## Stand der Entwicklung (17.11.2026)
-
-AsyncMeet läuft von Anfang bis Ende: Team anlegen, Runde starten, per Text oder Sprache antworten, Runde schließt (Button oder Frist), AsyncMeet erstellt die Perspektivenkarte mit Quellen.
+Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Personen per Zugangslink einladen, Team anlegen, Runde starten, per Text oder Sprache antworten, Runde schließt, AsyncMeet erstellt die Perspektivenkarte mit Quellen.
 
 | Schritt | Inhalt | Status |
 | --- | --- | --- |
 | 1 | Supabase-Fundament: Schema, Row Level Security, Pseudonyme, Tests | fertig |
-| 2 | KI-Proof-of-Concept Groq vs. Gemini ([`eval/poc/REPORT.md`](eval/poc/REPORT.md)) | fertig |
+| 2 | KI-Proof-of-Concept Groq vs. Gemini ([Bericht](eval/poc/REPORT.md)) | fertig |
 | 3 | Registrieren, Anmelden, geschützter Bereich, Teams und Mitglieder | fertig |
-| 3b | Organisationen (Mandanten), Personen anlegen, einmalige Zugangslinks, Team-Dashboard mit Vorschau geplanter Funktionen ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
-| 3c | App-Navigation: Seitenleiste mit Organisations-Menü (Wechsel zwischen mehreren Organisationen), persönliches Dashboard (was wartet auf mich), Team-Dashboards, geplante Funktionen im Menü | fertig |
-| 4 | Runden mit Frist, Textantworten, automatisches Schließen (`pg_cron`), Live-Updates | fertig |
-| 5 | Sprachantworten: Aufnahme im Browser, Upload, Transkription im Hintergrund, Audio wird gelöscht | fertig |
+| 3b | Organisationen, Personen anlegen, einmalige Zugangslinks ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
+| 3c | App-Navigation: Seitenleiste mit Organisations-Menü, persönliches Dashboard, Team-Dashboards | fertig |
+| 4 | Runden mit Frist, Textantworten, automatisches Schließen, Live-Updates | fertig |
+| 5 | Sprachantworten: Aufnahme im Browser, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
-| 7 | Beschluss-Workflow (Rückfragen, Folgerunde, Beschluss mit Begründung) | als Nächstes |
-| 8 | Wissensspeicher mit semantischer Suche (pgvector) | offen |
-| 9 | Rückkanal Führung ↔ Mitarbeitende | offen |
+| 7 | Beschlüsse | als Nächstes |
+| 8 | Wissensspeicher | offen |
+| 9 | Rückkanal | offen |
 
-Noch offen: Prod-Datenbank `cofuture-prod` einrichten (dort sind noch keine Migrationen, die App läuft gegen Staging). Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können. Integrationstests für die Organisations-Funktionen.
+**Offene Aufgaben im Betrieb**
 
-Klein: `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald eine feste Produktions-URL steht. Seed-Skript zum Aufräumen der Testnutzer in Staging. Playwright-E2E-Tests im Repo (bisher nur lokal gelaufen).
+- [ ] Prod-Datenbank `cofuture-prod` einrichten. Dort sind noch keine Migrationen, die App läuft gegen Staging.
+- [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
+- [ ] Integrationstests für die Organisations-Funktionen.
+- [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
+- [ ] Skript zum Aufräumen der Testnutzer in Staging.
+- [ ] Playwright-E2E-Tests im Repo.
 
-## So funktioniert AsyncMeet technisch
+---
+
+## Roadmap
+
+Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit den vorhandenen KI-Adaptern in `lib/ai/` und `lib/stt/`. In der App stehen sie im Menü unter **Kommt noch** (Inhalt: `components/teams/planned-features.tsx`).
+
+### 7. Beschlüsse (MVP)
+
+- Beschlussvorlage aus einer geschlossenen Runde, mit Verweisen auf die Perspektivenkarte
+- Rückfrage stellen oder Folgerunde starten, verknüpft mit der Ursprungsrunde
+- Beschluss mit Begründung festhalten, die Runde wechselt auf „Entschieden“
+- Alle im Team sehen den Beschluss, mit Lesebestätigung
+- Beschlussarchiv je Team
+
+**Umsetzung:** Tabelle `decisions` mit RLS, Folgerunden über `rounds.parent_round_id`, Realtime für neue Beschlüsse, Hinweis im Dashboard.
+
+### 8. Wissensspeicher (MVP)
+
+- Beschlüsse und Rundenergebnisse werden automatisch aufgenommen
+- Suche nach Bedeutung und nach Stichwort in einem Feld
+- Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss
+- Frage stellen, Antwort mit Belegen erhalten
+- Sichtbar ist nur, was man auch im Original sehen darf
+
+**Umsetzung:** pgvector und Postgres-Volltextsuche (`german`), Embeddings als Job über `lib/ai/`, RLS auf jedem Abschnitt.
+
+### 9. Rückkanal (MVP)
+
+- Frage oder Hinweis an die Leitung, pseudonym oder mit Namen
+- Antworten der Leitung sind für alle im Team sichtbar
+- Ähnliche Fragen werden gebündelt, mit Quellen
+- Briefings der Leitung mit Rückfragen
+- Status offen oder beantwortet
+
+**Umsetzung:** Tabellen `threads` und `messages` mit RLS, Pseudonym-Trigger wie bei Antworten, Realtime.
+
+### Statusrunden
+
+- Wiederkehrende Kurzrunde mit festen Fragen, zum Beispiel montags 9:00 Uhr
+- Erinnerung im Dashboard unter „Wartet auf deine Antwort“
+- Zusammenfassung zu Fortschritt, Blockern und Fristen
+- Offene Aufgaben mit Frist
+
+**Umsetzung:** `pg_cron` legt die Runden an, bestehende Runden- und Analyse-Jobs.
+
+### Besprechungen
+
+- Termin mit Agenda, die alle vorher ergänzen können
+- Aufnahme im Browser oder als Datei hochladen, danach Transkript
+- Zusammenfassung, Beschlüsse und Aufgaben mit Zeitmarke als Quelle
+- Protokoll für alle Teilnehmenden in der App
+- Externe Gäste per Zugangslink nur für diese Besprechung
+
+**Umsetzung:** Upload direkt in Supabase Storage, Transkription in Abschnitten im Job-Worker, Realtime.
+
+### E-Mail-Zusammenfassung
+
+- E-Mail-Verlauf einfügen oder als `.eml`-Datei hochladen
+- Zusammenfassung, offene Fragen, Fristen
+- Antwortentwurf zum Bearbeiten
+- Mit Kunde oder Team verknüpfen
+
+**Umsetzung:** Einfügen oder Upload, Auswertung als Job. Kein Postfach-Abruf, eine Weiterleitungsadresse kommt erst mit Resend.
+
+### Kundenkontakt
+
+- Kundenkartei je Organisation
+- Verlauf mit Anfragen, E-Mails und Besprechungen an einem Ort
+- Anfrage einem Team zuweisen, Status verfolgen
+- Zusammenfassung der Kundenhistorie mit Quellen
+- Kundendaten auf Wunsch vollständig löschen
+
+**Umsetzung:** Tabellen je Organisation mit RLS, Zusammenfassung als Job.
+
+### Webseiten-Anfragen
+
+- Öffentliches Anfrageformular je Organisation, als Link oder eingebettet
+- Eingang mit Kategorie, Dringlichkeit und Kurzfassung
+- Spamschutz über Honeypot und Ratenlimit
+- Landet im Kundenkontakt und wird einem Team zugewiesen
+
+**Umsetzung:** Öffentlicher Route Handler mit Zod, Tabelle ohne Client-Zugriff, Ratenlimit in Postgres.
+
+### Stimmungsbild
+
+- Kurze anonyme Abfrage mit Skala und optionalem Text
+- Ergebnis erst ab 5 Antworten sichtbar
+- Verlauf über die Zeit für das ganze Team
+- Gleiche Sicht für alle, keine Auswertung einzelner Personen
+
+**Umsetzung:** Tabelle mit RLS und View ohne Personenbezug (wie `round_responses`), `pg_cron` für Wiederholungen.
+
+---
+
+## Architektur
+
+### Tech-Stack
+
+| Bereich | Technologie |
+| --- | --- |
+| Sprache | TypeScript (strict) |
+| Frontend | Next.js 16 (App Router, `cacheComponents`), React 19, Tailwind CSS 4 mit eigenen Design-Tokens, lucide-react |
+| API | Next.js Route Handlers (REST), Zod 4, einheitliches Fehlerformat ([`docs/api.md`](docs/api.md)) |
+| Datenbank | Supabase Postgres (Frankfurt), Row Level Security, `pg_cron`, Realtime |
+| Auth | Supabase Auth (E-Mail und Passwort), `@supabase/ssr`, einmalige Zugangslinks, Schutz über `proxy.ts` |
+| Storage | Supabase Storage, privater Bucket `voice`, Upload direkt aus dem Browser |
+| Jobs | Tabelle `analysis_jobs`, Start per `after()`, Sicherheitsnetz `/api/worker` |
+| Speech-to-Text | Whisper large-v3-turbo über Groq, Reserve Gemini (`lib/stt/`) |
+| Sprachmodell | Gemini 3.5 Flash mit Structured Output, Reserve Groq (`lib/ai/`) |
+| Hosting | Vercel Hobby (Frankfurt) und Supabase Free (EU) |
+| Tests | Vitest (Unit und Integration gegen Staging), GitHub Actions |
+
+Begründungen stehen in den [Architekturentscheidungen](docs/adr/).
+
+### Ablauf einer Runde
 
 ```txt
 Browser                         Next.js (Vercel)                    Supabase (Frankfurt)
@@ -104,67 +218,49 @@ Frist vorbei / Runde schließen                                     pg_cron oder
                                                                     Trigger legt analysis_jobs (analyze) an
 Rundenseite öffnen ──────────▶  POST /api/rounds/{id}/analysis
                                 after(): lib/jobs/analyze.ts
-                                  └─ lib/ai/perspective-map.ts (nur Pseudonyme + Texte)
-                                  └─ lib/ai/llm.ts (Gemini, Reserve Groq)
+                                  └─ lib/ai/perspective-map.ts (nur Pseudonyme und Texte)
                                   └─ Quell-IDs prüfen, Rest → "Nicht zugeordnet"
                                                                     analyses (eine Karte pro Runde)
   ◀── Realtime: Karte erscheint ohne Neuladen ─────────────────────
 ```
 
-Wichtige Regeln, die im Code durchgesetzt werden:
+### Regeln im Code
 
-- **Rechte liegen in der Datenbank.** Jede Tabelle hat Row Level Security. Wer was sehen und ändern darf, steht in den Migrationen, nicht im Frontend. Server-Code mit Admin-Rechten (`lib/db/admin.ts`) nur in Jobs und Worker.
-- **Schwere Arbeit läuft als Job.** Transkription und Analyse laufen nie im Request, sondern über `analysis_jobs`. `claim_jobs()` sorgt dafür, dass jeder Auftrag nur einmal läuft (max. 3 Versuche).
-- **Belegbar.** Jede Aussage der Karte braucht eine gültige Quell-ID, sonst wird sie verworfen. Antworten, die das Modell nicht einordnet, landen sichtbar unter „Nicht zugeordnet“. Abdeckung immer 100 %.
-- **Datensparsam.** An die KI gehen nur Pseudonyme und Antworttexte. Audio wird nach der Transkription gelöscht, spätestens nach 24 Stunden.
+- **Rechte liegen in der Datenbank.** Jede Tabelle hat Row Level Security. Server-Code mit Admin-Rechten (`lib/db/admin.ts`) nur in Jobs, Worker und Zugangslinks.
+- **Schwere Arbeit läuft als Job.** Transkription und Analyse laufen nie im Request, sondern über `analysis_jobs`. `claim_jobs()` sorgt dafür, dass jeder Auftrag nur einmal läuft.
+- **Belegbar.** Jede Aussage der Karte braucht eine gültige Quell-ID. Was das Modell nicht einordnet, landet sichtbar unter „Nicht zugeordnet“. Abdeckung immer 100 %.
+- **Datensparsam.** An die KI gehen nur Pseudonyme und Antworttexte. Audio wird nach der Transkription gelöscht, spätestens nach 24 Stunden. Von Zugangslinks wird nur der Hash gespeichert.
 
-Alle Endpunkte mit Rechten und Fehlercodes: [`docs/api.md`](docs/api.md). Begründungen: [`docs/adr/`](docs/adr/).
-
-## Tech-Stack (umgesetzt)
-
-| Bereich | Technologie |
-| --- | --- |
-| Sprache | TypeScript (strict) |
-| Frontend | Next.js 16.4 (App Router, `cacheComponents`), React 19, Tailwind CSS 4 mit eigenen Design-Tokens, lucide-react |
-| API | Next.js Route Handlers (REST), Zod 4, einheitliches Fehlerformat `{ error: { code, message, fields? } }` |
-| Datenbank | Supabase Postgres (Frankfurt), Row Level Security, `pg_cron`, Realtime |
-| Auth | Supabase Auth mit E-Mail + Passwort, `@supabase/ssr`, Schutz über `proxy.ts` |
-| Storage | Supabase Storage, privater Bucket `voice`, Upload direkt aus dem Browser |
-| Jobs | Tabelle `analysis_jobs`, Start per `after()`, Sicherheitsnetz `/api/worker` |
-| Speech-to-Text | Whisper large-v3-turbo über Groq, Reserve Gemini (`lib/stt/`) |
-| Sprachmodell | Gemini 3.5 Flash mit Structured Output, Reserve Groq `qwen/qwen3.8-27b` (`lib/ai/`) |
-| Hosting | Vercel Hobby + Supabase Free (Projekt `cofuture-staging`) |
-| Tests | Vitest (Unit + Integration gegen Staging), CI auf GitHub Actions |
-
-## Repo-Struktur
+### Repo-Struktur
 
 ```txt
 app/
-  (auth)/login, (auth)/registrieren   Anmeldung
-  app/                                 geschützter Bereich: Teams, Runden
-  api/                                 REST-Endpunkte (siehe docs/api.md)
+  (auth)/                login, registrieren (Organisation anlegen), zugang/[token]
+  app/                   geschützter Bereich: Übersicht, Teams, Runden, Organisation, Kommt noch
+  api/                   REST-Endpunkte (docs/api.md)
 components/
-  auth/, teams/, rounds/               Bausteine der Seiten
-  perspective-map.tsx                  Perspektivenkarte (auch Demo auf der Startseite)
-  ui/form.tsx                          Felder, Buttons, Fehlermeldungen
+  app-shell/             Seitenleiste, Organisations-Menü, Menüpunkte
+  auth/, organizations/, teams/, rounds/
+  perspective-map.tsx    Perspektivenkarte
+  ui/form.tsx            Felder, Buttons, Fehlermeldungen
 lib/
-  ai/          LLM-Adapter (llm.ts), Schema, Pipeline der Perspektivenkarte
-  stt/         Speech-to-Text-Adapter
-  jobs/        Hintergrundaufträge: transcribe.ts, analyze.ts
-  db/          Supabase-Clients (Browser, Server, Admin), Realtime-Helfer, generierte Typen
-  api/         Fehlerformat (Server) und apiFetch (Browser)
-  auth/        aktuelle Person, Fehlertexte
-  validation/  Zod-Schemas, geteilt zwischen Formular und API
-prompts/v1/    versionierter Prompt der Perspektivenkarte
-supabase/migrations/   alle Datenbankänderungen als SQL
-eval/poc/      KI-Proof-of-Concept mit Testdaten und Bericht
-tests/unit, tests/integration, tests/fixtures
-docs/adr/, docs/api.md
+  ai/, stt/              KI-Adapter (LLM, Speech-to-Text) und Pipeline
+  jobs/                  Hintergrundaufträge: transcribe.ts, analyze.ts
+  db/                    Supabase-Clients (Browser, Server, Admin), Realtime, generierte Typen
+  organizations/, teams/ aktuelle Organisation, Zugangslinks, eigene Teams
+  api/, auth/, validation/
+prompts/v1/              versionierte Prompts
+supabase/migrations/     alle Datenbankänderungen als SQL
+eval/poc/                KI-Proof-of-Concept mit Testdaten und Bericht
+tests/                   unit/, integration/, fixtures/
+docs/                    adr/, api.md
 ```
+
+---
 
 ## Lokal einrichten
 
-Voraussetzungen: Node.js 22 (siehe `.nvmrc`), pnpm über corepack, Zugang zum Supabase-Projekt `cofuture-staging` (bei Luca anfragen).
+Voraussetzungen: Node.js 22 (`.nvmrc`), pnpm über corepack, Zugang zum Supabase-Projekt `cofuture-staging`.
 
 ```bash
 git clone https://github.com/Co-Future/CoFuture.git
@@ -174,18 +270,16 @@ cp .env.example .env.local
 corepack pnpm dev            # http://localhost:3000
 ```
 
-In `.env.local` eintragen (Werte bei Luca oder im Supabase-/Groq-/Gemini-Dashboard, nie ins Repo):
+Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini, nie ins Repo:
 
 | Variable | Wofür | Pflicht |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Login, Daten lesen und schreiben | ja |
-| `SUPABASE_SECRET_KEY` | Jobs und Worker (Admin-Rechte, nur Server) | für Sprache und Karte |
+| `SUPABASE_SECRET_KEY` | Jobs, Worker, Personen anlegen, Zugangslinks (nur Server) | für Sprache, Karte, Organisationen |
 | `GROQ_API_KEY` | Transkription, Reserve-LLM | für Sprache |
 | `GEMINI_API_KEY` | Perspektivenkarte | für die Karte (sonst nur Groq) |
-| `LLM_PROVIDER` | `groq` stellt Groq vor Gemini, spart die Gemini-Quote beim Testen | nein |
+| `LLM_PROVIDER` | `groq` stellt Groq vor Gemini | nein |
 | `WORKER_SECRET` | Schutz für `/api/worker`, mindestens 16 Zeichen | nein |
-
-Die App startet auch ohne Werte, zeigt dann aber nur die Startseite.
 
 | Befehl | Zweck |
 | --- | --- |
@@ -193,57 +287,60 @@ Die App startet auch ohne Werte, zeigt dann aber nur die Startseite.
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Routen-Typen erzeugen und TypeScript prüfen |
 | `pnpm test` | Unit-Tests, ohne Netz |
-| `pnpm test:integration` | Tests gegen Staging und Groq (legt Wegwerf-Nutzer an, braucht `.env.local`) |
+| `pnpm test:integration` | Tests gegen Staging (legt Wegwerf-Nutzer an) |
 | `pnpm build` | Produktions-Build |
-| `pnpm db:push` | neue Migrationen nach Staging spielen (braucht `supabase login` und DB-Passwort) |
-| `pnpm db:types` | `lib/db/types.ts` aus der Datenbank neu erzeugen |
+| `pnpm db:push` | Migrationen nach Staging spielen (braucht `supabase login`) |
+| `pnpm db:types` | `lib/db/types.ts` aus Staging neu erzeugen |
 
-Die CI (`check`) führt lint, typecheck, test und build aus. Auf `main` geht nur ein PR mit grüner CI.
+> **Repo im iCloud-Ordner?** iCloud lagert Dateien aus `node_modules` aus, dann hängen Lint und Build. Abhilfe steht in [`CLAUDE.md`](CLAUDE.md#repo-im-icloud-ordner). Besser: außerhalb von iCloud klonen.
 
-## Datenbank ändern
+---
+
+## Betrieb
+
+| Umgebung | Code | Datenbank |
+| --- | --- | --- |
+| Produktion | `main`, automatisch über Vercel | derzeit `cofuture-staging` |
+| Preview | jeder PR bekommt eine eigene Vercel-URL | `cofuture-staging` |
+| Prod-Datenbank | – | `cofuture-prod` (noch nicht eingerichtet) |
+
+**Datenbank ändern**
 
 1. Neue Datei `supabase/migrations/<JJJJMMTTHHMMSS>_<name>.sql` anlegen. Bestehende Migrationen nie ändern.
-2. Mit `pnpm db:push` nach Staging spielen, danach `pnpm db:types`.
-3. RLS für jede neue Tabelle mitliefern und in `tests/integration/` testen (Wer darf lesen? Wer nicht?).
-4. Eine Migration pro PR, vor dem Merge rebasen.
+2. Auf Staging einspielen (`pnpm db:push` oder über den Supabase-Connector), danach Typen neu erzeugen.
+3. Liegt die Version in Supabase anders als der Dateiname, die Datei auf die Version umbenennen.
+4. RLS für jede neue Tabelle mitliefern und in `tests/integration/` testen.
+5. Migration einspielen, **bevor** der Code auf `main` geht.
 
-## KI-Pipeline erweitern
+**KI-Pipeline erweitern**
 
-- **Prompt ändern:** `prompts/v1/` nie überschreiben. Neue Datei `prompts/v2/perspective-map.ts` anlegen und in `lib/ai/perspective-map.ts` umstellen. Jede Analyse speichert ihre `prompt_version` in `analyses`.
-- **Anbieter oder Modell:** nur in `lib/ai/llm.ts` bzw. `lib/stt/index.ts`. Komponenten und Routen rufen nie direkt eine KI auf.
-- **Ausgabe prüfen:** Das Modell liefert JSON nach `lib/ai/schema.ts`. `finalizeMap()` erzwingt die Gestaltungsprinzipien (Quellen, Abdeckung). Tests dazu in `tests/unit/analysis.test.ts`.
-- **Qualität messen:** `eval/poc/` enthält Testdaten und das Vergleichsskript aus Schritt 2. Ein richtiges Golden Dataset (30 Antworten, Ziel < 60 s, 100 % Abdeckung) ist der nächste Ausbau.
-- **Daten:** An Gratis-Tarife gehen nur ausgedachte Testdaten.
+- Prompts nie überschreiben: neue Version unter `prompts/v2/` anlegen. Jede Analyse speichert ihre `prompt_version`.
+- Anbieter und Modelle nur in `lib/ai/llm.ts` bzw. `lib/stt/index.ts` ändern.
+- Ausgaben laufen durch `lib/ai/schema.ts` und `finalizeMap()`, Tests in `tests/unit/analysis.test.ts`.
+- An Gratis-Tarife gehen nur ausgedachte Testdaten.
 
-## Hinweise für Claude Code
-
-Die verbindlichen Regeln stehen in [`CLAUDE.md`](CLAUDE.md). Diese Stolperfallen haben wir schon gelöst, bitte nicht neu erfinden:
-
-- **Next.js 16:** Seiten mit Nutzerdaten rufen den Server-Client aus `lib/db/server.ts` auf. Der ruft `connection()` auf, sonst bricht das Prerendering ab. Statt Middleware gibt es `proxy.ts`. Vor neuem Next-Code die Doku in `node_modules/next/dist/docs/` lesen.
-- **Realtime:** Immer `subscribeToChanges()` aus `lib/db/realtime.ts` benutzen. Der setzt das Login-Token vor dem Abo, sonst sieht Realtime wegen RLS nichts.
-- **Hydration:** Browser-Fähigkeiten (Mikrofon, Uhrzeit) über `useSyncExternalStore` mit Server-Snapshot `null` abfragen, nicht direkt im Render.
-- **Nach Login:** nur `router.replace("/app")`, kein zusätzliches `router.refresh()` (führt zu 404).
-- **Supabase CLI:** `supabase migration new` wartet auf Eingabe und hängt in nicht interaktiven Shells. Migrationsdatei einfach von Hand anlegen.
-- **Keine Schlüssel ins Repo**, auch nicht in Tests. Integrationstests lesen `.env.local`.
-
-## Designsprache
-
-Ruhig, klar, nachvollziehbar. Markenblau `#1D4E89`, Bernstein `#F2A33A` als Akzent, warme Papierflächen, hell und dunkel. Schriften: Manrope für Überschriften, Source Sans 3 für Text, JetBrains Mono für IDs. Die Tokens liegen in [`app/globals.css`](app/globals.css), die Regeln in [`CLAUDE.md`](CLAUDE.md#designsprache).
+---
 
 ## Mitmachen
 
-Wir arbeiten zu fünft parallel im Repo. Kurzfassung:
+1. Branch von `main`: `feat/…`, `fix/…`, `docs/…`, `chore/…`, bei Roadmap-Schritten mit Nummer (`feat/7-beschluesse`)
+2. Kleine Commits nach [Conventional Commits](https://www.conventionalcommits.org/de/)
+3. Pull Request mit Vorlage. Freigabe durch Constantin oder Luca, CI muss grün sein.
+4. Squash-Merge, Branch wird gelöscht. README im selben PR aktualisieren, wenn sich Stand oder Plan ändern.
 
-1. Branch von `main` anlegen: `feat/…`, `fix/…`, `docs/…`
-2. Kleine Commits im Format [Conventional Commits](https://www.conventionalcommits.org/de/)
-3. Pull Request mit Vorlage, Freigabe durch Constantin oder Luca, CI muss grün sein. Bauen PRs aufeinander auf, immer den ältesten zuerst mergen.
-4. Squash-Merge, Branch löschen
+Alle Regeln, auch für Claude Code: [`CLAUDE.md`](CLAUDE.md). Designsprache: [`CLAUDE.md#designsprache`](CLAUDE.md#designsprache), Tokens in [`app/globals.css`](app/globals.css).
 
-Alle Regeln stehen in [`CLAUDE.md`](CLAUDE.md#zusammenarbeit-im-team-über-github).
+## Team
 
-## Status
+| Bereich | Verantwortlich |
+| --- | --- |
+| Projektleitung, Frontend, QA | Tom |
+| KI-Pipeline und Evaluation | Constantin |
+| Backend, Datenbank, DevOps | Luca |
+| Requirements, Marketing | Lars |
+| UX/UI und Design-System | Loran |
 
-MVP in Arbeit, AsyncMeet-Kernstrecke läuft (siehe [Stand der Entwicklung](#stand-der-entwicklung-17112026)). Abgabe: 05.02.2027.
+Entstanden im Seminar „Zurück in die Digitale Zukunft“, Kategorie Arbeit.
 
 ## Lizenz
 
