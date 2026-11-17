@@ -24,6 +24,7 @@ export const createRoundSchema = z.object({
 });
 
 export const responseSchema = z.object({
+  source: z.enum(["text", "voice"]).default("text"),
   body: z
     .string()
     .trim()

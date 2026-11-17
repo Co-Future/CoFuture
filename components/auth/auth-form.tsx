@@ -45,7 +45,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       return;
     }
     router.replace("/app");
-    router.refresh();
   }
 
   return (

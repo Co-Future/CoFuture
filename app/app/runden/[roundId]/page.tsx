@@ -1,9 +1,13 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { PerspectiveMapView, type MapCluster, type MapQuestion } from "@/components/perspective-map";
+import { AnalysisStatus } from "@/components/rounds/analysis-status";
 import { CloseRoundButton } from "@/components/rounds/close-round-button";
+import { Countdown } from "@/components/rounds/countdown";
+import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { ResponseEditor } from "@/components/rounds/response-editor";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -26,12 +30,25 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
     .maybeSingle();
   if (!round) notFound();
 
-  const [{ data: own }, { data: count }, { data: lead }, { data: answers }] = await Promise.all([
+  const [{ data: own }, { data: count }, { data: lead }, { data: answers }, { data: analysis }, { data: job }] = await Promise.all([
     supabase.from("responses").select("body, pseudonym").eq("round_id", round.id).maybeSingle(),
     supabase.rpc("round_response_count", { p_round_id: round.id }),
     supabase.from("team_members").select("role").eq("team_id", round.team_id).eq("user_id", user.id).eq("role", "lead").maybeSingle(),
-    supabase.from("round_responses").select("id, pseudonym, body, is_own").eq("round_id", round.id).order("pseudonym"),
+    supabase.from("round_responses").select("id, pseudonym, body, is_own, source").eq("round_id", round.id).order("pseudonym"),
+    supabase.from("analyses").select("map, model, prompt_version, created_at").eq("round_id", round.id).maybeSingle(),
+    supabase
+      .from("analysis_jobs")
+      .select("id, status, error, attempts")
+      .eq("round_id", round.id)
+      .eq("kind", "analyze")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
+  const map = analysis?.map as { clusters: MapCluster[]; open_questions: MapQuestion[] } | undefined;
+  const sources = Object.fromEntries(
+    (answers ?? []).map((a) => [a.pseudonym, { text: a.body, voice: a.source === "voice", label: a.is_own ? "du" : undefined }]),
+  );
 
   const deadlinePassed = isPast(round.deadline);
   const canAnswer = round.status === "open" && !deadlinePassed;
@@ -46,11 +63,16 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       </Link>
 
       <article className="max-w-[680px]">
+        <RoundsLiveRefresh
+          filter={{ column: "id", value: round.id }}
+          openDeadlines={round.status === "open" ? [round.deadline] : []}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={round.status} />
           <span className="text-body-sm text-ink-muted">
             {round.status === "open" ? "Frist" : "Frist war"}: {formatDateTime(round.deadline)}
           </span>
+          {round.status === "open" ? <Countdown deadline={round.deadline} /> : null}
           <span className="text-body-sm text-ink-muted">
             {answerCount === 1 ? "1 Antwort" : `${answerCount} Antworten`}
           </span>
@@ -78,7 +100,42 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
             <CloseRoundButton roundId={round.id} />
           </section>
         ) : null}
+      </article>
 
+      {round.status !== "open" && answers && answers.length > 0 ? (
+        <section aria-labelledby="map-heading" className="mt-10">
+          {analysis && map ? (
+            <PerspectiveMapView
+              heading={
+                <h2 id="map-heading" className="text-h2">
+                  Perspektivenkarte
+                </h2>
+              }
+              eyebrow={`Erstellt am ${formatDateTime(analysis.created_at)}`}
+              clusters={map.clusters}
+              openQuestions={map.open_questions}
+              sources={sources}
+              footer={
+                <>
+                  AsyncMeet fasst zusammen und zeigt zu jeder Aussage die Beiträge. Entscheiden müsst ihr selbst.
+                  <span className="mt-1 block font-mono text-xs">
+                    {analysis.model} · Prompt {analysis.prompt_version}
+                  </span>
+                </>
+              }
+            />
+          ) : (
+            <>
+              <h2 id="map-heading" className="mb-4 text-h2">
+                Perspektivenkarte
+              </h2>
+              <AnalysisStatus roundId={round.id} job={job} />
+            </>
+          )}
+        </section>
+      ) : null}
+
+      <div className="max-w-[680px]">
         {round.status !== "open" ? (
           <section aria-labelledby="answers-heading" className="mt-10">
             <h2 id="answers-heading" className="mb-4 text-h2">
@@ -88,9 +145,17 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               <ul className="flex flex-col gap-3">
                 {answers.map((answer) => (
                   <li key={answer.id} className="rounded-lg border border-line bg-card p-4 shadow-card">
-                    <p className="mb-2 font-mono text-body-sm text-ink-muted">
-                      {answer.pseudonym}
-                      {answer.is_own ? " (du)" : ""}
+                    <p className="mb-2 flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
+                      <span className="font-mono">
+                        {answer.pseudonym}
+                        {answer.is_own ? " (du)" : ""}
+                      </span>
+                      {answer.source === "voice" ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Mic size={16} strokeWidth={1.75} aria-hidden />
+                          per Sprache
+                        </span>
+                      ) : null}
                     </p>
                     <p className="whitespace-pre-line text-body">{answer.body}</p>
                   </li>
@@ -101,7 +166,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
             )}
           </section>
         ) : null}
-      </article>
+      </div>
     </>
   );
 }
