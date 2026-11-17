@@ -44,8 +44,8 @@ function micError(error: unknown): string {
 type Props = { roundId: string; onTranscript: (text: string) => void };
 
 /**
- * Records a voice answer (max. 2 min), uploads it straight to the private bucket and waits for the
- * transcript. The transcript goes to the parent, where the person checks and saves it.
+ * Records a voice answer (max. 10 min), uploads it straight to the private bucket and waits for the
+ * transcript. The transcript goes to the parent, which appends and saves it right away.
  */
 export function VoiceRecorder({ roundId, onTranscript }: Props) {
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
@@ -205,7 +205,7 @@ export function VoiceRecorder({ roundId, onTranscript }: Props) {
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4">
-      <p className="text-label text-ink">Antwort einsprechen (max. 2 Min.)</p>
+      <p className="text-label text-ink">Antwort einsprechen (max. {MAX_RECORDING_MS / 60_000} Min.)</p>
 
       {phase.name === "idle" ? (
         <div>

@@ -83,7 +83,8 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 - [ ] Prod-Datenbank `cofuture-prod` einrichten. Dort sind noch keine Migrationen, die App läuft gegen Staging.
 - [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
 - [x] Integrationstests für die Organisations-Funktionen (`tests/integration/organizations.test.ts`).
-- [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
+- [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht. Bis dahin startet die Analyse, sobald jemand die Rundenseite öffnet.
+- [ ] `GEMINI_API_KEY` und `LLM_PROVIDER` in Vercel prüfen. Bis 17.11.2026 liefen alle Perspektivenkarten über die Reserve Groq. Warum Gemini ausfällt, steht jetzt im Analyse-Job unter `result.failures`.
 - [ ] Playwright-E2E-Tests im Repo.
 - [ ] Zuständigkeiten im Team festlegen und hier eintragen (wer verantwortet welchen Bereich).
 
@@ -204,10 +205,10 @@ Sprache aufnehmen
                                 after(): lib/jobs/transcribe.ts
                                   └─ lib/stt (Groq Whisper, Reserve Gemini)
                                   └─ Text in Job, Audio löschen
-  ◀── Realtime: Transkript da, korrigieren, speichern ─────────────
+  ◀── Realtime: Transkript da, wird angehängt und gespeichert ─────
 Frist vorbei / Runde schließen                                     pg_cron oder PATCH → rounds.status = closed
                                                                     Trigger legt analysis_jobs (analyze) an
-Rundenseite öffnen ──────────▶  POST /api/rounds/{id}/analysis
+Rundenseite öffnen ──────────▶  POST /api/rounds/{id}/analysis (jede Minute erneut, solange sie wartet)
                                 after(): lib/jobs/analyze.ts
                                   └─ lib/ai/perspective-map.ts (nur Pseudonyme und Texte)
                                   └─ Quell-IDs prüfen, Rest → "Nicht zugeordnet"
@@ -314,7 +315,9 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 
 - Prompts nie überschreiben: neue Version unter `prompts/v2/` anlegen. Jede Analyse speichert ihre `prompt_version`.
 - Anbieter und Modelle nur in `lib/ai/llm.ts` bzw. `lib/stt/index.ts` ändern.
-- Ausgaben laufen durch `lib/ai/schema.ts` und `finalizeMap()`, Tests in `tests/unit/analysis.test.ts`.
+- Ausgaben laufen durch `lib/ai/schema.ts` und `finalizeMap()`, Tests in `tests/unit/analysis.test.ts`. `finalizeMap()` erkennt verkürzte IDs (`A1` → `A01`) und macht aus einem Widerspruch mit nur einer Quelle eine Einzelstimme.
+- **Fehlersuche:** Jeder Analyse-Job speichert in `analysis_jobs.result` die Rohantwort des Modells (`raw`), wie viele Antworten das Modell selbst zugeordnet hat (`coveredByModel`) und welche Anbieter vorher ausgefallen sind (`failures`).
+- Die Transkription bekommt Frage und Kontext der Runde als Begriffshilfe, damit Fachbegriffe wie im Team geschrieben werden.
 - An Gratis-Tarife gehen nur ausgedachte Testdaten.
 
 ---

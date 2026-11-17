@@ -2,7 +2,7 @@
 
 import { LoaderCircle, RotateCcw, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/form";
 import { apiFetch } from "@/lib/api/client";
 import { createClient } from "@/lib/db/client";
@@ -19,23 +19,29 @@ type Props = {
 };
 
 const POLL_MS = 4_000;
-const POLL_LIMIT_MS = 180_000;
+/** After the first minutes, look less often but never give up while the page is open. */
+const SLOW_AFTER_MS = 180_000;
+const SLOW_POLL_MS = 15_000;
+/** Ask the server again now and then: it restarts a pending job or one whose worker died (stale after 5 min). */
+const KICK_MS = 60_000;
 
 /**
  * Shown while a closed round has no perspective map yet.
- * Starts the waiting analysis once, then refreshes the page via Realtime (fallback: polling).
+ * Starts the waiting analysis, then refreshes the page via Realtime (fallback: polling).
+ * While it waits it asks the server again every minute, so a crashed run does not leave a spinner forever.
  */
 export function AnalysisStatus({ roundId, job }: Props) {
   const router = useRouter();
-  const kicked = useRef(false);
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const waiting = job?.status === "pending" || job?.status === "running";
 
   useEffect(() => {
-    if (!waiting || kicked.current) return;
-    kicked.current = true;
-    void apiFetch(`/api/rounds/${roundId}/analysis`, { method: "POST" });
+    if (!waiting) return;
+    const kick = () => void apiFetch(`/api/rounds/${roundId}/analysis`, { method: "POST" });
+    kick();
+    const interval = setInterval(kick, KICK_MS);
+    return () => clearInterval(interval);
   }, [roundId, waiting]);
 
   useEffect(() => {
@@ -59,14 +65,16 @@ export function AnalysisStatus({ roundId, job }: Props) {
       refresh,
     );
     const started = Date.now();
-    const interval = setInterval(() => {
-      if (Date.now() - started > POLL_LIMIT_MS) clearInterval(interval);
-      else refresh();
-    }, POLL_MS);
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = () => {
+      refresh();
+      timer = setTimeout(poll, Date.now() - started > SLOW_AFTER_MS ? SLOW_POLL_MS : POLL_MS);
+    };
+    timer = setTimeout(poll, POLL_MS);
     return () => {
       offAnalysis();
       offJobs();
-      clearInterval(interval);
+      clearTimeout(timer);
     };
   }, [roundId, waiting, router]);
 
@@ -79,10 +87,7 @@ export function AnalysisStatus({ roundId, job }: Props) {
     });
     setRetrying(false);
     if (!result.ok) setRetryError(result.error.message);
-    else {
-      kicked.current = true;
-      router.refresh();
-    }
+    else router.refresh();
   }
 
   if (!job) {

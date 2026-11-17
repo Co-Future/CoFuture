@@ -14,7 +14,22 @@ export class SttError extends Error {
   }
 }
 
-type Provider = { name: Transcript["provider"]; model: string; run: (audio: Blob, mime: string) => Promise<string> };
+type Provider = {
+  name: Transcript["provider"];
+  model: string;
+  run: (audio: Blob, mime: string, hint?: string) => Promise<string>;
+};
+
+/** Whisper reads at most 224 prompt tokens; a few hundred characters of question text are plenty. */
+const MAX_HINT_CHARS = 600;
+
+/**
+ * Vocabulary hint for the speech model: the round's question and context. Terms like "RDB" are
+ * then spelled the way the team writes them. Only the question text goes out, never personal data.
+ */
+export function transcriptionHint(question: string, context?: string | null): string {
+  return [question, context].filter(Boolean).join("\n").replace(/\s+/g, " ").trim().slice(0, MAX_HINT_CHARS);
+}
 
 const GROQ_MODEL = "whisper-large-v3-turbo";
 const GEMINI_MODEL = "gemini-3.5-flash";
@@ -27,13 +42,14 @@ function groq(apiKey: string): Provider {
   return {
     name: "groq",
     model: GROQ_MODEL,
-    async run(audio, mime) {
+    async run(audio, mime, hint) {
       const ext = mime.split("/")[1]?.split(";")[0] ?? "webm";
       const form = new FormData();
       form.append("file", audio, `answer.${ext}`);
       form.append("model", GROQ_MODEL);
       form.append("language", "de");
       form.append("response_format", "json");
+      if (hint) form.append("prompt", hint);
       const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
         method: "POST",
         headers: { authorization: `Bearer ${apiKey}` },
@@ -49,7 +65,7 @@ function gemini(apiKey: string): Provider {
   return {
     name: "gemini",
     model: GEMINI_MODEL,
-    async run(audio, mime) {
+    async run(audio, mime, hint) {
       const data = Buffer.from(await audio.arrayBuffer()).toString("base64");
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
         method: "POST",
@@ -59,7 +75,11 @@ function gemini(apiKey: string): Provider {
             {
               parts: [
                 { inline_data: { mime_type: mime.split(";")[0], data } },
-                { text: "Transkribiere diese deutsche Sprachaufnahme wörtlich. Gib nur den Text aus." },
+                {
+                  text:
+                    "Transkribiere diese deutsche Sprachaufnahme wörtlich. Gib nur den Text aus." +
+                    (hint ? ` Die Aufnahme antwortet auf diese Frage, schreib Fachbegriffe so wie dort: ${hint}` : ""),
+                },
               ],
             },
           ],
@@ -83,13 +103,18 @@ export function configuredProviders(): Provider[] {
 }
 
 /** Transcribes with the first provider that works. Retriable errors fall through to the next one. */
-export async function transcribe(audio: Blob, mime: string, providers = configuredProviders()): Promise<Transcript> {
+export async function transcribe(
+  audio: Blob,
+  mime: string,
+  providers = configuredProviders(),
+  hint?: string,
+): Promise<Transcript> {
   if (providers.length === 0) throw new SttError("No speech-to-text provider configured.", false);
   let lastError: unknown;
   for (const provider of providers) {
     const start = performance.now();
     try {
-      const text = (await provider.run(audio, mime)).trim();
+      const text = (await provider.run(audio, mime, hint)).trim();
       return { text, provider: provider.name, model: provider.model, ms: Math.round(performance.now() - start) };
     } catch (error) {
       lastError = error;

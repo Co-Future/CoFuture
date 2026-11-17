@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { finalizeMap } from "@/lib/ai/perspective-map";
+import { finalizeMap, idResolver } from "@/lib/ai/perspective-map";
 import { generateStructured, LlmError } from "@/lib/ai/llm";
 import { modelMapSchema, type ModelMap } from "@/lib/ai/schema";
 import { buildUserPrompt } from "@/prompts/v1/perspective-map";
@@ -62,6 +62,37 @@ describe("finalizeMap", () => {
   });
 });
 
+describe("idResolver", () => {
+  it("maps shortened or decorated ids to the real pseudonym", () => {
+    const resolve = idResolver(["A01", "A02", "A12"]);
+    expect(["A01", "a1", " #A02 ", "Antwort A12", "12", "A12."].map(resolve)).toEqual(["A01", "A01", "A02", "A12", "A12", "A12"]);
+  });
+
+  it("rejects ids that do not exist", () => {
+    const resolve = idResolver(["A01"]);
+    expect(["A03", "B01", "", "A01x2"].map(resolve)).toEqual([null, null, null, null]);
+  });
+});
+
+describe("finalizeMap kinds", () => {
+  it("keeps shortened ids as sources instead of dropping the whole map", () => {
+    const { map, coveredByModel } = finalizeMap(
+      { clusters: [cluster("consensus", ["A1", "A2"])], open_questions: [] },
+      ["A01", "A02"],
+    );
+    expect(coveredByModel).toBe(2);
+    expect(map.clusters.map((c) => c.kind)).toEqual(["consensus"]);
+  });
+
+  it("turns a dissent backed by one answer into a single voice", () => {
+    const { map } = finalizeMap(
+      { clusters: [cluster("consensus", ["A01"]), cluster("dissent", ["A02"])], open_questions: [] },
+      ["A01", "A02"],
+    );
+    expect(map.clusters.map((c) => c.kind)).toEqual(["consensus", "single_voice"]);
+  });
+});
+
 describe("buildUserPrompt", () => {
   it("wraps answers and stops them from closing the delimiter", () => {
     const prompt = buildUserPrompt({
@@ -101,7 +132,9 @@ describe("generateStructured", () => {
       }),
       provider("groq", async () => valid),
     ]);
-    expect(result).toMatchObject({ provider: "groq", data: valid });
+    expect(result).toMatchObject({ provider: "groq", data: valid, raw: valid });
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("gemini 429");
   });
 
   it("falls back when the output does not match the schema", async () => {
