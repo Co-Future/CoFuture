@@ -16,7 +16,8 @@ export function CreateRoundForm({ teamId }: { teamId: string }) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     // datetime-local has no time zone: interpret it in the browser's local time.
     const local = String(form.get("deadline") ?? "");
     const values = {
@@ -37,6 +38,9 @@ export function CreateRoundForm({ teamId }: { teamId: string }) {
       setPending(false);
       return;
     }
+    // Next keeps this page alive (Activity) after navigating away: start fresh for the next visit.
+    formElement.reset();
+    setPending(false);
     router.push(`/app/runden/${result.data.id}`);
   }
 

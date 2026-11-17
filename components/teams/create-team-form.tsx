@@ -15,7 +15,8 @@ export function CreateTeamForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    const parsed = createTeamSchema.safeParse(Object.fromEntries(new FormData(event.currentTarget)));
+    const formElement = event.currentTarget;
+    const parsed = createTeamSchema.safeParse(Object.fromEntries(new FormData(formElement)));
     if (!parsed.success) {
       setFieldError(parsed.error.issues[0]?.message);
       return;
@@ -28,6 +29,9 @@ export function CreateTeamForm() {
       setPending(false);
       return;
     }
+    // Next keeps this page alive (Activity) after navigating away: start fresh for the next visit.
+    formElement.reset();
+    setPending(false);
     router.push(`/app/teams/${result.data.id}`);
   }
 
