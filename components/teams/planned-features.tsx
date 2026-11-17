@@ -1,7 +1,6 @@
 import {
   BookOpen,
   CalendarClock,
-  Gavel,
   Globe,
   Headset,
   ListChecks,
@@ -27,21 +26,6 @@ export type PlannedFeature = {
 
 // Same content as the roadmap in README.md. Remove an entry once the feature ships.
 export const plannedFeatures: PlannedFeature[] = [
-  {
-    id: "beschluesse",
-    title: "Beschlüsse",
-    description: "Aus einer Runde wird ein Beschluss mit Begründung, der an alle im Team geht.",
-    phase: "mvp",
-    Icon: Gavel,
-    functions: [
-      "Beschlussvorlage aus einer geschlossenen Runde, mit Verweisen auf die Perspektivenkarte",
-      "Rückfrage stellen oder Folgerunde starten, verknüpft mit der Ursprungsrunde",
-      "Beschluss mit Begründung festhalten, Runde wechselt auf „Entschieden“",
-      "Alle im Team sehen den Beschluss, mit Lesebestätigung",
-      "Beschlussarchiv je Team",
-    ],
-    stack: "Tabelle decisions mit RLS, Folgerunden über rounds.parent_round_id, Realtime für neue Beschlüsse, Hinweis im Dashboard",
-  },
   {
     id: "wissensspeicher",
     title: "Wissensspeicher",

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { CircleHelp, CircleSlash, MessageCircleQuestion, Quote, Split, User, Users } from "lucide-react";
 
@@ -63,10 +64,12 @@ type Props = {
   openQuestions: MapQuestion[];
   sources: Record<string, MapSource>;
   footer?: ReactNode;
+  /** Link to start a follow-up round; the selected open question is appended as ?frage=… */
+  followUpHref?: string;
 };
 
 /** Perspective map: clusters with their sources. Every statement points to the original answers. */
-export function PerspectiveMapView({ heading, eyebrow, clusters, openQuestions, sources, footer }: Props) {
+export function PerspectiveMapView({ heading, eyebrow, clusters, openQuestions, sources, footer, followUpHref }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selection, setSelection] = useState<Selection>({
     type: "cluster",
@@ -235,6 +238,15 @@ export function PerspectiveMapView({ heading, eyebrow, clusters, openQuestions, 
               );
             })}
           </ul>
+          {followUpHref && selection.type === "question" && openQuestions[selection.index] ? (
+            <Link
+              href={`${followUpHref}&frage=${encodeURIComponent(openQuestions[selection.index].question)}`}
+              className="mt-3 inline-flex min-h-11 items-center gap-2 text-label text-primary underline"
+            >
+              <MessageCircleQuestion aria-hidden size={20} strokeWidth={1.75} />
+              Als Rückfrage ans Team stellen
+            </Link>
+          ) : null}
           {footer ? <div className="mt-3 text-body-sm text-ink-muted">{footer}</div> : null}
         </div>
       </div>

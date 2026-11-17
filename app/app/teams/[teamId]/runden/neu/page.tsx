@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CornerDownRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,13 +10,22 @@ import { uuidSchema } from "@/lib/validation/team";
 
 export const metadata: Metadata = { title: "Runde starten – CoFuture" };
 
-async function NewRound({ params }: { params: Promise<{ teamId: string }> }) {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+async function NewRound({ params, searchParams }: { params: Promise<{ teamId: string }>; searchParams: SearchParams }) {
   const { teamId } = await params;
+  const query = await searchParams;
+  const von = typeof query.von === "string" && uuidSchema.safeParse(query.von).success ? query.von : undefined;
+  const frage = typeof query.frage === "string" ? query.frage.slice(0, 500) : undefined;
   if (!uuidSchema.safeParse(teamId).success) notFound();
   await getCurrentUser();
   const supabase = await createClient();
   const { data: team } = await supabase.from("teams").select("id, name").eq("id", teamId).maybeSingle();
   if (!team) notFound();
+  // Follow-up round: only for a closed or decided round of this team.
+  const { data: parent } = von
+    ? await supabase.from("rounds").select("id, question, status").eq("id", von).eq("team_id", team.id).neq("status", "open").maybeSingle()
+    : { data: null };
 
   return (
     <>
@@ -24,16 +33,26 @@ async function NewRound({ params }: { params: Promise<{ teamId: string }> }) {
         <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         Zurück zu {team.name}
       </Link>
-      <h1 className="mb-6 text-h1">Runde starten</h1>
-      <CreateRoundForm teamId={team.id} />
+      <h1 className="text-h1">{parent ? (frage ? "Rückfrage stellen" : "Folgerunde starten") : "Runde starten"}</h1>
+      {parent ? (
+        <p className="mt-2 flex max-w-[680px] items-start gap-2 text-body text-ink-muted">
+          <CornerDownRight aria-hidden size={20} strokeWidth={1.75} className="mt-0.5 shrink-0" />
+          <span>
+            Verknüpft mit der Ursprungsrunde: <span className="font-semibold text-ink">{parent.question}</span>
+          </span>
+        </p>
+      ) : null}
+      <div className="mt-6">
+        <CreateRoundForm key={`${parent?.id ?? "neu"}-${frage ?? ""}`} teamId={team.id} parentRoundId={parent?.id} defaultQuestion={parent ? frage : undefined} />
+      </div>
     </>
   );
 }
 
-export default function NewRoundPage({ params }: PageProps<"/app/teams/[teamId]/runden/neu">) {
+export default function NewRoundPage({ params, searchParams }: PageProps<"/app/teams/[teamId]/runden/neu">) {
   return (
     <Suspense fallback={<p className="text-body text-ink-muted">Wird geladen …</p>}>
-      <NewRound params={params} />
+      <NewRound params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
