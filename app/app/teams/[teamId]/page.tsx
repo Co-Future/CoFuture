@@ -25,7 +25,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   const user = await getCurrentUser();
   const supabase = await createClient();
   const [{ data: team }, { data: rounds }, { data: members }] = await Promise.all([
-    supabase.from("teams").select("id, name").eq("id", teamId).maybeSingle(),
+    supabase.from("teams").select("id, name, organization_id").eq("id", teamId).maybeSingle(),
     supabase
       .from("rounds")
       .select("id, question, deadline, status")
@@ -41,6 +41,19 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   if (!team || !members) notFound();
 
   const isLead = members.some((m) => m.user_id === user.id && m.role === "lead");
+  // Teams inside an organization: leads pick people from the organization instead of typing an email.
+  let candidates: { id: string; name: string }[] | undefined;
+  if (isLead && team.organization_id) {
+    const { data: orgPeople } = await supabase
+      .from("organization_members")
+      .select("user_id, profiles(display_name)")
+      .eq("organization_id", team.organization_id);
+    const inTeam = new Set(members.map((m) => m.user_id));
+    candidates = (orgPeople ?? [])
+      .filter((p) => !inTeam.has(p.user_id))
+      .map((p) => ({ id: p.user_id, name: p.profiles?.display_name ?? "Unbekannt" }))
+      .sort((a, b) => a.name.localeCompare(b.name, "de"));
+  }
   const allRounds = rounds ?? [];
   const openRounds = allRounds.filter((r) => r.status === "open");
   const pastRounds = allRounds.filter((r) => r.status !== "open");
@@ -145,7 +158,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
               <h2 id="add-heading" className="mb-4 text-h3">
                 Mitglied hinzufügen
               </h2>
-              <AddMemberForm teamId={team.id} />
+              <AddMemberForm teamId={team.id} candidates={candidates} />
             </section>
           ) : null}
         </aside>

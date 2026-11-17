@@ -18,6 +18,9 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
             <Logo fontSize={20} />
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/app/organisation" className="inline-flex min-h-11 items-center text-label text-primary underline">
+              Organisation
+            </Link>
             <Suspense fallback={null}>
               <UserName />
             </Suspense>

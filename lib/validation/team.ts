@@ -10,5 +10,10 @@ export const addMemberSchema = z.object({
 
 export const uuidSchema = z.uuid();
 
+/** Team inside an organization: pick a person from the organization by id. */
+export const addOrgMemberSchema = z.object({ userId: z.uuid("Wähl eine Person aus.") });
+
+export const addTeamMemberSchema = z.union([addOrgMemberSchema, addMemberSchema]);
+
 export type CreateTeamInput = z.infer<typeof createTeamSchema>;
 export type AddMemberInput = z.infer<typeof addMemberSchema>;

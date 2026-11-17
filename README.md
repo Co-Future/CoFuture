@@ -56,7 +56,9 @@ Asynchrone Abstimmungsrunden statt Live-Meetings:
 
 **Danach (nach MoSCoW):** Besprechungen, E-Mail, Kundenkontakt, Webseiten-Anfragen, Statusrunden, Stimmungsbild.
 
-**Nicht geplant:** native Apps, Slack/Teams-Integration, SSO, Mandantenverwaltung, Zahlungsfunktionen.
+**Nicht geplant:** native Apps, Slack/Teams-Integration, SSO, Zahlungsfunktionen.
+
+**Mandanten:** Organisationen bündeln Personen und Teams (ADR 011). Sie starten schlank und dürfen bei Bedarf ausgebaut werden.
 
 **Erfolgskriterien:** End-to-End-Demo läuft, Analyse von 30 Antworten in unter 60 s, 100 % der Antworten in der Karte abgedeckt, DSGVO-konforme Datenhaltung.
 
