@@ -10,6 +10,7 @@ import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { buttonStyles } from "@/components/ui/form";
 import { RoleBadge } from "@/components/teams/role-badge";
+import { TeamDangerZone } from "@/components/teams/team-danger-zone";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
 import { formatDateTime } from "@/lib/format";
@@ -40,6 +41,11 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   if (!team || !members) notFound();
 
   const isLead = members.some((m) => m.user_id === user.id && m.role === "lead");
+  const [{ data: isGuest }, { data: isOrgOwner }] = await Promise.all([
+    supabase.rpc("is_guest_for_team", { p_team_id: team.id }),
+    team.organization_id ? supabase.rpc("is_org_admin", { p_org_id: team.organization_id }) : Promise.resolve({ data: false }),
+  ]);
+  const canManage = isLead || Boolean(isOrgOwner);
   // Teams inside an organization: leads pick people from the organization instead of typing an email.
   let candidates: { id: string; name: string }[] | undefined;
   if (isLead && team.organization_id) {
@@ -76,10 +82,12 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
           </nav>
           <h1 className="text-h1">{team.name}</h1>
         </div>
-        <Link href={`/app/teams/${team.id}/runden/neu`} className={buttonStyles.primary}>
-          <Plus size={20} strokeWidth={1.75} aria-hidden />
-          Runde starten
-        </Link>
+        {isGuest ? null : (
+          <Link href={`/app/teams/${team.id}/runden/neu`} className={buttonStyles.primary}>
+            <Plus size={20} strokeWidth={1.75} aria-hidden />
+            Runde starten
+          </Link>
+        )}
       </div>
       <RoundsLiveRefresh
         filter={{ column: "team_id", value: team.id }}
@@ -165,6 +173,15 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
               </h2>
               <AddMemberForm teamId={team.id} candidates={candidates} />
             </section>
+          ) : null}
+
+          {canManage ? (
+            <TeamDangerZone
+              teamId={team.id}
+              others={members
+                .filter((m) => m.user_id !== user.id)
+                .map((m) => ({ id: m.user_id, name: m.profiles?.display_name ?? "Unbekannt" }))}
+            />
           ) : null}
         </aside>
       </div>

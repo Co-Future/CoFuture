@@ -20,19 +20,22 @@ Wunsch aus dem Team: Eine Organisation anlegen, darin Personen und Teams verwalt
 
 | Rolle | Darf |
 | --- | --- |
-| Org-Admin | Personen einladen und entfernen, Teams anlegen, Einladungslinks neu erzeugen |
-| Team-Leitung | wie heute: Runden starten, Team-Mitglieder aus der Organisation hinzufügen |
-| Mitglied | Runden beantworten, Ergebnisse sehen |
+| Owner | Personen anlegen, entfernen und Rollen vergeben, Zugangslinks erzeugen, Passwörter selbst angelegter Konten zurücksetzen und diese Konten löschen, Organisation übergeben und löschen (wenn sonst niemand drin ist) |
+| Mitglied | in Teams arbeiten, Teams und Runden anlegen |
+| Gast | sieht nur die Teams, in die er eingeladen ist, und nur die Personen daraus; antwortet auf Runden, startet keine, legt keine Teams an |
+| Team-Leitung | Mitglieder aus der Organisation hinzufügen, Team übergeben und löschen (wenn sonst niemand drin ist) |
 
-Org-Admins sehen **keine** zusätzlichen Auswertungen. Gleiche Sicht für alle gilt weiter. Die Rolle ist reine Verwaltung.
+Owner sehen **keine** zusätzlichen Auswertungen. Gleiche Sicht für alle gilt weiter. Es gibt immer mindestens einen Owner.
+
+**Konten der Organisation:** Legt ein Owner eine Person neu an, verwaltet die Organisation dieses Konto (`organization_members.managed`). Solange die Person in keiner anderen Organisation ist, kann ein Owner ihr Passwort zurücksetzen (altes Passwort wird ungültig, neuer Zugangslink) oder das Konto ganz löschen. Hat sich jemand selbst registriert, kann ein Owner die Person nur aus der Organisation entfernen.
 
 ### Ablauf
 
-1. **Organisation anlegen.** Auf dem Login-Screen gibt es „Organisation anlegen“. Wer das tut, registriert sich und wird Org-Admin. Die freie Registrierung ohne Organisation entfällt.
-2. **Personen anlegen.** Der Admin gibt Anzeigename (Pseudonym) und E-Mail ein. Der Server legt das Konto mit `auth.admin.createUser` an (Secret Key, nur serverseitig) und erzeugt einen **Einladungslink**.
-3. **Link weitergeben.** Solange es keinen Mailversand gibt (ADR 008), kopiert der Admin den Link und schickt ihn selbst, z. B. per Chat. Mit Resend geht das später automatisch per E-Mail.
+1. **Organisation anlegen.** Auf dem Login-Screen gibt es „Organisation anlegen“. Wer das tut, registriert sich und wird Owner. Die freie Registrierung ohne Organisation entfällt.
+2. **Personen anlegen.** Ein Owner gibt Anzeigename (Pseudonym) und E-Mail ein. Der Server legt das Konto mit `auth.admin.createUser` an (Secret Key, nur serverseitig) und erzeugt einen **Einladungslink**.
+3. **Link weitergeben.** Solange es keinen Mailversand gibt (ADR 008), kopiert der Owner den Link und schickt ihn selbst, z. B. per Chat. Mit Resend geht das später automatisch per E-Mail.
 4. **Erster Login.** Der Link öffnet „Passwort festlegen“. Die Person wählt ihr Passwort und ist angemeldet. Der Link ist danach verbraucht.
-5. **Teams.** Der Admin legt Teams an und ordnet Personen zu. Team-Leitungen können Personen aus der eigenen Organisation hinzufügen, ohne E-Mail-Adresse zu tippen (Auswahl aus Liste).
+5. **Teams.** Owner und Mitglieder legen Teams an und ordnet Personen zu. Team-Leitungen können Personen aus der eigenen Organisation hinzufügen, ohne E-Mail-Adresse zu tippen (Auswahl aus Liste).
 
 ### Einladungslink statt Initialpasswort (entschieden)
 
@@ -42,9 +45,9 @@ Zuerst war ein Link plus Initialpasswort im Gespräch. Entschieden ist **nur der
 - Ein Schritt weniger für die Person: Link öffnen, Passwort setzen, fertig.
 - Kein Passwort im Klartext, das irgendwo im Chat liegen bleibt.
 
-Der Link enthält ein zufälliges Token (32 Byte). In der Datenbank liegt nur dessen Hash. Gültig 72 Stunden, nur einmal nutzbar, vom Admin jederzeit neu erzeugbar.
+Der Link enthält ein zufälliges Token (32 Byte). In der Datenbank liegt nur dessen Hash. Gültig 72 Stunden, nur einmal nutzbar, von Ownern jederzeit neu erzeugbar.
 
-Der Link ist auch der Weg zurück, wenn jemand sein Passwort vergessen hat: Der Admin erzeugt einen neuen Link. Ältere, unbenutzte Links werden dabei ungültig.
+Der Link ist auch der Weg zurück, wenn jemand sein Passwort vergessen hat: Ein Owner erzeugt einen neuen Link (bei Konten der Organisation mit „Passwort zurücksetzen“). Ältere, unbenutzte Links werden dabei ungültig.
 
 ### Datenmodell (eine Migration)
 
@@ -66,8 +69,8 @@ RLS: Personen sehen nur ihre eigene Organisation. `invites` ist für Clients gar
 
 ## Folgen
 
-- **Datenschutz:** E-Mail-Adressen sieht nur der Org-Admin. An die KI gehen weiter nur Pseudonyme und Antworttexte. Der Anzeigename ist standardmäßig ein Pseudonym.
-- **Kosten:** 0 €. Kein Mailversand nötig, solange Admins Links selbst verschicken.
+- **Datenschutz:** E-Mail-Adressen sehen nur Owner. An die KI gehen weiter nur Pseudonyme und Antworttexte. Der Anzeigename ist standardmäßig ein Pseudonym.
+- **Kosten:** 0 €. Kein Mailversand nötig, solange Owner Links selbst verschicken.
 - **Bestehende Daten:** Vorhandene Teams bleiben ohne Organisation und funktionieren wie bisher (Mitglieder per E-Mail). Bestehende Konten sehen in der Übersicht „Organisation anlegen“.
 - **Secret Key nötig:** Personen anlegen und Links prüfen braucht `SUPABASE_SECRET_KEY` auf Vercel.
 - **Teams in einer Organisation** nehmen nur Personen aus dieser Organisation auf (Auswahl aus Liste).

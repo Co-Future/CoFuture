@@ -19,7 +19,7 @@ Jeder Fehler hat dieselbe Form:
 | `forbidden` | 403 | Keine Berechtigung |
 | `not_found`, `user_not_found` | 404 | Nicht vorhanden bzw. kein Konto zu dieser E-Mail |
 | `invite_invalid` | 410 | Zugangslink abgelaufen oder schon benutzt |
-| `already_member`, `email_exists`, `last_lead`, `last_admin`, `self`, `round_closed`, `invalid_status` | 409 | Konflikt mit dem aktuellen Zustand |
+| `already_member`, `email_exists`, `last_lead`, `last_owner`, `not_empty`, `not_eligible`, `self`, `round_closed`, `invalid_status` | 409 | Konflikt mit dem aktuellen Zustand |
 
 ## Organisationen und Zugang
 
@@ -27,20 +27,26 @@ Organisationen bündeln Personen und Teams (ADR 011). Eine Person kann in mehrer
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/organizations` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Admin; App wechselt dorthin |
+| `POST` | `/api/organizations` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Owner; App wechselt dorthin |
 | `POST` | `/api/organizations/current` | `{ "organizationId": uuid }` | `204` | Mitglieder der Organisation |
-| `POST` | `/api/organizations/{orgId}/members` | `{ "displayName": string, "email": string, "teamId"?: uuid }` | `201 { userId, link }`, `link` ist `null`, wenn es schon ein Konto gab | Admins |
-| `POST` | `/api/organizations/{orgId}/members/{userId}/link` | – | `201 { link }` | Admins; macht ältere Links ungültig |
-| `DELETE` | `/api/organizations/{orgId}/members/{userId}` | – | `204` | Admins; entfernt auch aus allen Teams der Organisation |
+| `POST` | `/api/organizations/{orgId}/members` | `{ "displayName": string, "email": string, "role"?: string, "teamId"?: uuid }` | `201 { userId, link }`, `link` ist `null`, wenn es schon ein Konto gab | Owner |
+| `POST` | `/api/organizations/{orgId}/members/{userId}/link` | `{ "resetPassword"?: boolean }` | `201 { link }` | Owner; macht ältere Links ungültig, `resetPassword` nur bei Konten der Organisation |
+| `PATCH` | `/api/organizations/{orgId}/members/{userId}` | `{ "role": "owner" \| "member" \| "guest" }` | `200 { role }` | Owner; mindestens ein Owner bleibt |
+| `DELETE` | `/api/organizations/{orgId}/members/{userId}` | – | `204` | Owner; entfernt auch aus allen Teams der Organisation |
+| `DELETE` | `/api/organizations/{orgId}/members/{userId}/account` | – | `204` | Owner; nur Konten, die die Organisation angelegt hat und die in keiner anderen sind |
+| `POST` | `/api/organizations/{orgId}/transfer` | `{ "userId": uuid }` | `200` | Owner; die Person wird Owner, du Mitglied |
+| `DELETE` | `/api/organizations/{orgId}` | – | `204` | Owner, nur wenn sonst niemand drin ist; löscht Teams, Runden, Antworten |
 | `POST` | `/api/invites/accept` | `{ "token": string, "password": string }` | `200 { email }` | ohne Login, mit gültigem Link |
 
-Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert wird nur der SHA-256-Hash des Tokens, die Tabelle `invites` ist für Clients gesperrt. Personenlisten liefert die Funktion `organization_people`; E-Mail-Adressen sehen nur Admins.
+Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert wird nur der SHA-256-Hash des Tokens, die Tabelle `invites` ist für Clients gesperrt. Personenlisten liefert die Funktion `organization_people`; E-Mail-Adressen sehen nur Owner, Gäste sehen nur Personen aus ihren Teams.
 
 ## Teams
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/teams` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Leitung; Team gehört zur gewählten Organisation |
+| `DELETE` | `/api/teams/{teamId}` | – | `204` | Leitung oder Owner, nur wenn sonst niemand im Team ist |
+| `POST` | `/api/teams/{teamId}/transfer` | `{ "userId": uuid }` | `200` | Leitung oder Owner; neue Leitung darf kein Gast sein |
 | `POST` | `/api/teams/{teamId}/members` | `{ "userId": uuid }` oder `{ "email": string }` | `201 { status: "added" }` | Leitung; Teams einer Organisation nehmen nur Personen daraus auf |
 | `DELETE` | `/api/teams/{teamId}/members/{userId}` | – | `204` | Leitung (beliebige Mitglieder), alle (sich selbst) |
 

@@ -21,7 +21,7 @@ async function AccessSetup({ params }: { params: Promise<{ token: string }> }) {
         <h1 className="text-h2">Link nicht mehr gültig</h1>
         <p className="mt-2 text-body text-ink-muted">
           Dieser Zugangslink ist abgelaufen oder wurde schon benutzt. Jeder Link gilt 72 Stunden und nur einmal. Bitte frag
-          die Admins deiner Organisation nach einem neuen Link.
+          die Owner deiner Organisation nach einem neuen Link.
         </p>
         <p className="mt-6 text-body-sm text-ink-muted">
           Du hast schon ein Passwort?{" "}

@@ -189,18 +189,21 @@ export type Database = {
       organization_members: {
         Row: {
           joined_at: string
+          managed: boolean
           organization_id: string
           role: Database["public"]["Enums"]["org_role"]
           user_id: string
         }
         Insert: {
           joined_at?: string
+          managed?: boolean
           organization_id: string
           role?: Database["public"]["Enums"]["org_role"]
           user_id: string
         }
         Update: {
           joined_at?: string
+          managed?: boolean
           organization_id?: string
           role?: Database["public"]["Enums"]["org_role"]
           user_id?: string
@@ -545,7 +548,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_organization: { Args: { p_org_id: string }; Returns: undefined }
+      delete_team: { Args: { p_team_id: string }; Returns: undefined }
       find_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      is_guest_for_team: { Args: { p_team_id: string }; Returns: boolean }
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
       is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
@@ -556,6 +562,7 @@ export type Database = {
           display_name: string
           email: string
           joined_at: string
+          managed: boolean
           pending: boolean
           role: Database["public"]["Enums"]["org_role"]
           user_id: string
@@ -566,13 +573,29 @@ export type Database = {
         Returns: undefined
       }
       round_response_count: { Args: { p_round_id: string }; Returns: number }
+      set_organization_role: {
+        Args: {
+          p_org_id: string
+          p_role: Database["public"]["Enums"]["org_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       shares_org_with: { Args: { p_user_id: string }; Returns: boolean }
+      transfer_organization: {
+        Args: { p_org_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      transfer_team: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: undefined
+      }
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       job_kind: "transcribe" | "analyze"
       job_status: "pending" | "running" | "done" | "failed"
-      org_role: "admin" | "member"
+      org_role: "owner" | "member" | "guest"
       response_source: "text" | "voice"
       round_status: "open" | "closed" | "decided"
       team_role: "lead" | "member"
@@ -705,7 +728,7 @@ export const Constants = {
     Enums: {
       job_kind: ["transcribe", "analyze"],
       job_status: ["pending", "running", "done", "failed"],
-      org_role: ["admin", "member"],
+      org_role: ["owner", "member", "guest"],
       response_source: ["text", "voice"],
       round_status: ["open", "closed", "decided"],
       team_role: ["lead", "member"],

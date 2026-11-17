@@ -157,10 +157,12 @@ async function PersonalDashboard() {
             <h2 id="teams-heading" className="text-h2">
               Deine Teams
             </h2>
-            <Link href="/app/teams/neu" className="inline-flex min-h-11 items-center gap-1 text-label text-primary underline">
-              <Plus size={16} strokeWidth={1.75} aria-hidden />
-              Team anlegen
-            </Link>
+            {org?.role === "guest" ? null : (
+              <Link href="/app/teams/neu" className="inline-flex min-h-11 items-center gap-1 text-label text-primary underline">
+                <Plus size={16} strokeWidth={1.75} aria-hidden />
+                Team anlegen
+              </Link>
+            )}
           </div>
           {teams.length > 0 ? (
             <ul className="flex flex-col gap-3">

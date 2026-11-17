@@ -19,6 +19,7 @@ export const addPersonSchema = z.object({
     .min(1, "Gib einen Anzeigenamen ein.")
     .max(80, "Der Anzeigename darf höchstens 80 Zeichen haben."),
   email: z.string().trim().toLowerCase().pipe(z.email("Gib eine gültige E-Mail-Adresse ein.")),
+  role: z.enum(["owner", "member", "guest"]).default("member"),
   // Empty string from the "no team" option of the select.
   teamId: z.union([z.uuid(), z.literal("")]).optional().transform((v) => v || undefined),
 });
@@ -43,6 +44,8 @@ export const acceptInviteSchema = z.object({
   token: inviteTokenSchema,
   password: newPasswordSchema.shape.password,
 });
+
+export const setRoleSchema = z.object({ role: z.enum(["owner", "member", "guest"]) });
 
 export type OrganizationSignupInput = z.infer<typeof organizationSignupSchema>;
 export type AddPersonInput = z.input<typeof addPersonSchema>;

@@ -9,6 +9,14 @@ export const metadata: Metadata = { title: "Team anlegen – CoFuture" };
 async function OrgHint() {
   const user = await getCurrentUser();
   const org = await getCurrentOrganization(user.id);
+  if (org?.role === "guest") {
+    return (
+      <p className="mt-1 mb-6 max-w-[680px] text-body text-ink-muted">
+        Als Gast in <span className="font-semibold text-ink">{org.name}</span> kannst du keine Teams anlegen. Frag die Owner der
+        Organisation.
+      </p>
+    );
+  }
   return (
     <p className="mt-1 mb-6 max-w-[680px] text-body text-ink-muted">
       {org ? (

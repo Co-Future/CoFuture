@@ -5,6 +5,7 @@ import {
   addPersonSchema,
   newPasswordSchema,
   organizationSignupSchema,
+  setRoleSchema,
 } from "@/lib/validation/organization";
 
 const token = "a".repeat(43);
@@ -26,7 +27,7 @@ describe("organizationSignupSchema", () => {
 describe("addPersonSchema", () => {
   it("treats the empty team option as no team", () => {
     const result = addPersonSchema.parse({ displayName: "Person A", email: " A@B.de ", teamId: "" });
-    expect(result).toEqual({ displayName: "Person A", email: "a@b.de", teamId: undefined });
+    expect(result).toEqual({ displayName: "Person A", email: "a@b.de", role: "member", teamId: undefined });
   });
 
   it("rejects a team id that is not a uuid", () => {
@@ -53,5 +54,13 @@ describe("access tokens", () => {
     expect(hashToken(token)).toBe(hashToken(token));
     expect(hashToken(token)).toMatch(/^[0-9a-f]{64}$/);
     expect(hashToken(token)).not.toContain(token);
+  });
+});
+
+describe("roles", () => {
+  it("knows owner, member and guest only", () => {
+    expect(setRoleSchema.safeParse({ role: "guest" }).success).toBe(true);
+    expect(setRoleSchema.safeParse({ role: "admin" }).success).toBe(false);
+    expect(addPersonSchema.parse({ displayName: "A", email: "a@b.de", role: "owner" }).role).toBe("owner");
   });
 });
