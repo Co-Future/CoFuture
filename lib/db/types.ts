@@ -82,8 +82,9 @@ export type Database = {
           locked_at: string | null
           payload: Json
           result: Json | null
-          round_id: string
+          round_id: string | null
           status: Database["public"]["Enums"]["job_status"]
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -96,8 +97,9 @@ export type Database = {
           locked_at?: string | null
           payload?: Json
           result?: Json | null
-          round_id: string
+          round_id?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -110,8 +112,9 @@ export type Database = {
           locked_at?: string | null
           payload?: Json
           result?: Json | null
-          round_id?: string
+          round_id?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -600,8 +603,9 @@ export type Database = {
           locked_at: string | null
           payload: Json
           result: Json | null
-          round_id: string
+          round_id: string | null
           status: Database["public"]["Enums"]["job_status"]
+          team_id: string | null
           updated_at: string
         }[]
         SetofOptions: {

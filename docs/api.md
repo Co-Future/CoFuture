@@ -67,6 +67,7 @@ Ablauf (ADR 009): Der Browser lädt die Aufnahme **direkt** in den privaten Buck
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/rounds/{roundId}/voice` | `{ "path": string, "mime": string, "durationMs": number }` | `202 { jobId }` | Mitglieder, offene Runde, eigene Datei |
+| `POST` | `/api/teams/{teamId}/voice` | `{ "path": string, "mime": string, "durationMs": number }` | `202 { jobId }` | Frage einsprechen: Mitglieder ohne Gäste, eigene Datei. Der Job liefert `result.text` und `result.draft` (`question`, `context`, `moreQuestions`) |
 | `POST` | `/api/jobs/{jobId}/retry` | – | `202` | Transkription: wer sie angelegt hat; Analyse: Teammitglieder. Nach Fehler, max. 3 Versuche |
 | `POST` | `/api/worker` | – (Header `Authorization: Bearer WORKER_SECRET`) | `200 { transcribe, analyze, sweptAudio }` | nur Server/pg_cron |
 

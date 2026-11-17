@@ -20,7 +20,8 @@ export async function runAnalyzeJobs(options: { jobId?: string; limit?: number }
   const run: AnalyzeRun = { processed: 0, done: 0, failed: 0 };
   for (const job of jobs ?? []) {
     run.processed++;
-    if (await processJob(admin, job.id, job.round_id, job.attempts)) run.done++;
+    // The table constraint guarantees a round for analysis jobs.
+    if (job.round_id && (await processJob(admin, job.id, job.round_id, job.attempts))) run.done++;
     else run.failed++;
   }
   return run;

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type FormEvent } from "react";
-import { VoiceRecorder } from "@/components/rounds/voice-recorder";
+import { VoiceRecorder, type VoiceResult } from "@/components/rounds/voice-recorder";
 import { Button, FormError, TextAreaField } from "@/components/ui/form";
 import { apiFetch } from "@/lib/api/client";
 import { responseSchema } from "@/lib/validation/round";
@@ -56,7 +56,7 @@ export function ResponseEditor({ roundId, initialBody, pseudonym }: Props) {
   // A transcript is appended to what is already there (a second recording or typed notes stay)
   // and saved at once: the audio is deleted after transcription, so nothing may hang unsaved.
   const handleTranscript = useCallback(
-    (text: string) => {
+    ({ text }: VoiceResult) => {
       const current = bodyRef.current.trim();
       const merged = current ? `${current}\n\n${text}` : text;
       bodyRef.current = merged;
@@ -81,7 +81,7 @@ export function ResponseEditor({ roundId, initialBody, pseudonym }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <VoiceRecorder roundId={roundId} onTranscript={handleTranscript} />
+      <VoiceRecorder endpoint={`/api/rounds/${roundId}/voice`} label="Antwort einsprechen" onTranscript={handleTranscript} />
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
         {formError ? <FormError>{formError}</FormError> : null}
         <TextAreaField
