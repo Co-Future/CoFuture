@@ -2,33 +2,61 @@ import { after } from "next/server";
 import { apiError, requireUserId } from "@/lib/api/respond";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
+import { runAnalyzeJobs } from "@/lib/jobs/analyze";
 import { runTranscribeJobs } from "@/lib/jobs/transcribe";
 import { uuidSchema } from "@/lib/validation/team";
 
 export const maxDuration = 300;
 
-/** POST /api/jobs/{jobId}/retry → 202. Requeues your own failed transcription (max. 3 attempts). */
-export async function POST(_request: Request, ctx: RouteContext<"/api/jobs/[jobId]/retry">) {
+/** POST /api/jobs/{jobId}/retry → 202. Requeues a failed job (max. 3 attempts):
+ * your own transcription, or the analysis of a round in your team. */
+export async function POST(
+  _request: Request,
+  ctx: RouteContext<"/api/jobs/[jobId]/retry">,
+) {
   const { jobId } = await ctx.params;
-  if (!uuidSchema.safeParse(jobId).success) return apiError(404, "not_found", "Den Auftrag gibt es nicht.");
+  if (!uuidSchema.safeParse(jobId).success)
+    return apiError(404, "not_found", "Den Auftrag gibt es nicht.");
 
   const supabase = await createClient();
   const auth = await requireUserId(supabase);
   if ("response" in auth) return auth.response;
 
-  // RLS: you only see your own jobs.
-  const { data: job } = await supabase.from("analysis_jobs").select("id, status, attempts").eq("id", jobId).maybeSingle();
+  // RLS: own transcription jobs, analysis jobs of your teams.
+  const { data: job } = await supabase
+    .from("analysis_jobs")
+    .select("id, kind, status, attempts")
+    .eq("id", jobId)
+    .maybeSingle();
   if (!job) return apiError(404, "not_found", "Den Auftrag gibt es nicht.");
-  if (job.status !== "failed") return apiError(409, "not_failed", "Der Auftrag läuft noch oder ist fertig.");
-  if (job.attempts >= 3) return apiError(409, "no_attempts_left", "Keine weiteren Versuche möglich. Nimm die Antwort bitte neu auf.");
+  if (job.status !== "failed")
+    return apiError(
+      409,
+      "not_failed",
+      "Der Auftrag läuft noch oder ist fertig.",
+    );
+  if (job.attempts >= 3)
+    return apiError(
+      409,
+      "no_attempts_left",
+      job.kind === "transcribe"
+        ? "Keine weiteren Versuche möglich. Nimm die Antwort bitte neu auf."
+        : "Keine weiteren Versuche möglich. Die Antworten stehen im Original zur Verfügung.",
+    );
 
   const { error } = await createAdminClient()
     .from("analysis_jobs")
     .update({ status: "pending", error: null })
     .eq("id", jobId)
     .eq("status", "failed");
-  if (error) return apiError(500, "retry_failed", "Der neue Versuch konnte nicht gestartet werden.");
+  if (error)
+    return apiError(
+      500,
+      "retry_failed",
+      "Der neue Versuch konnte nicht gestartet werden.",
+    );
 
-  after(() => runTranscribeJobs({ jobId }).catch((e) => console.error("worker after()", e)));
+  const run = job.kind === "analyze" ? runAnalyzeJobs : runTranscribeJobs;
+  after(() => run({ jobId }).catch((e) => console.error("worker after()", e)));
   return Response.json({ status: "pending" }, { status: 202 });
 }

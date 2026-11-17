@@ -45,9 +45,24 @@ Ablauf (ADR 009): Der Browser lädt die Aufnahme **direkt** in den privaten Buck
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/rounds/{roundId}/voice` | `{ "path": string, "mime": string, "durationMs": number }` | `202 { jobId }` | Mitglieder, offene Runde, eigene Datei |
-| `POST` | `/api/jobs/{jobId}/retry` | – | `202` | wer den Auftrag angelegt hat, nach Fehler, max. 3 Versuche |
-| `POST` | `/api/worker` | – (Header `Authorization: Bearer WORKER_SECRET`) | `200 { transcribe, sweptAudio }` | nur Server/pg_cron |
+| `POST` | `/api/jobs/{jobId}/retry` | – | `202` | Transkription: wer sie angelegt hat; Analyse: Teammitglieder. Nach Fehler, max. 3 Versuche |
+| `POST` | `/api/worker` | – (Header `Authorization: Bearer WORKER_SECRET`) | `200 { transcribe, analyze, sweptAudio }` | nur Server/pg_cron |
 
 Der Auftrag startet direkt nach der Antwort (`after()`). Der Worker transkribiert (Groq, Reserve Gemini), schreibt den Text in `analysis_jobs.result` und löscht das Audio. Den Status liefert Supabase Realtime an die Person, die den Auftrag angelegt hat. Erst wenn sie das (korrigierte) Transkript speichert, wird es eine Antwort mit `source: "voice"`. Audio, das länger als 24 Stunden liegt, räumt `/api/worker` weg.
+
+## Perspektivenkarte
+
+Endet eine Runde mit mindestens einer Antwort (Button oder Frist per pg_cron), legt die Datenbank selbst einen Auftrag `kind = analyze` an (Trigger `enqueue_analysis`, genau einer pro Runde).
+
+| Methode | Pfad | Body | Antwort | Wer |
+| --- | --- | --- | --- | --- |
+| `POST` | `/api/rounds/{roundId}/analysis` | – | `200 { status: "done" }` oder `202 { status, jobId }` | Teammitglieder |
+
+Der Aufruf startet einen wartenden Auftrag (`after()`), `claim_jobs` sorgt dafür, dass er nur einmal läuft. Die Pipeline (`lib/ai/`) schickt nur Pseudonyme (`A01` …) und Antworttexte an das Modell (Gemini, Reserve Groq; `LLM_PROVIDER=groq` dreht die Reihenfolge), Prompt aus `prompts/v1/`. Danach prüft sie:
+
+- Quell-IDs, die es nicht gibt, fliegen raus. Cluster und offene Fragen ohne gültige Quelle werden verworfen.
+- Antworten, die das Modell nirgends einordnet, landen im Cluster „Nicht zugeordnet“ (`kind: "unassigned"`). So deckt die Karte immer 100 % ab. `covered_count` zeigt, wie viele das Modell selbst eingeordnet hat.
+
+Das Ergebnis steht in `analyses` (eine Zeile pro Runde, mit `provider`, `model`, `prompt_version`, `duration_ms`), lesbar für alle im Team, per Realtime.
 
 Lesen (Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.

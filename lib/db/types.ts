@@ -14,11 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      analyses: {
+        Row: {
+          covered_count: number
+          created_at: string
+          duration_ms: number | null
+          id: string
+          job_id: string | null
+          map: Json
+          model: string
+          prompt_version: string
+          provider: string
+          response_count: number
+          round_id: string
+        }
+        Insert: {
+          covered_count: number
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          job_id?: string | null
+          map: Json
+          model: string
+          prompt_version: string
+          provider: string
+          response_count: number
+          round_id: string
+        }
+        Update: {
+          covered_count?: number
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          job_id?: string | null
+          map?: Json
+          model?: string
+          prompt_version?: string
+          provider?: string
+          response_count?: number
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyses_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analyses_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analysis_jobs: {
         Row: {
           attempts: number
           created_at: string
-          created_by: string
+          created_by: string | null
           error: string | null
           id: string
           kind: Database["public"]["Enums"]["job_kind"]
@@ -32,7 +89,7 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           error?: string | null
           id?: string
           kind: Database["public"]["Enums"]["job_kind"]
@@ -46,7 +103,7 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           error?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["job_kind"]
@@ -311,7 +368,7 @@ export type Database = {
         Returns: {
           attempts: number
           created_at: string
-          created_by: string
+          created_by: string | null
           error: string | null
           id: string
           kind: Database["public"]["Enums"]["job_kind"]
