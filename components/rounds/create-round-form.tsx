@@ -7,7 +7,14 @@ import { apiFetch } from "@/lib/api/client";
 import { createRoundSchema, type CreateRoundInput } from "@/lib/validation/round";
 import { fieldErrors, type FieldErrors } from "@/lib/validation/auth";
 
-export function CreateRoundForm({ teamId }: { teamId: string }) {
+type Props = {
+  teamId: string;
+  /** Follow-up round: the closed origin round, and an optional prefilled question. */
+  parentRoundId?: string;
+  defaultQuestion?: string;
+};
+
+export function CreateRoundForm({ teamId, parentRoundId, defaultQuestion }: Props) {
   const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors<CreateRoundInput>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -24,6 +31,7 @@ export function CreateRoundForm({ teamId }: { teamId: string }) {
       question: form.get("question"),
       context: form.get("context"),
       deadline: local ? new Date(local).toISOString() : "",
+      parentRoundId,
     };
     const parsed = createRoundSchema.safeParse(values);
     if (!parsed.success) {
@@ -53,6 +61,7 @@ export function CreateRoundForm({ teamId }: { teamId: string }) {
         label="Frage"
         rows={2}
         maxLength={500}
+        defaultValue={defaultQuestion}
         hint="Eine klare Frage, auf die alle antworten können. Nach der ersten Antwort lässt sie sich nicht mehr ändern."
         error={errors.question}
       />

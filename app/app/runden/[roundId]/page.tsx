@@ -1,8 +1,11 @@
-import { ArrowLeft, Mic } from "lucide-react";
+import { ArrowLeft, CornerDownRight, Gavel, Mic } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { DecisionForm } from "@/components/decisions/decision-form";
+import { KIND_LABELS } from "@/components/decisions/kind-labels";
+import { ReadReceipt } from "@/components/decisions/read-receipt";
 import { PerspectiveMapView, type MapCluster, type MapQuestion } from "@/components/perspective-map";
 import { AnalysisStatus } from "@/components/rounds/analysis-status";
 import { CloseRoundButton } from "@/components/rounds/close-round-button";
@@ -10,6 +13,7 @@ import { Countdown } from "@/components/rounds/countdown";
 import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { ResponseEditor } from "@/components/rounds/response-editor";
 import { StatusBadge } from "@/components/rounds/status-badge";
+import { buttonStyles } from "@/components/ui/form";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
 import { formatDateTime, isPast } from "@/lib/format";
@@ -25,7 +29,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
   const supabase = await createClient();
   const { data: round } = await supabase
     .from("rounds")
-    .select("id, team_id, question, context, deadline, status, created_by, closed_at, teams(name)")
+    .select("id, team_id, question, context, deadline, status, created_by, closed_at, parent_round_id, teams(name)")
     .eq("id", roundId)
     .maybeSingle();
   if (!round) notFound();
@@ -45,6 +49,24 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       .limit(1)
       .maybeSingle(),
   ]);
+  const [{ data: decision }, { data: followUps }, { data: parent }, { data: isGuest }] = await Promise.all([
+    supabase
+      .from("decisions")
+      .select("id, body, rationale, cluster_refs, created_at, profiles!decisions_decided_by_fkey(display_name)")
+      .eq("round_id", round.id)
+      .maybeSingle(),
+    supabase.from("rounds").select("id, question, status").eq("parent_round_id", round.id).order("created_at"),
+    round.parent_round_id
+      ? supabase.from("rounds").select("id, question").eq("id", round.parent_round_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.rpc("is_guest_for_team", { p_team_id: round.team_id }),
+  ]);
+  const [{ data: readCounts }, { data: ownRead }] = decision
+    ? await Promise.all([
+        supabase.rpc("decision_read_count", { p_decision_id: decision.id }),
+        supabase.from("decision_reads").select("read_at").eq("decision_id", decision.id).eq("user_id", user.id).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
   const map = analysis?.map as { clusters: MapCluster[]; open_questions: MapQuestion[] } | undefined;
   const sources = Object.fromEntries(
     (answers ?? []).map((a) => [a.pseudonym, { text: a.body, voice: a.source === "voice", label: a.is_own ? "du" : undefined }]),
@@ -54,6 +76,10 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
   const canAnswer = round.status === "open" && !deadlinePassed;
   const canClose = round.status === "open" && (round.created_by === user.id || Boolean(lead));
   const answerCount = count ?? 0;
+  const canDecide = round.status === "closed" && !isGuest && (round.created_by === user.id || Boolean(lead));
+  const canFollowUp = round.status !== "open" && !isGuest;
+  const followUpHref = `/app/teams/${round.team_id}/runden/neu?von=${round.id}`;
+  const mapClusters = (map?.clusters ?? []).map((c, index) => ({ index, title: c.title, kindLabel: KIND_LABELS[c.kind] }));
 
   return (
     <>
@@ -77,6 +103,17 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
             {answerCount === 1 ? "1 Antwort" : `${answerCount} Antworten`}
           </span>
         </div>
+        {parent ? (
+          <p className="mt-4 flex items-start gap-2 text-body-sm text-ink-muted">
+            <CornerDownRight aria-hidden size={20} strokeWidth={1.75} className="shrink-0" />
+            <span>
+              Folgerunde zu{" "}
+              <Link href={`/app/runden/${parent.id}`} className="text-primary underline">
+                {parent.question}
+              </Link>
+            </span>
+          </p>
+        ) : null}
         <h1 className="mt-4 text-h1">{round.question}</h1>
         {round.context ? <p className="mt-4 whitespace-pre-line text-body-lg text-ink-muted">{round.context}</p> : null}
 
@@ -115,6 +152,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               clusters={map.clusters}
               openQuestions={map.open_questions}
               sources={sources}
+              followUpHref={canFollowUp ? followUpHref : undefined}
               footer={
                 <>
                   AsyncMeet fasst zusammen und zeigt zu jeder Aussage die Beiträge. Entscheiden müsst ihr selbst.
@@ -136,6 +174,90 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       ) : null}
 
       <div className="max-w-[680px]">
+        {round.status !== "open" ? (
+          <section aria-labelledby="decision-heading" className="mt-10">
+            <h2 id="decision-heading" className="mb-4 flex items-center gap-2 text-h2">
+              <Gavel aria-hidden size={20} strokeWidth={1.75} />
+              Beschluss
+            </h2>
+            {decision ? (
+              <div className="flex flex-col gap-4 rounded-lg border border-line bg-card p-4 shadow-card sm:p-6">
+                <p className="text-caption text-ink-muted">
+                  Beschlossen am {formatDateTime(decision.created_at)}
+                  {decision.profiles?.display_name ? ` von ${decision.profiles.display_name}` : ""}
+                </p>
+                <p className="whitespace-pre-line text-body-lg font-semibold">{decision.body}</p>
+                <div>
+                  <h3 className="text-label">Begründung</h3>
+                  <p className="mt-1 whitespace-pre-line text-body">{decision.rationale}</p>
+                </div>
+                {decision.cluster_refs.length > 0 && map ? (
+                  <div>
+                    <h3 className="text-label">Stützt sich auf</h3>
+                    <ul className="mt-1 flex flex-wrap gap-2">
+                      {decision.cluster_refs
+                        .filter((i) => map.clusters[i])
+                        .map((i) => (
+                          <li key={i} className="rounded-full bg-sunken px-3 py-1 text-body-sm">
+                            {map.clusters[i].title}
+                            <span className="text-ink-muted"> · {KIND_LABELS[map.clusters[i].kind]}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ) : null}
+                <ReadReceipt
+                  decisionId={decision.id}
+                  hasRead={Boolean(ownRead)}
+                  readCount={readCounts?.[0]?.read_count ?? 0}
+                  memberCount={readCounts?.[0]?.member_count ?? 0}
+                />
+              </div>
+            ) : canDecide ? (
+              <DecisionForm roundId={round.id} clusters={mapClusters} />
+            ) : (
+              <p className="text-body text-ink-muted">
+                Noch kein Beschluss. Festhalten kann ihn, wer die Runde gestartet hat, oder die Teamleitung.
+              </p>
+            )}
+          </section>
+        ) : null}
+
+        {round.status !== "open" && (canFollowUp || (followUps && followUps.length > 0)) ? (
+          <section aria-labelledby="followups-heading" className="mt-10">
+            <h2 id="followups-heading" className="mb-4 text-h2">
+              Folgerunden
+            </h2>
+            {followUps && followUps.length > 0 ? (
+              <ul className="mb-4 flex flex-col gap-2">
+                {followUps.map((f) => (
+                  <li key={f.id}>
+                    <Link
+                      href={`/app/runden/${f.id}`}
+                      className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-line bg-card px-4 py-3 shadow-card hover:border-border-strong"
+                    >
+                      <span className="text-body">{f.question}</span>
+                      <StatusBadge status={f.status} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-4 text-body text-ink-muted">
+                {decision
+                  ? "Ergibt sich etwas Neues, starte eine Folgerunde. Sie wird mit dieser Runde verknüpft."
+                  : "Ist noch etwas offen? Stell eine Rückfrage oder starte eine Folgerunde, bevor ihr beschließt."}
+              </p>
+            )}
+            {canFollowUp ? (
+              <Link href={followUpHref} className={buttonStyles.secondary}>
+                <CornerDownRight aria-hidden size={20} strokeWidth={1.75} />
+                Folgerunde starten
+              </Link>
+            ) : null}
+          </section>
+        ) : null}
+
         {round.status !== "open" ? (
           <section aria-labelledby="answers-heading" className="mt-10">
             <h2 id="answers-heading" className="mb-4 text-h2">
