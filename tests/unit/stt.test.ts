@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { SttError, transcribe } from "@/lib/stt";
+import { SttError, transcribe, transcriptionHint } from "@/lib/stt";
 import { baseMime, voiceJobSchema } from "@/lib/validation/voice";
 
 const audio = new Blob(["x"], { type: "audio/webm" });
 const provider = (name: "groq" | "gemini", run: () => Promise<string>) => ({ name, model: `${name}-model`, run });
+
+describe("transcriptionHint", () => {
+  it("joins question and context into one short line", () => {
+    expect(transcriptionHint("Läuft RDB bei dir?", "Release\n  nächste Woche")).toBe("Läuft RDB bei dir? Release nächste Woche");
+    expect(transcriptionHint("x".repeat(2000)).length).toBe(600);
+  });
+
+  it("passes the hint to the provider", async () => {
+    let seen: string | undefined;
+    await transcribe(audio, "audio/webm", [{ name: "groq", model: "m", run: async (_a, _m, hint) => ((seen = hint), "ok") }], "RDB");
+    expect(seen).toBe("RDB");
+  });
+});
 
 describe("transcribe", () => {
   it("uses the first provider when it works", async () => {
@@ -53,6 +66,7 @@ describe("voice validation", () => {
     expect(voiceJobSchema.safeParse({ path: `../${file}.webm`, mime: "audio/webm", durationMs: 1 }).success).toBe(false);
     expect(voiceJobSchema.safeParse({ path: `${user}/${file}.exe`, mime: "audio/webm", durationMs: 1 }).success).toBe(false);
     expect(voiceJobSchema.safeParse({ path: `${user}/${file}.webm`, mime: "video/mp4", durationMs: 1 }).success).toBe(false);
-    expect(voiceJobSchema.safeParse({ path: `${user}/${file}.webm`, mime: "audio/webm", durationMs: 200_000 }).success).toBe(false);
+    expect(voiceJobSchema.safeParse({ path: `${user}/${file}.webm`, mime: "audio/webm", durationMs: 700_000 }).success).toBe(false);
+    expect(voiceJobSchema.safeParse({ path: `${user}/${file}.webm`, mime: "audio/webm", durationMs: 540_000 }).success).toBe(true);
   });
 });

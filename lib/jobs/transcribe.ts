@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/db/admin";
 import type { Database } from "@/lib/db/types";
-import { SttError, transcribe } from "@/lib/stt";
+import { configuredProviders, SttError, transcribe, transcriptionHint } from "@/lib/stt";
 
 type Job = Database["public"]["Tables"]["analysis_jobs"]["Row"];
 type Payload = { path: string; mime: string };
@@ -45,8 +45,13 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, job: Job)
   const { data: audio, error: downloadError } = await admin.storage.from("voice").download(path);
   if (downloadError || !audio) return fail("Die Aufnahme wurde nicht gefunden. Nimm sie bitte neu auf.", false);
 
+  const { data: round } = job.round_id
+    ? await admin.from("rounds").select("question, context").eq("id", job.round_id).maybeSingle()
+    : { data: null };
+  const hint = round ? transcriptionHint(round.question, round.context) : undefined;
+
   try {
-    const transcript = await transcribe(audio, mime);
+    const transcript = await transcribe(audio, mime, configuredProviders(), hint);
     if (!transcript.text) return fail("In der Aufnahme wurde keine Sprache erkannt. Nimm sie bitte neu auf.", true);
 
     await admin
