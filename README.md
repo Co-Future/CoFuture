@@ -10,6 +10,8 @@ CoFuture ist eine KI-gestützte Plattform, die Kommunikation und Wissensaustausc
 
 Entstanden im Seminar „Zurück in die Digitale Zukunft“.
 
+> **Diese README ist der zentrale Ausgangspunkt** für Ziel, Scope, Stand und Planung. Es gibt kein separates Tool (kein Notion, kein ClickUp). Wer etwas fertigstellt oder den Plan ändert, passt die README im selben PR an.
+
 ## Problem
 
 - Meetings kosten viel Zeit, sind schwer zu koordinieren, und oft reden nur wenige.
@@ -71,6 +73,7 @@ AsyncMeet läuft von Anfang bis Ende: Team anlegen, Runde starten, per Text oder
 | 1 | Supabase-Fundament: Schema, Row Level Security, Pseudonyme, Tests | fertig |
 | 2 | KI-Proof-of-Concept Groq vs. Gemini ([`eval/poc/REPORT.md`](eval/poc/REPORT.md)) | fertig |
 | 3 | Registrieren, Anmelden, geschützter Bereich, Teams und Mitglieder | fertig |
+| 3b | Organisationen (Mandanten), Personen anlegen, einmalige Zugangslinks, Team-Dashboard mit Vorschau geplanter Funktionen ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen (`pg_cron`), Live-Updates | fertig |
 | 5 | Sprachantworten: Aufnahme im Browser, Upload, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
@@ -78,7 +81,9 @@ AsyncMeet läuft von Anfang bis Ende: Team anlegen, Runde starten, per Text oder
 | 8 | Wissensspeicher mit semantischer Suche (pgvector) | offen |
 | 9 | Rückkanal Führung ↔ Mitarbeitende | offen |
 
-Noch offen, aber klein: `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald eine feste Produktions-URL steht. Seed-Skript zum Aufräumen der Testnutzer in Staging. Playwright-E2E-Tests im Repo (bisher nur lokal gelaufen).
+Noch offen: Prod-Datenbank `cofuture-prod` einrichten (dort sind noch keine Migrationen, die App läuft gegen Staging). Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können. Integrationstests für die Organisations-Funktionen.
+
+Klein: `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald eine feste Produktions-URL steht. Seed-Skript zum Aufräumen der Testnutzer in Staging. Playwright-E2E-Tests im Repo (bisher nur lokal gelaufen).
 
 ## So funktioniert AsyncMeet technisch
 

@@ -8,6 +8,6 @@ labels: enhancement
 
 **Für wen und warum?**
 
-**Notion-Aufgabe / WBS** (falls vorhanden)
+**Schritt in der README** (falls vorhanden)
 
 **Passt das zu den Gestaltungsprinzipien?** (Belege, Pseudonyme, Mensch entscheidet)

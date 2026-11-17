@@ -4,7 +4,7 @@
 
 ## Warum
 
-<!-- Link zur Notion-Aufgabe (WBS-Nummer), Problem, Ziel -->
+<!-- Schritt aus der README (Stand der Entwicklung), Problem, Ziel -->
 
 ## Wie getestet
 
@@ -17,4 +17,5 @@
 - [ ] Keine Secrets oder echten Personendaten im Code
 - [ ] Hält die Designsprache ein (Tokens statt fester Farben, Du-Ansprache, Buttons Verb + Objekt)
 - [ ] Hält die Gestaltungsprinzipien ein (Belege, Pseudonyme, keine Personenbewertung)
+- [ ] README aktualisiert, falls sich Stand oder Plan ändern
 - [ ] Höchstens eine neue Migration, bestehende Migrationen unverändert
