@@ -1,6 +1,6 @@
 # ADR 006: Vektorsuche mit pgvector
 
-**Status:** Vorgeschlagen, 12.11.2026 (Zustimmung im Team bis M3, 03.12.2026)
+**Status:** Vorgeschlagen, 12.11.2026 (Freigabe durch Constantin oder Luca)
 
 ## Kontext
 

@@ -8,7 +8,7 @@ Jede wichtige technische Entscheidung bekommt eine Datei `NNN-titel.md` mit:
 
 ## Übersicht
 
-Stand 12.11.2026: alle vorgeschlagen, Zustimmung im Team bis zum Architektur-Review (M3, 03.12.2026). Begründung, Kosten und Gesamtbild stehen in Notion auf der Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
+Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ganzen Teams ist nicht nötig. Begründung, Kosten und Gesamtbild stehen in Notion auf der Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
 
 | ADR | Thema | Entscheidung |
 | --- | --- | --- |
