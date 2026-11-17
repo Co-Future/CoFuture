@@ -35,6 +35,7 @@ export async function Sidebar() {
 
         <SectionLabel
           action={
+            current?.role === "guest" ? null : (
             <Link
               href="/app/teams/neu"
               aria-label="Team anlegen"
@@ -42,6 +43,7 @@ export async function Sidebar() {
             >
               <Plus size={16} strokeWidth={1.75} aria-hidden />
             </Link>
+            )
           }
         >
           Teams
@@ -70,9 +72,11 @@ export async function Sidebar() {
         ) : (
           <p className="px-3 py-2 text-body-sm text-ink-muted">
             Noch kein Team.{" "}
-            <Link href="/app/teams/neu" className="font-semibold text-primary underline">
-              Team anlegen
-            </Link>
+            {current?.role === "guest" ? null : (
+              <Link href="/app/teams/neu" className="font-semibold text-primary underline">
+                Team anlegen
+              </Link>
+            )}
           </p>
         )}
 
@@ -80,7 +84,7 @@ export async function Sidebar() {
           <>
             <SectionLabel>Organisation</SectionLabel>
             <NavLink href="/app/organisation" icon={<Users size={20} strokeWidth={1.75} aria-hidden />} exact>
-              {current.role === "admin" ? "Personen und Zugänge" : "Personen"}
+              {current.role === "owner" ? "Personen und Zugänge" : "Personen"}
             </NavLink>
           </>
         ) : null}

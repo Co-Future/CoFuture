@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     p_name: body.data.name,
     ...(org ? { p_organization_id: org.id } : {}),
   });
+  if (error?.code === "42501") return apiError(403, "forbidden", "Als Gast kannst du keine Teams anlegen.");
   if (error || !data) return apiError(500, "create_failed", "Das Team konnte nicht angelegt werden.");
 
   return Response.json({ id: data.id, name: data.name }, { status: 201 });

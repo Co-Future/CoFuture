@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { createClient } from "@/lib/db/server";
 
-export type OrganizationSummary = { id: string; name: string; role: "admin" | "member" };
+import type { OrgRole } from "@/lib/organizations/roles";
+
+export type OrganizationSummary = { id: string; name: string; role: OrgRole };
 
 /** Cookie with the organization selected in the sidebar. Only a preference: membership is always checked. */
 export const ORG_COOKIE = "cofuture_org";

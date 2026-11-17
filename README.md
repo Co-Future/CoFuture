@@ -52,7 +52,7 @@ Asynchrone Abstimmungsrunden statt Live-Meetings:
 | --- | --- |
 | **MVP** | Login, Organisationen und Teams, Dialogrunden, Antworten per Sprache und Text, Perspektivenkarte mit Quellen, Beschlüsse, Wissensspeicher, Rückkanal |
 | **Danach** (MoSCoW) | Statusrunden, Besprechungen, E-Mail-Zusammenfassung, Kundenkontakt, Webseiten-Anfragen, Stimmungsbild |
-| **Mandanten** | Organisationen bündeln Personen und Teams. Eine Person kann in mehreren sein ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)). |
+| **Mandanten** | Organisationen bündeln Personen und Teams. Eine Person kann in mehreren sein, mit der Rolle Owner, Mitglied oder Gast ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)). |
 | **Nicht geplant** | Native Apps, Slack- oder Teams-Integration, SSO, Zahlungen |
 | **Erfolgskriterien** | End-to-End-Demo läuft, Analyse von 30 Antworten unter 60 s, 100 % der Antworten in der Karte abgedeckt, DSGVO-konform |
 | **Rahmen** | KI-Kosten unter 50 € gesamt, kostenlose Hosting-Tarife, Abgabe 05.02.2027 |
@@ -70,6 +70,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 | 3 | Registrieren, Anmelden, geschützter Bereich, Teams und Mitglieder | fertig |
 | 3b | Organisationen, Personen anlegen, einmalige Zugangslinks ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
 | 3c | App-Navigation: Seitenleiste mit Organisations-Menü, persönliches Dashboard, Team-Dashboards | fertig |
+| 3d | Rollen Owner, Mitglied, Gast; Organisation und Team übergeben oder löschen (wenn leer); Konten der Organisation löschen, Passwort zurücksetzen | fertig |
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen, Live-Updates | fertig |
 | 5 | Sprachantworten: Aufnahme im Browser, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |

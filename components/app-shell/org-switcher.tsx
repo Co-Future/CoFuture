@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api/client";
+import { orgRoleLabel, type OrgRole } from "@/lib/organizations/roles";
 
-type Org = { id: string; name: string; role: "admin" | "member" };
+type Org = { id: string; name: string; role: OrgRole };
 
 /** Organization menu at the top of the sidebar: the only place to switch organizations. */
 export function OrgSwitcher({ organizations, currentId }: { organizations: Org[]; currentId: string | null }) {
@@ -88,7 +89,7 @@ export function OrgSwitcher({ organizations, currentId }: { organizations: Org[]
                         className="flex min-h-11 w-full items-center gap-2 rounded-md px-2 text-left text-body hover:bg-sunken"
                       >
                         <span className="min-w-0 flex-1 truncate">{org.name}</span>
-                        <span className="text-caption text-ink-muted">{org.role === "admin" ? "Admin" : "Mitglied"}</span>
+                        <span className="text-caption text-ink-muted">{orgRoleLabel[org.role]}</span>
                         {isCurrent ? (
                           <Check size={16} strokeWidth={1.75} aria-label="ausgewählt" className="text-primary" />
                         ) : (
@@ -110,7 +111,7 @@ export function OrgSwitcher({ organizations, currentId }: { organizations: Org[]
                 className="flex min-h-11 items-center gap-2 rounded-md px-2 text-body hover:bg-sunken"
               >
                 <Settings size={20} strokeWidth={1.75} aria-hidden />
-                {current.role === "admin" ? "Organisation verwalten" : "Organisation ansehen"}
+                {current.role === "owner" ? "Organisation verwalten" : "Organisation ansehen"}
               </Link>
             ) : null}
             <Link

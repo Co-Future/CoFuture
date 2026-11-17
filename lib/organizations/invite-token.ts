@@ -50,3 +50,13 @@ export async function findValidInvite(admin: SupabaseClient<Database>, token: st
     organizationName: invite.organizations?.name ?? "",
   };
 }
+
+/**
+ * True if the organization created this account itself and the person is in no other
+ * organization. Only then may its owners reset the password or delete the account.
+ */
+export async function isManagedAccount(admin: SupabaseClient<Database>, orgId: string, userId: string): Promise<boolean> {
+  const { data } = await admin.from("organization_members").select("organization_id, managed").eq("user_id", userId);
+  if (!data) return false;
+  return data.length === 1 && data[0]!.organization_id === orgId && data[0]!.managed;
+}

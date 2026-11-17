@@ -6,11 +6,12 @@ import { AccessLink } from "@/components/organizations/access-link";
 import { Button, Field, FormError } from "@/components/ui/form";
 import { apiFetch } from "@/lib/api/client";
 import { fieldErrors, type FieldErrors } from "@/lib/validation/auth";
+import { orgRoleHint, orgRoleLabel, orgRoles } from "@/lib/organizations/roles";
 import { addPersonSchema, type AddPersonInput } from "@/lib/validation/organization";
 
 type Props = { organizationId: string; teams: { id: string; name: string }[] };
 
-/** Admins add a person: the account is created right away and a one-time access link is shown. */
+/** Owners add a person: the account is created right away and a one-time access link is shown. */
 export function AddPersonForm({ organizationId, teams }: Props) {
   const router = useRouter();
   const [errors, setErrors] = useState<FieldErrors<AddPersonInput>>({});
@@ -66,10 +67,31 @@ export function AddPersonForm({ organizationId, teams }: Props) {
           name="email"
           type="email"
           label="E-Mail-Adresse"
-          hint="Damit meldet sich die Person später an. Die Adresse sehen nur Admins."
+          hint="Damit meldet sich die Person später an. Die Adresse sehen nur Owner."
           autoComplete="off"
           error={errors.email}
         />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="person-role" className="text-label text-ink">
+            Rolle
+          </label>
+          <select
+            id="person-role"
+            name="role"
+            defaultValue="member"
+            aria-describedby="person-role-hint"
+            className="min-h-11 rounded-md border border-border-strong bg-card px-3 text-body text-ink"
+          >
+            {orgRoles.map((r) => (
+              <option key={r} value={r}>
+                {orgRoleLabel[r]}
+              </option>
+            ))}
+          </select>
+          <p id="person-role-hint" className="text-body-sm text-ink-muted">
+            {orgRoleLabel.guest}: {orgRoleHint.guest}
+          </p>
+        </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="person-team" className="text-label text-ink">
             Team (optional)

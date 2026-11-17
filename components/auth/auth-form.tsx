@@ -11,7 +11,7 @@ import { fieldErrors, loginSchema, type FieldErrors } from "@/lib/validation/aut
 import { organizationSignupSchema, type OrganizationSignupInput } from "@/lib/validation/organization";
 
 /**
- * Login, or sign-up that creates a new organization (the person becomes its admin).
+ * Login, or sign-up that creates a new organization (the person becomes its owner).
  * Talks to Supabase Auth from the browser; the session lands in cookies.
  * Everyone else gets an account from their admin and comes in through a one-time access link.
  */

@@ -1,9 +1,11 @@
-import { Hourglass, ShieldCheck, User } from "lucide-react";
+import { Hourglass } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AddPersonForm } from "@/components/organizations/add-person-form";
+import { OrganizationDangerZone } from "@/components/organizations/organization-danger-zone";
+import { OrgRoleBadge } from "@/components/organizations/org-role-badge";
 import { PersonActions } from "@/components/organizations/person-actions";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
@@ -15,7 +17,7 @@ async function OrganizationDetail() {
   const user = await getCurrentUser();
   const org = await getCurrentOrganization(user.id);
   if (!org) redirect("/app");
-  const isAdmin = org.role === "admin";
+  const isOwner = org.role === "owner";
 
   const supabase = await createClient();
   const [{ data: people }, { data: teams }] = await Promise.all([
@@ -43,14 +45,7 @@ async function OrganizationDetail() {
                       {person.display_name}
                       {isSelf ? <span className="font-normal text-ink-muted"> (du)</span> : null}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-body-sm text-ink-muted">
-                      {person.role === "admin" ? (
-                        <ShieldCheck size={16} strokeWidth={1.75} aria-hidden />
-                      ) : (
-                        <User size={16} strokeWidth={1.75} aria-hidden />
-                      )}
-                      {person.role === "admin" ? "Admin" : "Mitglied"}
-                    </span>
+                    <OrgRoleBadge role={person.role} />
                     {person.pending ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-body-sm text-warning-ink">
                         <Hourglass size={16} strokeWidth={1.75} aria-hidden />
@@ -59,8 +54,15 @@ async function OrganizationDetail() {
                     ) : null}
                   </div>
                   {person.email ? <span className="font-mono text-body-sm text-ink-muted">{person.email}</span> : null}
-                  {isAdmin && !isSelf ? (
-                    <PersonActions organizationId={org.id} userId={person.user_id} name={person.display_name} />
+                  {isOwner && !isSelf ? (
+                    <PersonActions
+                      organizationId={org.id}
+                      userId={person.user_id}
+                      name={person.display_name}
+                      role={person.role}
+                      managed={person.managed}
+                      pending={person.pending}
+                    />
                   ) : null}
                 </li>
               );
@@ -69,19 +71,19 @@ async function OrganizationDetail() {
         </section>
 
         <aside className="flex flex-col gap-10">
-          {isAdmin ? (
+          {isOwner ? (
             <section aria-labelledby="add-person-heading">
               <h2 id="add-person-heading" className="mb-1 text-h3">
                 Person hinzufügen
               </h2>
               <p className="mb-4 text-body-sm text-ink-muted">
-                Das Konto wird sofort angelegt. Du bekommst einen Zugangslink, mit dem die Person ihr Passwort festlegt.
+                Neue Konten werden sofort angelegt, du bekommst einen Zugangslink. Hat die Person schon ein Konto, tritt sie direkt bei.
               </p>
               <AddPersonForm organizationId={org.id} teams={teams ?? []} />
             </section>
           ) : (
             <p className="text-body-sm text-ink-muted">
-              Personen hinzufügen und Zugangslinks erzeugen können die Admins deiner Organisation.
+              Personen hinzufügen, Rollen vergeben und Zugangslinks erzeugen können die Owner deiner Organisation.
             </p>
           )}
 
@@ -105,6 +107,16 @@ async function OrganizationDetail() {
           </section>
         </aside>
       </div>
+
+      {isOwner ? (
+        <div className="mt-12 max-w-[680px]">
+          <OrganizationDangerZone
+            organizationId={org.id}
+            organizationName={org.name}
+            others={(people ?? []).filter((p) => p.user_id !== user.id).map((p) => ({ id: p.user_id, name: p.display_name }))}
+          />
+        </div>
+      ) : null}
     </>
   );
 }
