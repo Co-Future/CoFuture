@@ -4,7 +4,7 @@
 
 ## Warum
 
-<!-- Schritt aus der README (Stand der Entwicklung), Problem, Ziel -->
+<!-- Schritt aus der README (Stand oder Roadmap), Problem, Ziel -->
 
 ## Wie getestet
 

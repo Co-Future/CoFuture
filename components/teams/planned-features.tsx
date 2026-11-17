@@ -19,9 +19,13 @@ export type PlannedFeature = {
   description: string;
   phase: Phase;
   Icon: LucideIcon;
+  /** What the feature will do, in the order we plan to build it. */
+  functions: string[];
+  /** How it runs on our stack only (Vercel + Supabase + existing AI adapters). */
+  stack: string;
 };
 
-// Mirrors the scope in CLAUDE.md (MVP + MoSCoW). Remove an entry once the feature ships.
+// Same content as the roadmap in README.md. Remove an entry once the feature ships.
 export const plannedFeatures: PlannedFeature[] = [
   {
     id: "beschluesse",
@@ -29,6 +33,14 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Aus einer Runde wird ein Beschluss mit Begründung, der an alle im Team geht.",
     phase: "mvp",
     Icon: Gavel,
+    functions: [
+      "Beschlussvorlage aus einer geschlossenen Runde, mit Verweisen auf die Perspektivenkarte",
+      "Rückfrage stellen oder Folgerunde starten, verknüpft mit der Ursprungsrunde",
+      "Beschluss mit Begründung festhalten, Runde wechselt auf „Entschieden“",
+      "Alle im Team sehen den Beschluss, mit Lesebestätigung",
+      "Beschlussarchiv je Team",
+    ],
+    stack: "Tabelle decisions mit RLS, Folgerunden über rounds.parent_round_id, Realtime für neue Beschlüsse, Hinweis im Dashboard",
   },
   {
     id: "wissensspeicher",
@@ -36,6 +48,14 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Beschlüsse und Antworten bleiben auffindbar, auch mit Suche nach Bedeutung statt nur nach Wörtern.",
     phase: "mvp",
     Icon: BookOpen,
+    functions: [
+      "Beschlüsse und Rundenergebnisse werden automatisch aufgenommen",
+      "Suche nach Bedeutung und nach Stichwort in einem Feld",
+      "Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss",
+      "Frage stellen, Antwort mit Belegen erhalten",
+      "Sichtbar nur, was du auch im Original sehen darfst",
+    ],
+    stack: "pgvector und Postgres-Volltextsuche (german), Embeddings als Job über lib/ai, RLS auf jedem Abschnitt",
   },
   {
     id: "rueckkanal",
@@ -43,6 +63,14 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Fragen und Hinweise an die Leitung, auf Wunsch pseudonym. Antworten sehen alle.",
     phase: "mvp",
     Icon: MessagesSquare,
+    functions: [
+      "Frage oder Hinweis an die Leitung, pseudonym oder mit Namen",
+      "Antworten der Leitung sind für alle im Team sichtbar",
+      "Ähnliche Fragen werden gebündelt, mit Quellen",
+      "Briefings der Leitung mit Rückfragen",
+      "Status offen oder beantwortet",
+    ],
+    stack: "Tabellen threads und messages mit RLS, Pseudonym-Trigger wie bei Antworten, Realtime",
   },
   {
     id: "statusrunden",
@@ -50,6 +78,13 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Kurze, wiederkehrende Runden zu Fristen und offenen Aufgaben.",
     phase: "later",
     Icon: ListChecks,
+    functions: [
+      "Wiederkehrende Kurzrunde mit festen Fragen, zum Beispiel montags 9:00 Uhr",
+      "Erinnerung im Dashboard unter „Wartet auf deine Antwort“",
+      "Zusammenfassung zu Fortschritt, Blockern und Fristen",
+      "Offene Aufgaben mit Frist",
+    ],
+    stack: "pg_cron legt die Runden an, bestehende Runden- und Analyse-Jobs",
   },
   {
     id: "besprechungen",
@@ -57,6 +92,14 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Interne und externe Termine vor- und nachbereiten, mit Zusammenfassung und Aufgaben.",
     phase: "later",
     Icon: CalendarClock,
+    functions: [
+      "Termin mit Agenda, die alle vorher ergänzen können",
+      "Aufnahme im Browser oder als Datei hochladen, danach Transkript",
+      "Zusammenfassung, Beschlüsse und Aufgaben mit Zeitmarke als Quelle",
+      "Protokoll für alle Teilnehmenden in der App",
+      "Externe Gäste per Zugangslink nur für diese Besprechung",
+    ],
+    stack: "Upload direkt in Supabase Storage, Transkription in Abschnitten im Job-Worker (lib/stt), Realtime",
   },
   {
     id: "e-mail",
@@ -64,6 +107,13 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Lange E-Mail-Verläufe kurz zusammengefasst, mit Verweis auf die Original-Nachrichten.",
     phase: "later",
     Icon: Mail,
+    functions: [
+      "E-Mail-Verlauf einfügen oder als .eml-Datei hochladen",
+      "Zusammenfassung, offene Fragen, Fristen",
+      "Antwortentwurf zum Bearbeiten",
+      "Mit Kunde oder Team verknüpfen",
+    ],
+    stack: "Einfügen oder Upload, Auswertung als Job über lib/ai. Kein Postfach-Abruf, Weiterleitungsadresse erst mit Resend",
   },
   {
     id: "kundenkontakt",
@@ -71,6 +121,14 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Kundenanliegen gesammelt an einem Ort, damit das Team gemeinsam antworten kann.",
     phase: "later",
     Icon: Headset,
+    functions: [
+      "Kundenkartei je Organisation",
+      "Verlauf mit Anfragen, E-Mails und Besprechungen an einem Ort",
+      "Anfrage einem Team zuweisen, Status verfolgen",
+      "Zusammenfassung der Kundenhistorie mit Quellen",
+      "Kundendaten auf Wunsch vollständig löschen",
+    ],
+    stack: "Tabellen je Organisation mit RLS, Zusammenfassung als Job über lib/ai",
   },
   {
     id: "webseiten-anfragen",
@@ -78,6 +136,13 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Anfragen über die Webseite landen strukturiert im Team.",
     phase: "later",
     Icon: Globe,
+    functions: [
+      "Öffentliches Anfrageformular je Organisation, als Link oder eingebettet",
+      "Eingang mit Kategorie, Dringlichkeit und Kurzfassung",
+      "Spamschutz über Honeypot und Ratenlimit",
+      "Landet im Kundenkontakt und wird einem Team zugewiesen",
+    ],
+    stack: "Öffentlicher Route Handler mit Zod, Tabelle ohne Client-Zugriff, Ratenlimit in Postgres",
   },
   {
     id: "stimmungsbild",
@@ -85,6 +150,13 @@ export const plannedFeatures: PlannedFeature[] = [
     description: "Anonymes Bild für das Team als Ganzes. Keine Auswertung einzelner Personen.",
     phase: "later",
     Icon: Smile,
+    functions: [
+      "Kurze anonyme Abfrage mit Skala und optionalem Text",
+      "Ergebnis erst ab 5 Antworten sichtbar",
+      "Verlauf über die Zeit für das ganze Team",
+      "Gleiche Sicht für alle, keine Auswertung einzelner Personen",
+    ],
+    stack: "Tabelle mit RLS und View ohne Personenbezug (wie round_responses), pg_cron für Wiederholungen",
   },
 ];
 
@@ -100,26 +172,33 @@ export function PlannedFeatures({ headingLevel = "h2" }: { headingLevel?: "h1" |
       <Heading id="planned-heading" className={headingLevel === "h1" ? "text-h1" : "text-h2"}>
         Kommt noch
       </Heading>
-      <p className="mt-1 mb-4 max-w-[680px] text-body-sm text-ink-muted">
-        Diese Funktionen sind geplant und noch nicht nutzbar. So siehst du schon jetzt, wohin CoFuture wächst.
+      <p className="mt-1 mb-6 max-w-[680px] text-body text-ink-muted">
+        Diese Funktionen sind geplant und noch nicht nutzbar. Alle laufen auf derselben Grundlage wie heute: Vercel und Supabase.
       </p>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {plannedFeatures.map(({ id, title, description, phase, Icon }) => (
+      <ul className="grid gap-4 lg:grid-cols-2">
+        {plannedFeatures.map(({ id, title, description, phase, Icon, functions, stack }) => (
           <li
             key={id}
             id={id}
-            className="flex scroll-mt-24 flex-col gap-2 rounded-lg border border-dashed border-line bg-paper p-4 target:border-primary"
+            className="flex scroll-mt-24 flex-col gap-3 rounded-lg border border-dashed border-line bg-paper p-4 target:border-primary"
           >
             <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-2 text-h3 text-ink-muted">
+              <span className="flex items-center gap-2 text-h3">
                 <Icon size={20} strokeWidth={1.75} aria-hidden />
                 {title}
               </span>
-              <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-body-sm text-ink-muted">
-                {phaseLabel[phase]}
-              </span>
+              <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-body-sm text-ink-muted">{phaseLabel[phase]}</span>
             </div>
-            <p className="text-body-sm text-ink-muted">{description}</p>
+            <p className="text-body text-ink-muted">{description}</p>
+            <ul className="flex list-disc flex-col gap-1 pl-5 text-body-sm">
+              {functions.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+            <p className="text-body-sm text-ink-muted">
+              <span className="font-semibold text-ink">Umsetzung: </span>
+              {stack}
+            </p>
           </li>
         ))}
       </ul>
