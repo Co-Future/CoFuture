@@ -1,6 +1,6 @@
 # ADR 011: Zugang über Organisationen und Einladungslinks
 
-**Status:** Vorgeschlagen und umgesetzt, 17.11.2026 (Zustimmung im Team bis M3, 03.12.2026)
+**Status:** Vorgeschlagen und umgesetzt, 17.11.2026 (Freigabe durch Constantin oder Luca)
 
 ## Kontext
 
@@ -12,7 +12,7 @@ Heute registriert sich jede Person selbst. Wer ein Team anlegt, ist Leitung und 
 
 Wunsch aus dem Team: Eine Organisation anlegen, darin Personen und Teams verwalten und angelegten Personen einen Link zum Einstieg geben. Beim ersten Login setzt die Person ein eigenes Passwort.
 
-**Abgrenzung zum Scope:** „Mandantenverwaltung“ ist Out of Scope. Dieser Entwurf meint deshalb nur eine schlanke Organisation: ein Name, Mitglieder, Teams. Keine Abrechnung, keine Org-Einstellungen, kein Wechsel zwischen mehreren Organisationen in der Oberfläche. Ob das noch zum MVP passt, entscheidet das Team.
+**Abgrenzung zum Scope:** „Mandantenverwaltung“ ist Out of Scope. Dieser Entwurf meint deshalb nur eine schlanke Organisation: ein Name, Mitglieder, Teams. Keine Abrechnung, keine Org-Einstellungen, kein Wechsel zwischen mehreren Organisationen in der Oberfläche. Ob das noch zum MVP passt, entscheiden Constantin oder Luca.
 
 ## Vorschlag
 
@@ -72,7 +72,7 @@ RLS: Personen sehen nur ihre eigene Organisation. `invites` ist für Clients gar
 - **Secret Key nötig:** Personen anlegen und Links prüfen braucht `SUPABASE_SECRET_KEY` auf Vercel.
 - **Teams in einer Organisation** nehmen nur Personen aus dieser Organisation auf (Auswahl aus Liste).
 
-## Offene Fragen ans Team
+## Offene Fragen (Entscheidung: Constantin oder Luca)
 
 1. Passt eine schlanke Organisation noch in den Scope, oder bleibt es bei Teams ohne Organisation?
 2. Darf eine Person in mehreren Organisationen sein? Vorschlag für das MVP: nein.
