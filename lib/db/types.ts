@@ -131,6 +131,94 @@ export type Database = {
           },
         ]
       }
+      decision_reads: {
+        Row: {
+          decision_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          decision_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          decision_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_reads_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decision_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decisions: {
+        Row: {
+          body: string
+          cluster_refs: number[]
+          created_at: string
+          decided_by: string | null
+          id: string
+          rationale: string
+          round_id: string
+          team_id: string
+        }
+        Insert: {
+          body: string
+          cluster_refs?: number[]
+          created_at?: string
+          decided_by?: string | null
+          id?: string
+          rationale: string
+          round_id: string
+          team_id: string
+        }
+        Update: {
+          body?: string
+          cluster_refs?: number[]
+          created_at?: string
+          decided_by?: string | null
+          id?: string
+          rationale?: string
+          round_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: true
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invites: {
         Row: {
           created_at: string
@@ -453,6 +541,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "teams_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -548,6 +643,37 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      decide_round: {
+        Args: {
+          p_body: string
+          p_cluster_refs?: number[]
+          p_rationale: string
+          p_round_id: string
+        }
+        Returns: {
+          body: string
+          cluster_refs: number[]
+          created_at: string
+          decided_by: string | null
+          id: string
+          rationale: string
+          round_id: string
+          team_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "decisions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      decision_read_count: {
+        Args: { p_decision_id: string }
+        Returns: {
+          member_count: number
+          read_count: number
+        }[]
+      }
       delete_organization: { Args: { p_org_id: string }; Returns: undefined }
       delete_team: { Args: { p_team_id: string }; Returns: undefined }
       find_user_id_by_email: { Args: { p_email: string }; Returns: string }
@@ -569,7 +695,7 @@ export type Database = {
         }[]
       }
       purge_test_users: {
-        Args: { p_older_than?: unknown; p_run?: string }
+        Args: { p_older_than?: string; p_run?: string }
         Returns: number
       }
       remove_organization_member: {
@@ -586,6 +712,7 @@ export type Database = {
         Returns: undefined
       }
       shares_org_with: { Args: { p_user_id: string }; Returns: boolean }
+      shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
       transfer_organization: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: undefined
@@ -594,7 +721,6 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: undefined
       }
-      shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       job_kind: "transcribe" | "analyze"
