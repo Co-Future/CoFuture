@@ -8,7 +8,7 @@ Jede wichtige technische Entscheidung bekommt eine Datei `NNN-titel.md` mit:
 
 ## Übersicht
 
-Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ganzen Teams ist nicht nötig. Begründung, Kosten und Gesamtbild stehen in Notion auf der Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
+Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ganzen Teams ist nicht nötig. Begründung und Kosten stehen in der jeweiligen ADR, das Gesamtbild in der [README](../../README.md).
 
 | ADR | Thema | Entscheidung |
 | --- | --- | --- |

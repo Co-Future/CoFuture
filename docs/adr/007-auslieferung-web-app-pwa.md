@@ -4,7 +4,7 @@
 
 ## Kontext
 
-In Notion stand zeitweise Electron (Desktop-App). Das Repo ist eine Next.js-Web-App.
+In früheren Planungsunterlagen stand zeitweise Electron (Desktop-App). Das Repo ist eine Next.js-Web-App.
 
 ## Entscheidung
 

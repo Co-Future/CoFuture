@@ -11,7 +11,8 @@ CoFuture ist eine KI-Plattform, die Kommunikation und Wissensaustausch zwischen 
 - **Leitfrage:** Wie kann KI die Kommunikation und den Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden automatisieren, ohne dass Menschen die Entscheidung abgeben?
 - **Kontext:** Seminarprojekt „Zurück in die Digitale Zukunft“, Kategorie Arbeit.
 - **Abgabe:** 05.02.2027. Lauffähige Plattform, kein reiner Klickprototyp.
-- **Quelle der Wahrheit für Anforderungen und Planung:** Notion (Teamspace „CoFuture“, Seiten *Teamspace Startseite*, *Projektauftrag & Scope*, *Tech-Stack (End-to-End)*, Datenbank *Arbeitspakete & Aufgaben*). Wenn Code und Notion sich widersprechen, nachfragen statt raten.
+- **Quelle der Wahrheit für Anforderungen, Planung und Stand:** die [`README.md`](README.md) im Repo. Notion und ClickUp werden nicht mehr genutzt. Wenn Code und README sich widersprechen, nachfragen statt raten.
+- **README aktuell halten:** Wer etwas fertigstellt oder den Plan ändert, passt im selben PR die README an (vor allem *Stand der Entwicklung*).
 
 ## Kernfeature: AsyncMeet (zuerst bauen)
 
@@ -69,7 +70,7 @@ Diese Regeln gelten für jedes Feature. Wenn eine Umsetzung dagegen verstößt, 
 | Tests | Vitest, Testing Library, Playwright + axe, k6, eigenes KI-Eval |
 | Paketmanager | **pnpm** (über `corepack`) |
 
-Entscheidungen stehen als ADR in `docs/adr/`. Eine ADR gilt, sobald Constantin oder Luca sie freigeben (siehe *Freigaben*). Begründung und Kosten: Notion-Seite *Architektur-Vorschlag* unter *Technologieentscheidung & Proof of Concept*.
+Entscheidungen stehen als ADR in `docs/adr/`. Eine ADR gilt, sobald Constantin oder Luca sie freigeben (siehe *Freigaben*). Begründung und Kosten stehen in der jeweiligen ADR.
 
 ## Designsprache
 
@@ -140,7 +141,7 @@ Wir sind fünf Leute, die parallel (oft jeweils mit Claude Code) am selben Repo 
 - Für jede Aufgabe ein eigener Branch von aktuellem `main`:
   `feat/<kurzbeschreibung>`, `fix/<…>`, `chore/<…>`, `docs/<…>`
   Beispiel: `feat/asyncmeet-audio-recorder`
-- Wenn es in Notion ein Arbeitspaket gibt, die WBS-Nummer in den Branch oder PR-Titel schreiben (z. B. `feat/4.2-transkription`).
+- Gehört die Aufgabe zu einem Schritt in der README (*Stand der Entwicklung*), dessen Nummer in den Branch oder PR-Titel schreiben (z. B. `feat/7-beschluss`).
 - Vor dem Start und vor dem PR: `git pull --rebase origin main`.
 
 ### Commits
@@ -152,7 +153,7 @@ Wir sind fünf Leute, die parallel (oft jeweils mit Claude Code) am selben Repo 
 
 - Jede Änderung geht über einen PR. **Freigabe:** Es reicht, wenn Constantin oder Luca „passt“ sagen (Kommentar oder Approve im PR, auch beim eigenen PR). Ein weiteres Review aus dem Team ist nicht nötig.
 - PRs klein halten (Richtwert < 400 geänderte Zeilen). Lieber mehrere PRs.
-- Im PR beschreiben: Was, warum, wie getestet, Screenshot bei UI-Änderungen, Link zur Notion-Aufgabe.
+- Im PR beschreiben: Was, warum, wie getestet, Screenshot bei UI-Änderungen, Bezug zum Schritt in der README.
 - Vor dem PR müssen `pnpm lint` und `pnpm build` lokal durchlaufen.
 - Merge per **Squash**, Branch danach löschen.
 
@@ -182,7 +183,7 @@ Constantin und Luca geben frei: PRs, ADRs und Änderungen an Regeln oder geteilt
 | Requirements, Marketing | Lars |
 | UX/UI & Design-System | Loran |
 
-Die genaue Verteilung steht in Notion (*Arbeitspakete & Aufgaben*, Ansicht *Verteilung pro Person*).
+Aufgaben und Stand stehen in der README unter *Stand der Entwicklung*.
 
 ## Hinweise für Claude Code
 
