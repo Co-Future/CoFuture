@@ -10,7 +10,7 @@ CoFuture ist eine Plattform für Kommunikation und Wissensaustausch zwischen Fü
 
 > **Diese README ist der zentrale Ausgangspunkt** für Ziel, Scope, Stand und Planung. Es gibt kein separates Planungstool. Wer etwas fertigstellt oder den Plan ändert, passt die README im selben PR an.
 
-**Inhalt:** [Überblick](#überblick) · [Stand](#stand) · [Roadmap](#roadmap) · [Architektur](#architektur) · [Lokal einrichten](#lokal-einrichten) · [Betrieb](#betrieb) · [Mitmachen](#mitmachen) · [Team](#team)
+**Inhalt:** [Überblick](#überblick) · [Stand](#stand) · [Roadmap](#roadmap) · [Architektur](#architektur) · [Lokal einrichten](#lokal-einrichten) · [Betrieb](#betrieb) · [Mitmachen](#mitmachen)
 
 ---
 
@@ -86,6 +86,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 - [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
 - [ ] Skript zum Aufräumen der Testnutzer in Staging.
 - [ ] Playwright-E2E-Tests im Repo.
+- [ ] Zuständigkeiten im Team festlegen und hier eintragen (wer verantwortet welchen Bereich).
 
 ---
 
@@ -330,16 +331,6 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 4. Squash-Merge, Branch wird gelöscht. README im selben PR aktualisieren, wenn sich Stand oder Plan ändern.
 
 Alle Regeln, auch für Claude Code: [`CLAUDE.md`](CLAUDE.md). Designsprache: [`CLAUDE.md#designsprache`](CLAUDE.md#designsprache), Tokens in [`app/globals.css`](app/globals.css).
-
-## Team
-
-| Bereich | Verantwortlich |
-| --- | --- |
-| Projektleitung, Frontend, QA | Tom |
-| KI-Pipeline und Evaluation | Constantin |
-| Backend, Datenbank, DevOps | Luca |
-| Requirements, Marketing | Lars |
-| UX/UI und Design-System | Loran |
 
 Entstanden im Seminar „Zurück in die Digitale Zukunft“, Kategorie Arbeit.
 
