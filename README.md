@@ -74,8 +74,8 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen, Live-Updates | fertig |
 | 5 | Sprachantworten: Aufnahme im Browser, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
-| 7 | Beschlüsse: Beschluss mit Begründung und Verweis auf die Karte, Rückfragen und Folgerunden, Lesebestätigung, Archiv je Team, Hinweis im Dashboard | fertig |
-| 8 | Wissensspeicher | als Nächstes |
+| 7 | Beschlüsse: 7a Datenbank und API (Beschluss mit Begründung, Folgerunden, Lesebestätigung) fertig, 7b Oberfläche | in Arbeit |
+| 8 | Wissensspeicher | offen |
 | 9 | Rückkanal | offen |
 
 **Offene Aufgaben im Betrieb**
