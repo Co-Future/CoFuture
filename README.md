@@ -84,7 +84,6 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 - [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
 - [ ] Integrationstests für die Organisations-Funktionen.
 - [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
-- [ ] Skript zum Aufräumen der Testnutzer in Staging.
 - [ ] Playwright-E2E-Tests im Repo.
 - [ ] Zuständigkeiten im Team festlegen und hier eintragen (wer verantwortet welchen Bereich).
 
@@ -289,7 +288,7 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Routen-Typen erzeugen und TypeScript prüfen |
 | `pnpm test` | Unit-Tests, ohne Netz |
-| `pnpm test:integration` | Tests gegen Staging (legt Wegwerf-Nutzer an) |
+| `pnpm test:integration` | Tests gegen Staging (legt Wegwerf-Nutzer an und löscht sie danach wieder) |
 | `pnpm build` | Produktions-Build |
 | `pnpm db:push` | Migrationen nach Staging spielen (braucht `supabase login`) |
 | `pnpm db:types` | `lib/db/types.ts` aus Staging neu erzeugen |
@@ -313,6 +312,8 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 3. Liegt die Version in Supabase anders als der Dateiname, die Datei auf die Version umbenennen.
 4. RLS für jede neue Tabelle mitliefern und in `tests/integration/` testen.
 5. Migration einspielen, **bevor** der Code auf `main` geht.
+
+**Testkonten:** Integrationstests legen Konten `cofuture.test+…@gmail.com` an und löschen sie nach jedem Testfile wieder (braucht `SUPABASE_SECRET_KEY`). Als Sicherheitsnetz löscht der `pg_cron`-Job `purge-test-users` stündlich alle Testkonten, die älter als eine Stunde sind.
 
 **KI-Pipeline erweitern**
 
