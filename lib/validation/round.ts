@@ -21,6 +21,8 @@ export const createRoundSchema = z.object({
       (value) => Date.parse(value) < Date.now() + MAX_DAYS * 86_400_000,
       `Die Frist darf höchstens ${MAX_DAYS} Tage in der Zukunft liegen.`,
     ),
+  /** Follow-up round (also for a short follow-up question): links to the closed origin round. */
+  parentRoundId: z.uuid().optional(),
 });
 
 export const responseSchema = z.object({

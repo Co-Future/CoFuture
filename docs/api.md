@@ -54,7 +54,7 @@ Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert w
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/teams/{teamId}/rounds` | `{ "question": string, "context"?: string, "deadline": ISO-8601 }` | `201 { id }` | Mitglieder des Teams |
+| `POST` | `/api/teams/{teamId}/rounds` | `{ "question": string, "context"?: string, "deadline": ISO-8601, "parentRoundId"?: uuid }` | `201 { id }` | Mitglieder des Teams, keine Gäste |
 | `PATCH` | `/api/rounds/{roundId}` | `{ "status": "closed" }` | `200 { id, status }` | wer die Runde gestartet hat, Leitung |
 | `PUT` | `/api/rounds/{roundId}/response` | `{ "body": string, "source"?: "text" \| "voice" }` | `201` bzw. `200 { pseudonym }` | Mitglieder, bis zur Frist |
 
@@ -86,5 +86,25 @@ Der Aufruf startet einen wartenden Auftrag (`after()`), `claim_jobs` sorgt dafü
 - Antworten, die das Modell nirgends einordnet, landen im Cluster „Nicht zugeordnet“ (`kind: "unassigned"`). So deckt die Karte immer 100 % ab. `covered_count` zeigt, wie viele das Modell selbst eingeordnet hat.
 
 Das Ergebnis steht in `analyses` (eine Zeile pro Runde, mit `provider`, `model`, `prompt_version`, `duration_ms`), lesbar für alle im Team, per Realtime.
+
+## Beschlüsse
+
+Eine geschlossene Runde endet mit einem Beschluss, den ein Mensch schreibt. Die Perspektivenkarte wird nur referenziert.
+
+| Methode | Pfad | Body | Antwort | Wer |
+| --- | --- | --- | --- | --- |
+| `POST` | `/api/rounds/{roundId}/decision` | `{ "body": string, "rationale": string, "clusterRefs"?: number[] }` | `201 { id }` | wer die Runde gestartet hat, Leitung; keine Gäste |
+| `POST` | `/api/decisions/{decisionId}/read` | – | `204` | Teammitglieder (eigene Lesebestätigung) |
+| `POST` | `/api/teams/{teamId}/rounds` mit `parentRoundId` | wie oben | `201 { id }` | Folgerunde oder Rückfrage zu einer geschlossenen Runde |
+
+Fehler: `round_open` (409, Runde läuft noch), `already_decided` (409), `parent_open` (409, Ursprungsrunde läuft noch), `invalid_parent` (400, anderes Team).
+
+Regeln in der Datenbank:
+
+- `decide_round()` schreibt den Beschluss und setzt die Runde in einem Schritt auf `decided`. Ohne Beschluss lässt sich `decided` nicht setzen.
+- Ein Beschluss pro Runde. Beschlüsse lassen sich nicht ändern oder löschen, damit sie nachvollziehbar bleiben.
+- `cluster_refs` sind die Positionen der Cluster in `analyses.map.clusters`, auf die sich die Begründung stützt.
+- Alle im Team sehen den Beschluss (`decisions`, Realtime). Lesebestätigungen sieht jede Person nur für sich; `decision_read_count()` liefert nur Zahlen („3 von 5 gelesen“), nie Namen.
+- Folgerunden (`rounds.parent_round_id`) gehören zum selben Team, die Ursprungsrunde muss geschlossen oder entschieden sein.
 
 Lesen (Organisationen, Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.
