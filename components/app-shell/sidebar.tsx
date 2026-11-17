@@ -29,7 +29,7 @@ export async function Sidebar() {
       <OrgSwitcher organizations={organizations} currentId={current?.id ?? null} />
 
       <nav aria-label="Bereiche" className="mt-4 flex flex-col">
-        <NavLink href="/app" Icon={LayoutDashboard} exact>
+        <NavLink href="/app" icon={<LayoutDashboard size={20} strokeWidth={1.75} aria-hidden />} exact>
           Übersicht
         </NavLink>
 
@@ -79,7 +79,7 @@ export async function Sidebar() {
         {current ? (
           <>
             <SectionLabel>Organisation</SectionLabel>
-            <NavLink href="/app/organisation" Icon={Users} exact>
+            <NavLink href="/app/organisation" icon={<Users size={20} strokeWidth={1.75} aria-hidden />} exact>
               {current.role === "admin" ? "Personen und Zugänge" : "Personen"}
             </NavLink>
           </>
