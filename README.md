@@ -82,7 +82,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 
 - [ ] Prod-Datenbank `cofuture-prod` einrichten. Dort sind noch keine Migrationen, die App läuft gegen Staging.
 - [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
-- [ ] Integrationstests für die Organisations-Funktionen.
+- [x] Integrationstests für die Organisations-Funktionen (`tests/integration/organizations.test.ts`).
 - [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
 - [ ] Playwright-E2E-Tests im Repo.
 - [ ] Zuständigkeiten im Team festlegen und hier eintragen (wer verantwortet welchen Bereich).
