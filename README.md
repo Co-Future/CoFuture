@@ -93,16 +93,6 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 
 Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit den vorhandenen KI-Adaptern in `lib/ai/` und `lib/stt/`. In der App stehen sie im Menü unter **Kommt noch** (Inhalt: `components/teams/planned-features.tsx`).
 
-### 7. Beschlüsse (MVP)
-
-- Beschlussvorlage aus einer geschlossenen Runde, mit Verweisen auf die Perspektivenkarte
-- Rückfrage stellen oder Folgerunde starten, verknüpft mit der Ursprungsrunde
-- Beschluss mit Begründung festhalten, die Runde wechselt auf „Entschieden“
-- Alle im Team sehen den Beschluss, mit Lesebestätigung
-- Beschlussarchiv je Team
-
-**Umsetzung:** Tabelle `decisions` mit RLS, Folgerunden über `rounds.parent_round_id`, Realtime für neue Beschlüsse, Hinweis im Dashboard.
-
 ### 8. Wissensspeicher (MVP)
 
 - Beschlüsse und Rundenergebnisse werden automatisch aufgenommen
@@ -223,12 +213,17 @@ Rundenseite öffnen ──────────▶  POST /api/rounds/{id}/ana
                                   └─ Quell-IDs prüfen, Rest → "Nicht zugeordnet"
                                                                     analyses (eine Karte pro Runde)
   ◀── Realtime: Karte erscheint ohne Neuladen ─────────────────────
+Rückfrage / Folgerunde ──────▶  POST /api/teams/{id}/rounds ──────▶ rounds.parent_round_id
+Beschluss festhalten ────────▶  POST /api/rounds/{id}/decision ───▶ decide_round(): decisions,
+                                                                    rounds.status = decided
+Gelesen bestätigen ──────────▶  POST /api/decisions/{id}/read ────▶ decision_reads (nur eigene)
 ```
 
 ### Regeln im Code
 
 - **Rechte liegen in der Datenbank.** Jede Tabelle hat Row Level Security. Server-Code mit Admin-Rechten (`lib/db/admin.ts`) nur in Jobs, Worker und Zugangslinks.
 - **Schwere Arbeit läuft als Job.** Transkription und Analyse laufen nie im Request, sondern über `analysis_jobs`. `claim_jobs()` sorgt dafür, dass jeder Auftrag nur einmal läuft.
+- **Mensch entscheidet.** Beschlüsse schreibt immer eine Person (Ersteller der Runde oder Teamleitung). „Entschieden“ gibt es nur zusammen mit einem Beschluss, Beschlüsse sind danach unveränderlich. Lesebestätigungen zählen nur, ohne Namen.
 - **Belegbar.** Jede Aussage der Karte braucht eine gültige Quell-ID. Was das Modell nicht einordnet, landet sichtbar unter „Nicht zugeordnet“. Abdeckung immer 100 %.
 - **Datensparsam.** An die KI gehen nur Pseudonyme und Antworttexte. Audio wird nach der Transkription gelöscht, spätestens nach 24 Stunden. Von Zugangslinks wird nur der Hash gespeichert.
 
@@ -241,7 +236,7 @@ app/
   api/                   REST-Endpunkte (docs/api.md)
 components/
   app-shell/             Seitenleiste, Organisations-Menü, Menüpunkte
-  auth/, organizations/, teams/, rounds/
+  auth/, organizations/, teams/, rounds/, decisions/
   perspective-map.tsx    Perspektivenkarte
   ui/form.tsx            Felder, Buttons, Fehlermeldungen
 lib/
