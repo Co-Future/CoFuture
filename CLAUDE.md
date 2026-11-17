@@ -140,5 +140,6 @@ Kopien wie `main 2` in `.git/refs/heads/` stammen ebenfalls von iCloud und brech
 - **Realtime:** immer `subscribeToChanges()` aus `lib/db/realtime.ts`. Er setzt das Login-Token vor dem Abo, sonst sieht Realtime wegen RLS nichts.
 - **Hydration:** Browser-Fähigkeiten (Mikrofon, Uhrzeit) über `useSyncExternalStore` mit Server-Snapshot `null` abfragen.
 - **Nach Login:** nur `router.replace("/app")`, kein zusätzliches `router.refresh()`.
+- **Formulare, die nach dem Absenden weiterleiten:** Next hält besuchte Seiten am Leben (Activity, `cacheComponents`). Vor `router.push` das Formular zurücksetzen (`form.reset()`, `setPending(false)`), sonst bleibt der Button beim nächsten Besuch deaktiviert. Siehe `node_modules/next/dist/docs/01-app/02-guides/preserving-ui-state.md`.
 - **Supabase CLI:** `supabase migration new` wartet auf Eingabe und hängt in nicht interaktiven Shells. Migrationsdatei von Hand anlegen.
 - **Embeds mit zwei Fremdschlüsseln** auf dieselbe Tabelle (z. B. `invites` → `profiles`) brauchen den Namen: `profiles!invites_user_id_fkey(...)`.

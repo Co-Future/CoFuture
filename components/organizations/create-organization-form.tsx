@@ -16,7 +16,8 @@ export function CreateOrganizationForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    const parsed = createOrganizationSchema.safeParse(Object.fromEntries(new FormData(event.currentTarget)));
+    const formElement = event.currentTarget;
+    const parsed = createOrganizationSchema.safeParse(Object.fromEntries(new FormData(formElement)));
     if (!parsed.success) {
       setFieldError(parsed.error.issues[0]?.message);
       return;
@@ -29,6 +30,8 @@ export function CreateOrganizationForm() {
       setFormError(result.error.message);
       return;
     }
+    // Next keeps this page alive (Activity) after navigating away: start fresh for the next visit.
+    formElement.reset();
     router.push("/app");
     router.refresh();
   }
