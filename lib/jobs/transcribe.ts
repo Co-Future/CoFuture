@@ -1,3 +1,4 @@
+import { draftQuestion, type QuestionDraft } from "@/lib/ai/question-draft";
 import { createAdminClient } from "@/lib/db/admin";
 import type { Database } from "@/lib/db/types";
 import { configuredProviders, SttError, transcribe, transcriptionHint } from "@/lib/stt";
@@ -54,9 +55,19 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, job: Job)
     const transcript = await transcribe(audio, mime, configuredProviders(), hint);
     if (!transcript.text) return fail("In der Aufnahme wurde keine Sprache erkannt. Nimm sie bitte neu auf.", true);
 
+    // A dictated question (job of a team, no round yet): AsyncMeet suggests question and context.
+    // If that fails, the person still gets the plain transcript.
+    let draft: QuestionDraft | null = null;
+    if (!job.round_id) {
+      draft = await draftQuestion(transcript.text).catch((error) => {
+        console.warn("question draft failed", { jobId: job.id, error: String(error).slice(0, 300) });
+        return null;
+      });
+    }
+
     await admin
       .from("analysis_jobs")
-      .update({ status: "done", result: transcript, error: null, locked_at: null })
+      .update({ status: "done", result: { ...transcript, draft }, error: null, locked_at: null })
       .eq("id", job.id);
     // Data minimisation: the audio is gone as soon as we have the text.
     await admin.storage.from("voice").remove([path]);

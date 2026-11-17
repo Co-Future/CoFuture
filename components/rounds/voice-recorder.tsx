@@ -41,13 +41,21 @@ function micError(error: unknown): string {
   return "Die Aufnahme konnte nicht starten. Antworte bitte als Text.";
 }
 
-type Props = { roundId: string; onTranscript: (text: string) => void };
+/** Finished job result: the transcript, plus AsyncMeet's suggestion for a dictated question. */
+export type VoiceResult = { text: string; draft?: unknown };
+
+type Props = {
+  /** Endpoint that queues the transcription, e.g. /api/rounds/{id}/voice or /api/teams/{id}/voice. */
+  endpoint: string;
+  label: string;
+  onTranscript: (result: VoiceResult) => void;
+};
 
 /**
  * Records a voice answer (max. 10 min), uploads it straight to the private bucket and waits for the
  * transcript. The transcript goes to the parent, which appends and saves it right away.
  */
-export function VoiceRecorder({ roundId, onTranscript }: Props) {
+export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [elapsed, setElapsed] = useState(0);
   const [level, setLevel] = useState(0);
@@ -74,7 +82,8 @@ export function VoiceRecorder({ roundId, onTranscript }: Props) {
       if (!data || finished) return;
       if (data.status === "done") {
         finished = true;
-        onTranscript(String((data.result as { text?: string } | null)?.text ?? ""));
+        const result = (data.result ?? {}) as { text?: string; draft?: unknown };
+        onTranscript({ text: String(result.text ?? ""), draft: result.draft });
         setPhase({ name: "idle" });
       } else if (data.status === "failed") {
         finished = true;
@@ -176,7 +185,7 @@ export function VoiceRecorder({ roundId, onTranscript }: Props) {
       setPhase({ name: "failed", message: "Die Aufnahme konnte nicht hochgeladen werden. Prüf dein Netz und versuch es noch einmal.", canRetry: false });
       return;
     }
-    const result = await apiFetch<{ jobId: string }>(`/api/rounds/${roundId}/voice`, {
+    const result = await apiFetch<{ jobId: string }>(endpoint, {
       method: "POST",
       body: { path, mime: type, durationMs },
     });
@@ -205,7 +214,9 @@ export function VoiceRecorder({ roundId, onTranscript }: Props) {
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4">
-      <p className="text-label text-ink">Antwort einsprechen (max. {MAX_RECORDING_MS / 60_000} Min.)</p>
+      <p className="text-label text-ink">
+        {label} (max. {MAX_RECORDING_MS / 60_000} Min.)
+      </p>
 
       {phase.name === "idle" ? (
         <div>

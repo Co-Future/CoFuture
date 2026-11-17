@@ -72,7 +72,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 | 3c | App-Navigation: Seitenleiste mit Organisations-Menü, persönliches Dashboard, Team-Dashboards | fertig |
 | 3d | Rollen Owner, Mitglied, Gast; Organisation und Team übergeben oder löschen (wenn leer); Konten der Organisation löschen, Passwort zurücksetzen | fertig |
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen, Live-Updates | fertig |
-| 5 | Sprachantworten: Aufnahme im Browser, Transkription im Hintergrund, Audio wird gelöscht | fertig |
+| 5 | Sprachantworten: Aufnahme im Browser (bis 10 Min.), Transkription im Hintergrund, Audio wird gelöscht. Auch die Frage einer Runde lässt sich einsprechen, AsyncMeet schlägt Frage und Kontext vor | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
 | 7 | Beschlüsse: 7a Datenbank und API (Beschluss mit Begründung, Folgerunden, Lesebestätigung) fertig, 7b Oberfläche | in Arbeit |
 | 8 | Wissensspeicher | offen |
@@ -197,6 +197,10 @@ Begründungen stehen in den [Architekturentscheidungen](docs/adr/).
 ```txt
 Browser                         Next.js (Vercel)                    Supabase (Frankfurt)
 ───────                         ────────────────                    ────────────────────
+Frage einsprechen
+  └─ Upload direkt, dann ────▶  POST /api/teams/{id}/voice ───────▶ analysis_jobs (transcribe, team_id)
+                                Transkript + Vorschlag Frage/Kontext (lib/ai/question-draft.ts)
+  ◀── Realtime: Vorschlag im Formular, prüfen und anpassen ────────
 Runde anlegen ───────────────▶  POST /api/teams/{id}/rounds ──────▶ rounds (RLS)
 Text antworten ──────────────▶  PUT  /api/rounds/{id}/response ───▶ responses (Pseudonym A01 …)
 Sprache aufnehmen
