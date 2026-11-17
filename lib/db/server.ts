@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { publicEnv } from "@/lib/env";
 import type { Database } from "./types";
 
@@ -8,7 +9,9 @@ import type { Database } from "./types";
  * Acts as the signed-in user (RLS applies). Create a new client per request.
  */
 export async function createClient() {
-  // Read cookies first: during prerendering this suspends, so a build never needs the env vars.
+  // Everything behind this client is per user and per request: never prerender it.
+  // This also keeps builds independent of the env vars and lets Supabase read the clock.
+  await connection();
   const cookieStore = await cookies();
   const env = publicEnv();
 

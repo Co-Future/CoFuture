@@ -5,9 +5,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddMemberForm } from "@/components/teams/add-member-form";
 import { RemoveMemberButton } from "@/components/teams/remove-member-button";
+import { StatusBadge } from "@/components/rounds/status-badge";
+import { buttonStyles } from "@/components/ui/form";
 import { RoleBadge } from "@/components/teams/role-badge";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
+import { formatDateTime } from "@/lib/format";
 import { uuidSchema } from "@/lib/validation/team";
 
 export const metadata: Metadata = { title: "Team – CoFuture" };
@@ -18,8 +21,13 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
 
   const user = await getCurrentUser();
   const supabase = await createClient();
-  const [{ data: team }, { data: members }] = await Promise.all([
+  const [{ data: team }, { data: rounds }, { data: members }] = await Promise.all([
     supabase.from("teams").select("id, name").eq("id", teamId).maybeSingle(),
+    supabase
+      .from("rounds")
+      .select("id, question, deadline, status")
+      .eq("team_id", teamId)
+      .order("created_at", { ascending: false }),
     supabase
       .from("team_members")
       .select("user_id, role, profiles(display_name)")
@@ -35,7 +43,38 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
     <>
       <h1 className="text-h1">{team.name}</h1>
 
-      <section aria-labelledby="members-heading" className="mt-8 max-w-[680px]">
+      <section aria-labelledby="rounds-heading" className="mt-8 max-w-[680px]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 id="rounds-heading" className="text-h2">
+            Runden
+          </h2>
+          <Link href={`/app/teams/${team.id}/runden/neu`} className={buttonStyles.primary}>
+            Runde starten
+          </Link>
+        </div>
+        {rounds && rounds.length > 0 ? (
+          <ul className="flex flex-col gap-3">
+            {rounds.map((round) => (
+              <li key={round.id}>
+                <Link
+                  href={`/app/runden/${round.id}`}
+                  className="flex flex-col gap-2 rounded-lg border border-line bg-card p-4 shadow-card hover:border-border-strong"
+                >
+                  <span className="text-h3">{round.question}</span>
+                  <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
+                    <StatusBadge status={round.status} />
+                    Frist: {formatDateTime(round.deadline)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-body text-ink-muted">Noch keine Runden. Starte die erste.</p>
+        )}
+      </section>
+
+      <section aria-labelledby="members-heading" className="mt-10 max-w-[680px]">
         <h2 id="members-heading" className="mb-4 text-h2">
           Mitglieder ({members.length})
         </h2>

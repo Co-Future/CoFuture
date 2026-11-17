@@ -242,6 +242,7 @@ export type Database = {
         Args: { p_email: string; p_team_id: string }
         Returns: string
       }
+      close_expired_rounds: { Args: never; Returns: number }
       create_team: {
         Args: { p_name: string }
         Returns: {
@@ -259,6 +260,7 @@ export type Database = {
       }
       is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
       is_team_member: { Args: { p_team_id: string }; Returns: boolean }
+      round_response_count: { Args: { p_round_id: string }; Returns: number }
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
