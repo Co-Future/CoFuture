@@ -238,6 +238,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_team_member_by_email: {
+        Args: { p_email: string; p_team_id: string }
+        Returns: string
+      }
       create_team: {
         Args: { p_name: string }
         Returns: {
