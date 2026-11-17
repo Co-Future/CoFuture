@@ -28,7 +28,8 @@ Kernstrecke: **Spracheingabe → Transkription → KI-Perspektivenkarte**
 
 - **MVP (Must):** Login, Teams, Dialogrunden, Antworten per Sprache/Text, Perspektivenkarte mit Quellen, Beschluss-Workflow, Wissensspeicher mit semantischer Suche, Rückkanal Führung ↔ Mitarbeitende.
 - **Danach (MoSCoW):** Besprechungen intern/extern, E-Mail-Zusammenfassung, Kundenkontakt, Webseiten-Anfragen, Statusrunden, Stimmungsbild.
-- **Out of Scope:** native Apps, Slack/Teams-Integration, SSO, Mandantenverwaltung, Zahlungen.
+- **Out of Scope:** native Apps, Slack/Teams-Integration, SSO, Zahlungen.
+- **Mandanten (Organisationen):** erlaubt. Eine Organisation bündelt Personen und Teams, Zugang per einmaligem Zugangslink (ADR 011). Erst schlank, bei Bedarf ausbauen (z. B. Einstellungen je Organisation, mehrere Organisationen pro Person).
 - **Erfolgskriterien:** E2E-Demo läuft, Analyse von 30 Antworten < 60 s, 100 % der Antworten in der Karte abgedeckt, DSGVO-konform.
 - **Budget:** KI-API-Kosten < 50 € gesamt, kostenlose Hosting-Tarife.
 
