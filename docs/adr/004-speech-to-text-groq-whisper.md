@@ -1,6 +1,6 @@
 # ADR 004: Speech-to-Text mit Whisper über Groq
 
-**Status:** Vorgeschlagen, 12.11.2026, nach PoC aktualisiert am 16.11.2026 (Zustimmung im Team bis M3, 03.12.2026)
+**Status:** Vorgeschlagen, 12.11.2026, nach PoC aktualisiert am 16.11.2026 (Freigabe durch Constantin oder Luca)
 
 ## Kontext
 
