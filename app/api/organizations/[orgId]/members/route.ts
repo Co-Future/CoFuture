@@ -8,7 +8,8 @@ import { uuidSchema } from "@/lib/validation/team";
 /**
  * POST /api/organizations/{orgId}/members { displayName, email, teamId? } → 201 { userId, link }.
  * Only admins. Creates the account without a password and returns a one-time access link,
- * with which the person sets their own password.
+ * with which the person sets their own password. If the email already has an account, the
+ * person simply joins (link is null: they sign in as usual).
  */
 export async function POST(request: Request, ctx: RouteContext<"/api/organizations/[orgId]/members">) {
   const { orgId } = await ctx.params;
@@ -37,9 +38,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
     user_metadata: { display_name: displayName },
   });
   if (createError?.code === "email_exists" || createError?.code === "user_already_exists") {
-    return apiError(409, "email_exists", "Für diese E-Mail-Adresse gibt es schon ein Konto.", {
-      email: "Für diese E-Mail-Adresse gibt es schon ein Konto.",
-    });
+    return addExistingAccount(admin, { orgId, email, teamId });
   }
   if (createError || !created.user) return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
   const userId = created.user.id;
@@ -65,4 +64,25 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
     await admin.auth.admin.deleteUser(userId);
     return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
   }
+}
+
+/** The email already has an account: add that person to the organization (and team) without a link. */
+async function addExistingAccount(
+  admin: ReturnType<typeof createAdminClient>,
+  { orgId, email, teamId }: { orgId: string; email: string; teamId?: string },
+) {
+  const { data: userId } = await admin.rpc("find_user_id_by_email", { p_email: email });
+  if (!userId) return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
+
+  const { error } = await admin.from("organization_members").insert({ organization_id: orgId, user_id: userId, role: "member" });
+  if (error?.code === "23505") {
+    return apiError(409, "already_member", "Diese Person ist schon in der Organisation.", {
+      email: "Diese Person ist schon in der Organisation.",
+    });
+  }
+  if (error) return apiError(500, "create_failed", "Die Person konnte nicht hinzugefügt werden.");
+  if (teamId) {
+    await admin.from("team_members").upsert({ team_id: teamId, user_id: userId, role: "member" }, { ignoreDuplicates: true });
+  }
+  return Response.json({ userId, link: null }, { status: 201 });
 }

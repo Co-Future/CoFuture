@@ -6,7 +6,7 @@ import { Button, Field, FormError } from "@/components/ui/form";
 import { apiFetch } from "@/lib/api/client";
 import { createOrganizationSchema } from "@/lib/validation/organization";
 
-/** For accounts without an organization: create one and become its admin. */
+/** Create an organization and become its admin. The app switches to it right away. */
 export function CreateOrganizationForm() {
   const router = useRouter();
   const [fieldError, setFieldError] = useState<string>();
@@ -29,6 +29,7 @@ export function CreateOrganizationForm() {
       setFormError(result.error.message);
       return;
     }
+    router.push("/app");
     router.refresh();
   }
 

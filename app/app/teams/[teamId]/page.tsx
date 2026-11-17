@@ -1,10 +1,9 @@
-import { ArrowLeft, CircleCheck, Clock, Lock, Plus, Users } from "lucide-react";
+import { CircleCheck, Clock, Lock, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddMemberForm } from "@/components/teams/add-member-form";
-import { PlannedFeatures } from "@/components/teams/planned-features";
 import { RemoveMemberButton } from "@/components/teams/remove-member-button";
 import { Countdown } from "@/components/rounds/countdown";
 import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
@@ -68,7 +67,13 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-label text-ink-muted">Team</p>
+          <nav aria-label="Brotkrumen" className="text-label text-ink-muted">
+            <Link href="/app" className="underline hover:text-ink">
+              Übersicht
+            </Link>
+            <span aria-hidden> / </span>
+            <span>Team</span>
+          </nav>
           <h1 className="text-h1">{team.name}</h1>
         </div>
         <Link href={`/app/teams/${team.id}/runden/neu`} className={buttonStyles.primary}>
@@ -163,10 +168,6 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
           ) : null}
         </aside>
       </div>
-
-      <div className="mt-12">
-        <PlannedFeatures />
-      </div>
     </>
   );
 }
@@ -197,14 +198,8 @@ function RoundList({ rounds }: { rounds: RoundRow[] }) {
 
 export default function TeamPage({ params }: PageProps<"/app/teams/[teamId]">) {
   return (
-    <>
-      <Link href="/app" className="mb-6 inline-flex min-h-11 items-center gap-2 text-label text-primary underline">
-        <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
-        Zur Übersicht
-      </Link>
-      <Suspense fallback={<p className="text-body text-ink-muted">Team wird geladen …</p>}>
-        <TeamDetail params={params} />
-      </Suspense>
-    </>
+    <Suspense fallback={<p className="text-body text-ink-muted">Team wird geladen …</p>}>
+      <TeamDetail params={params} />
+    </Suspense>
   );
 }

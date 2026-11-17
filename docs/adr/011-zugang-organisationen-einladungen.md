@@ -12,7 +12,7 @@ Heute registriert sich jede Person selbst. Wer ein Team anlegt, ist Leitung und 
 
 Wunsch aus dem Team: Eine Organisation anlegen, darin Personen und Teams verwalten und angelegten Personen einen Link zum Einstieg geben. Beim ersten Login setzt die Person ein eigenes Passwort.
 
-**Scope:** Mandanten sind ausdrücklich gewollt (Entscheidung 17.11.2026, vorher Out of Scope). Organisationen sind die Mandanten von CoFuture. Wir starten schlank: Name, Mitglieder, Teams, eine Organisation pro Person. Das Datenmodell ist so angelegt, dass es sich ausbauen lässt, z. B. um Einstellungen je Organisation oder mehrere Organisationen pro Person.
+**Scope:** Mandanten sind ausdrücklich gewollt (Entscheidung 17.11.2026, vorher Out of Scope). Organisationen sind die Mandanten von CoFuture. Wir starten schlank: Name, Mitglieder, Teams. Eine Person kann in mehreren Organisationen sein und wechselt oben im Menü links (die Auswahl liegt in einem Cookie, die Datenbank prüft immer die Mitgliedschaft). Das Datenmodell ist so angelegt, dass es sich ausbauen lässt, z. B. um Einstellungen je Organisation oder mehrere Organisationen pro Person.
 
 ## Vorschlag
 
@@ -74,5 +74,4 @@ RLS: Personen sehen nur ihre eigene Organisation. `invites` ist für Clients gar
 
 ## Offene Fragen (Entscheidung: Constantin oder Luca)
 
-1. Darf eine Person in mehreren Organisationen sein? Im MVP nein (`organization_members.user_id` ist eindeutig). Für mehr: die Eindeutigkeit aufheben und in der Oberfläche einen Wechsel zwischen Organisationen bauen.
-2. Soll die freie Registrierung ganz entfallen oder nur noch über „Organisation anlegen“ gehen?
+1. Soll die freie Registrierung ganz entfallen oder nur noch über „Organisation anlegen“ gehen?

@@ -216,7 +216,7 @@ export type Database = {
           {
             foreignKeyName: "organization_members_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -530,7 +530,7 @@ export type Database = {
         }
       }
       create_team: {
-        Args: { p_name: string }
+        Args: { p_name: string; p_organization_id?: string }
         Returns: {
           created_at: string
           created_by: string | null
@@ -545,11 +545,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      find_user_id_by_email: { Args: { p_email: string }; Returns: string }
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
       is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
       is_team_member: { Args: { p_team_id: string }; Returns: boolean }
-      my_organization_id: { Args: never; Returns: string }
       organization_people: {
         Args: { p_org_id: string }
         Returns: {

@@ -16,6 +16,7 @@ export function AddPersonForm({ organizationId, teams }: Props) {
   const [errors, setErrors] = useState<FieldErrors<AddPersonInput>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [issued, setIssued] = useState<{ link: string; name: string } | null>(null);
+  const [joined, setJoined] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -23,6 +24,7 @@ export function AddPersonForm({ organizationId, teams }: Props) {
     const form = event.currentTarget;
     setFormError(null);
     setIssued(null);
+    setJoined(null);
     const parsed = addPersonSchema.safeParse(Object.fromEntries(new FormData(form)));
     if (!parsed.success) {
       setErrors(fieldErrors(parsed.error));
@@ -30,7 +32,7 @@ export function AddPersonForm({ organizationId, teams }: Props) {
     }
     setErrors({});
     setPending(true);
-    const result = await apiFetch<{ link: string }>(`/api/organizations/${organizationId}/members`, {
+    const result = await apiFetch<{ link: string | null }>(`/api/organizations/${organizationId}/members`, {
       method: "POST",
       body: parsed.data,
     });
@@ -41,7 +43,8 @@ export function AddPersonForm({ organizationId, teams }: Props) {
       return;
     }
     form.reset();
-    setIssued({ link: result.data.link, name: parsed.data.displayName });
+    if (result.data.link) setIssued({ link: result.data.link, name: parsed.data.displayName });
+    else setJoined(`${parsed.data.email} hat schon ein CoFuture-Konto und ist jetzt in der Organisation. Die Person meldet sich wie gewohnt an.`);
     router.refresh();
   }
 
@@ -96,6 +99,9 @@ export function AddPersonForm({ organizationId, teams }: Props) {
         </Button>
       </form>
       {issued ? <AccessLink link={issued.link} name={issued.name} /> : null}
+      <p role="status" className="text-body-sm text-success-ink">
+        {joined}
+      </p>
     </div>
   );
 }

@@ -74,6 +74,7 @@ AsyncMeet läuft von Anfang bis Ende: Team anlegen, Runde starten, per Text oder
 | 2 | KI-Proof-of-Concept Groq vs. Gemini ([`eval/poc/REPORT.md`](eval/poc/REPORT.md)) | fertig |
 | 3 | Registrieren, Anmelden, geschützter Bereich, Teams und Mitglieder | fertig |
 | 3b | Organisationen (Mandanten), Personen anlegen, einmalige Zugangslinks, Team-Dashboard mit Vorschau geplanter Funktionen ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
+| 3c | App-Navigation: Seitenleiste mit Organisations-Menü (Wechsel zwischen mehreren Organisationen), persönliches Dashboard (was wartet auf mich), Team-Dashboards, geplante Funktionen im Menü | fertig |
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen (`pg_cron`), Live-Updates | fertig |
 | 5 | Sprachantworten: Aufnahme im Browser, Upload, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
