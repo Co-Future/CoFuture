@@ -22,3 +22,4 @@ Stand 12.11.2026: alle vorgeschlagen, Zustimmung im Team bis zum Architektur-Rev
 | [008](008-login-email-passwort.md) | Login | E-Mail + Passwort, Magic Link später |
 | [009](009-hintergrundjobs-worker-vercel.md) | Hintergrundjobs | Worker als Next.js-Route, `pg_cron` |
 | [010](010-api-route-handlers.md) | API-Stil | Route Handlers (REST) |
+| [011](011-zugang-organisationen-einladungen.md) | Zugang | Organisationen + einmaliger Zugangslink |

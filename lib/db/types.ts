@@ -131,6 +131,111 @@ export type Database = {
           },
         ]
       }
+      invites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          organization_id: string
+          token_hash: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          organization_id: string
+          token_hash: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          organization_id?: string
+          token_hash?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          joined_at: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -306,18 +411,21 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          organization_id: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           id?: string
           name: string
+          organization_id?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
           id?: string
           name?: string
+          organization_id?: string | null
         }
         Relationships: [
           {
@@ -355,6 +463,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_team_member: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: string
+      }
       add_team_member_by_email: {
         Args: { p_email: string; p_team_id: string }
         Returns: string
@@ -387,6 +499,21 @@ export type Database = {
         }
       }
       close_expired_rounds: { Args: never; Returns: number }
+      create_organization: {
+        Args: { p_name: string }
+        Returns: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "organizations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_team: {
         Args: { p_name: string }
         Returns: {
@@ -394,6 +521,7 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          organization_id: string | null
         }
         SetofOptions: {
           from: "*"
@@ -405,11 +533,31 @@ export type Database = {
       is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
       is_team_member: { Args: { p_team_id: string }; Returns: boolean }
       round_response_count: { Args: { p_round_id: string }; Returns: number }
+      is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
+      is_org_member: { Args: { p_org_id: string }; Returns: boolean }
+      my_organization_id: { Args: never; Returns: string }
+      organization_people: {
+        Args: { p_org_id: string }
+        Returns: {
+          display_name: string
+          email: string | null
+          joined_at: string
+          pending: boolean
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }[]
+      }
+      remove_organization_member: {
+        Args: { p_org_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      shares_org_with: { Args: { p_user_id: string }; Returns: boolean }
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       job_kind: "transcribe" | "analyze"
       job_status: "pending" | "running" | "done" | "failed"
+      org_role: "admin" | "member"
       response_source: "text" | "voice"
       round_status: "open" | "closed" | "decided"
       team_role: "lead" | "member"
@@ -542,6 +690,7 @@ export const Constants = {
     Enums: {
       job_kind: ["transcribe", "analyze"],
       job_status: ["pending", "running", "done", "failed"],
+      org_role: ["admin", "member"],
       response_source: ["text", "voice"],
       round_status: ["open", "closed", "decided"],
       team_role: ["lead", "member"],
