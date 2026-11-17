@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          created_by: string
+          error: string | null
+          id: string
+          kind: Database["public"]["Enums"]["job_kind"]
+          locked_at: string | null
+          payload: Json
+          result: Json | null
+          round_id: string
+          status: Database["public"]["Enums"]["job_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          created_by?: string
+          error?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["job_kind"]
+          locked_at?: string | null
+          payload?: Json
+          result?: Json | null
+          round_id: string
+          status?: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          created_by?: string
+          error?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["job_kind"]
+          locked_at?: string | null
+          payload?: Json
+          result?: Json | null
+          round_id?: string
+          status?: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analysis_jobs_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -242,6 +302,33 @@ export type Database = {
         Args: { p_email: string; p_team_id: string }
         Returns: string
       }
+      claim_jobs: {
+        Args: {
+          p_job_id?: string
+          p_kind: Database["public"]["Enums"]["job_kind"]
+          p_limit?: number
+        }
+        Returns: {
+          attempts: number
+          created_at: string
+          created_by: string
+          error: string | null
+          id: string
+          kind: Database["public"]["Enums"]["job_kind"]
+          locked_at: string | null
+          payload: Json
+          result: Json | null
+          round_id: string
+          status: Database["public"]["Enums"]["job_status"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "analysis_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       close_expired_rounds: { Args: never; Returns: number }
       create_team: {
         Args: { p_name: string }
@@ -264,6 +351,8 @@ export type Database = {
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
+      job_kind: "transcribe" | "analyze"
+      job_status: "pending" | "running" | "done" | "failed"
       response_source: "text" | "voice"
       round_status: "open" | "closed" | "decided"
       team_role: "lead" | "member"
@@ -394,6 +483,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      job_kind: ["transcribe", "analyze"],
+      job_status: ["pending", "running", "done", "failed"],
       response_source: ["text", "voice"],
       round_status: ["open", "closed", "decided"],
       team_role: ["lead", "member"],
