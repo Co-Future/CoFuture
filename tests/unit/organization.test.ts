@@ -25,13 +25,20 @@ describe("organizationSignupSchema", () => {
 });
 
 describe("addPersonSchema", () => {
-  it("treats the empty team option as no team", () => {
-    const result = addPersonSchema.parse({ displayName: "Person A", email: " A@B.de ", teamId: "" });
-    expect(result).toEqual({ displayName: "Person A", email: "a@b.de", role: "member", teamId: undefined });
+  const a = "3f0c2b1e-8a4d-4c6b-9e2f-1a2b3c4d5e6f";
+  const b = "7d9e1f2a-3b4c-4d5e-8f6a-7b8c9d0e1f2a";
+
+  it("defaults to member without teams", () => {
+    const result = addPersonSchema.parse({ displayName: "Person A", email: " A@B.de " });
+    expect(result).toEqual({ displayName: "Person A", email: "a@b.de", role: "member", teamIds: [] });
+  });
+
+  it("takes several teams and drops duplicates", () => {
+    expect(addPersonSchema.parse({ displayName: "A", email: "a@b.de", teamIds: [a, b, a] }).teamIds).toEqual([a, b]);
   });
 
   it("rejects a team id that is not a uuid", () => {
-    expect(addPersonSchema.safeParse({ displayName: "A", email: "a@b.de", teamId: "x" }).success).toBe(false);
+    expect(addPersonSchema.safeParse({ displayName: "A", email: "a@b.de", teamIds: ["x"] }).success).toBe(false);
   });
 });
 

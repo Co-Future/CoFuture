@@ -61,7 +61,7 @@ Asynchrone Abstimmungsrunden statt Live-Meetings:
 
 ## Stand
 
-Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Personen per Zugangslink einladen, Team anlegen, Runde starten, per Text oder Sprache antworten, Runde schließt, AsyncMeet erstellt die Perspektivenkarte mit Quellen, das Team hält den Beschluss mit Begründung fest.
+Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, neue Personen per Zugangslink, bestehende Konten per Einladung mit Bestätigung aufnehmen, Team anlegen, Runde starten, per Text oder Sprache antworten, Runde schließt, AsyncMeet erstellt die Perspektivenkarte mit Quellen, das Team hält den Beschluss mit Begründung fest.
 
 | Schritt | Inhalt | Status |
 | --- | --- | --- |
@@ -71,6 +71,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 | 3b | Organisationen, Personen anlegen, einmalige Zugangslinks ([ADR 011](docs/adr/011-zugang-organisationen-einladungen.md)) | fertig |
 | 3c | App-Navigation: Seitenleiste mit Organisations-Menü, persönliches Dashboard, Team-Dashboards | fertig |
 | 3d | Rollen Owner, Mitglied, Gast; Organisation und Team übergeben oder löschen (wenn leer); Konten der Organisation löschen, Passwort zurücksetzen | fertig |
+| 3e | Einladungen mit Bestätigung: Wer schon ein Konto hat, nimmt die Einladung an oder lehnt ab; Owner ziehen offene Einladungen zurück. Zugangslinks nur noch für Konten der Organisation | fertig, Migration nach OK auf Staging |
 | 4 | Runden mit Frist, Textantworten, automatisches Schließen, Live-Updates | fertig |
 | 5 | Sprachantworten: Aufnahme im Browser, Transkription im Hintergrund, Audio wird gelöscht | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
@@ -82,7 +83,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 
 - [ ] Prod-Datenbank `cofuture-prod` einrichten. Dort sind noch keine Migrationen, die App läuft gegen Staging.
 - [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
-- [x] Integrationstests für die Organisations-Funktionen (`tests/integration/organizations.test.ts`).
+- [x] Integrationstests für die Organisations-Funktionen (`tests/integration/organizations.test.ts`, `tests/integration/invitations.test.ts`).
 - [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht. Bis dahin startet die Analyse, sobald jemand die Rundenseite öffnet.
 - [ ] `GEMINI_API_KEY` und `LLM_PROVIDER` in Vercel prüfen. Bis 17.11.2026 liefen alle Perspektivenkarten über die Reserve Groq. Warum Gemini ausfällt, steht jetzt im Analyse-Job unter `result.failures`.
 - [ ] Playwright-E2E-Tests im Repo.

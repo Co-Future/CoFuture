@@ -274,6 +274,58 @@ export type Database = {
           },
         ]
       }
+      organization_invitations: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          team_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          team_ids?: string[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          team_ids?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_invitations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           joined_at: string
@@ -576,6 +628,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_organization_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: string
+      }
       add_team_member: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: string
@@ -675,13 +731,50 @@ export type Database = {
         }[]
       }
       delete_organization: { Args: { p_org_id: string }; Returns: undefined }
+      delete_organization_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
       delete_team: { Args: { p_team_id: string }; Returns: undefined }
       find_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      invite_to_organization: {
+        Args: {
+          p_email: string
+          p_org_id: string
+          p_role?: Database["public"]["Enums"]["org_role"]
+          p_team_ids?: string[]
+        }
+        Returns: string
+      }
       is_guest_for_team: { Args: { p_team_id: string }; Returns: boolean }
       is_org_admin: { Args: { p_org_id: string }; Returns: boolean }
       is_org_member: { Args: { p_org_id: string }; Returns: boolean }
       is_team_lead: { Args: { p_team_id: string }; Returns: boolean }
       is_team_member: { Args: { p_team_id: string }; Returns: boolean }
+      my_organization_invitations: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          invited_by_name: string
+          organization_id: string
+          organization_name: string
+          role: Database["public"]["Enums"]["org_role"]
+          team_names: string[]
+        }[]
+      }
+      organization_invitations_list: {
+        Args: { p_org_id: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["org_role"]
+          team_names: string[]
+          user_id: string
+        }[]
+      }
       organization_people: {
         Args: { p_org_id: string }
         Returns: {

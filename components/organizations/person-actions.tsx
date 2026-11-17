@@ -13,7 +13,10 @@ type Props = {
   userId: string;
   name: string;
   role: OrgRole;
-  /** The organization created this account and it belongs to no other organization. */
+  /**
+   * The organization created this account and it belongs to no other organization.
+   * Only then are access links and password resets possible.
+   */
   managed: boolean;
   /** The person has not set a password through their access link yet. */
   pending: boolean;
@@ -87,11 +90,11 @@ export function PersonActions({ organizationId, userId, name, role, managed, pen
             ))}
           </select>
         </div>
-        {pending || !managed ? (
+        {managed && pending ? (
           <Button variant="secondary" onClick={() => newLink(false)} disabled={busy} aria-label={`Neuen Zugangslink für ${name} erzeugen`}>
             Zugangslink erzeugen
           </Button>
-        ) : (
+        ) : managed ? (
           <ConfirmButton
             label="Passwort zurücksetzen"
             ariaLabel={`Passwort von ${name} zurücksetzen`}
@@ -100,7 +103,7 @@ export function PersonActions({ organizationId, userId, name, role, managed, pen
             disabled={busy}
             onConfirm={() => newLink(true)}
           />
-        )}
+        ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
         <ConfirmButton

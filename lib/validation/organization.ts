@@ -20,9 +20,18 @@ export const addPersonSchema = z.object({
     .max(80, "Der Anzeigename darf höchstens 80 Zeichen haben."),
   email: z.string().trim().toLowerCase().pipe(z.email("Gib eine gültige E-Mail-Adresse ein.")),
   role: z.enum(["owner", "member", "guest"]).default("member"),
-  // Empty string from the "no team" option of the select.
-  teamId: z.union([z.uuid(), z.literal("")]).optional().transform((v) => v || undefined),
+  /** Teams of the organization. New accounts join them right away, existing accounts on accepting. */
+  teamIds: z
+    .array(z.uuid("Dieses Team gibt es hier nicht."))
+    .max(50, "Wähl höchstens 50 Teams.")
+    .default([])
+    .transform((ids) => [...new Set(ids)]),
 });
+
+/** Result of POST /api/organizations/{orgId}/members. */
+export type AddPersonResult =
+  | { status: "created"; userId: string; link: string }
+  | { status: "invited" };
 
 export const newPasswordSchema = z
   .object({

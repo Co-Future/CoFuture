@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Countdown } from "@/components/rounds/countdown";
+import { InvitationCard } from "@/components/organizations/invitation-card";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { RoleBadge } from "@/components/teams/role-badge";
 import { buttonStyles } from "@/components/ui/form";
@@ -10,6 +11,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
 import { formatDateTime } from "@/lib/format";
 import { getCurrentOrganization } from "@/lib/organizations/current";
+import { getMyInvitations } from "@/lib/organizations/invitations";
 import { getMyTeams, teamDotClass } from "@/lib/teams/my-teams";
 
 export const metadata: Metadata = { title: "Übersicht – CoFuture" };
@@ -18,7 +20,7 @@ type Round = { id: string; team_id: string; question: string; deadline: string; 
 
 async function PersonalDashboard() {
   const user = await getCurrentUser();
-  const org = await getCurrentOrganization(user.id);
+  const [org, invitations] = await Promise.all([getCurrentOrganization(user.id), getMyInvitations()]);
   const teams = await getMyTeams(user.id, org?.id ?? null);
   const teamIds = teams.map((t) => t.id);
   const teamIndex = new Map(teams.map((t, i) => [t.id, i]));
@@ -84,7 +86,30 @@ async function PersonalDashboard() {
       <h1 className="text-h1">Hallo, {user.displayName}</h1>
       <p className="mt-1 max-w-[680px] text-body text-ink-muted">Hier siehst du, was in deinen Teams gerade ansteht.</p>
 
-      {!org ? (
+      {invitations.length > 0 ? (
+        <section id="einladungen" aria-labelledby="invitations-heading" className="mt-6 max-w-[680px] scroll-mt-6">
+          <h2 id="invitations-heading" className="mb-1 text-h2">
+            {invitations.length === 1 ? "Einladung" : `Einladungen (${invitations.length})`}
+          </h2>
+          <p className="mb-4 text-body-sm text-ink-muted">Nimm an, um der Organisation beizutreten, oder lehn ab.</p>
+          <ul className="flex flex-col gap-3">
+            {invitations.map((inv) => (
+              <li key={inv.id}>
+                <InvitationCard
+                  id={inv.id}
+                  organizationName={inv.organizationName}
+                  role={inv.role}
+                  teamNames={inv.teamNames}
+                  invitedBy={inv.invitedBy}
+                  createdAt={formatDateTime(inv.createdAt)}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {!org && invitations.length === 0 ? (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-card p-4 shadow-card">
           <p className="text-body">Du gehörst noch zu keiner Organisation. Leg eine an, um Personen und Teams zu verwalten.</p>
           <Link href="/app/organisation/neu" className={buttonStyles.secondary}>
