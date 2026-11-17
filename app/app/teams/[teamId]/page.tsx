@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddMemberForm } from "@/components/teams/add-member-form";
 import { RemoveMemberButton } from "@/components/teams/remove-member-button";
+import { Countdown } from "@/components/rounds/countdown";
+import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { buttonStyles } from "@/components/ui/form";
 import { RoleBadge } from "@/components/teams/role-badge";
@@ -42,6 +44,10 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   return (
     <>
       <h1 className="text-h1">{team.name}</h1>
+      <RoundsLiveRefresh
+        filter={{ column: "team_id", value: team.id }}
+        openDeadlines={(rounds ?? []).filter((r) => r.status === "open").map((r) => r.deadline)}
+      />
 
       <section aria-labelledby="rounds-heading" className="mt-8 max-w-[680px]">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -64,6 +70,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
                   <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
                     <StatusBadge status={round.status} />
                     Frist: {formatDateTime(round.deadline)}
+                    {round.status === "open" ? <Countdown deadline={round.deadline} /> : null}
                   </span>
                 </Link>
               </li>

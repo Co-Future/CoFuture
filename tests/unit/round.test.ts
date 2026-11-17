@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateTime, isPast } from "@/lib/format";
+import { formatDateTime, formatRemaining, isPast } from "@/lib/format";
 import { createRoundSchema, responseSchema } from "@/lib/validation/round";
 
 const inDays = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
@@ -40,5 +40,22 @@ describe("isPast", () => {
   it("compares against now", () => {
     expect(isPast(inDays(-1))).toBe(true);
     expect(isPast(inDays(1))).toBe(false);
+  });
+});
+
+describe("formatRemaining", () => {
+  const min = 60_000;
+  it("picks the two largest units", () => {
+    expect(formatRemaining(2 * 1440 * min + 3 * 60 * min + 5 * min)).toBe("noch 2 Tage 3 Std.");
+    expect(formatRemaining(1440 * min)).toBe("noch 1 Tag");
+    expect(formatRemaining(4 * 60 * min + 15 * min)).toBe("noch 4 Std. 15 Min.");
+    expect(formatRemaining(60 * min)).toBe("noch 1 Std.");
+    expect(formatRemaining(9 * min + 30_000)).toBe("noch 9 Min.");
+  });
+
+  it("handles the last minute and the end", () => {
+    expect(formatRemaining(30_000)).toBe("noch unter 1 Min.");
+    expect(formatRemaining(0)).toBeNull();
+    expect(formatRemaining(-5)).toBeNull();
   });
 });
