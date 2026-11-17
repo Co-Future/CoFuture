@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CloseRoundButton } from "@/components/rounds/close-round-button";
+import { Countdown } from "@/components/rounds/countdown";
+import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { ResponseEditor } from "@/components/rounds/response-editor";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -46,11 +48,16 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       </Link>
 
       <article className="max-w-[680px]">
+        <RoundsLiveRefresh
+          filter={{ column: "id", value: round.id }}
+          openDeadlines={round.status === "open" ? [round.deadline] : []}
+        />
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge status={round.status} />
           <span className="text-body-sm text-ink-muted">
             {round.status === "open" ? "Frist" : "Frist war"}: {formatDateTime(round.deadline)}
           </span>
+          {round.status === "open" ? <Countdown deadline={round.deadline} /> : null}
           <span className="text-body-sm text-ink-muted">
             {answerCount === 1 ? "1 Antwort" : `${answerCount} Antworten`}
           </span>
