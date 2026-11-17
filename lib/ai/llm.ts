@@ -3,7 +3,16 @@ import { serverEnv } from "@/lib/env";
 
 /** LLM adapter with structured output (ADR 005): Gemini first, Groq as free fallback. */
 
-export type StructuredResult<T> = { data: T; provider: "gemini" | "groq"; model: string; ms: number };
+export type StructuredResult<T> = {
+  data: T;
+  /** Unvalidated model output, kept for debugging (no personal data: the input holds pseudonyms only). */
+  raw: unknown;
+  provider: "gemini" | "groq";
+  model: string;
+  ms: number;
+  /** Providers that failed before this one, e.g. "gemini: gemini 403: …". Empty when the first one worked. */
+  failures: string[];
+};
 
 export class LlmError extends Error {
   constructor(
@@ -96,15 +105,24 @@ export async function generateStructured<S extends z.ZodType>(
 ): Promise<StructuredResult<z.infer<S>>> {
   if (providers.length === 0) throw new LlmError("No LLM provider configured.", false);
   let lastError: unknown;
+  const failures: string[] = [];
   for (const provider of providers) {
     const start = performance.now();
     try {
       const raw = await provider.run(request);
       const parsed = request.schema.safeParse(raw);
       if (!parsed.success) throw new LlmError(`${provider.name}: output does not match the schema`, true);
-      return { data: parsed.data, provider: provider.name, model: provider.model, ms: Math.round(performance.now() - start) };
+      return {
+        data: parsed.data,
+        raw,
+        provider: provider.name,
+        model: provider.model,
+        ms: Math.round(performance.now() - start),
+        failures,
+      };
     } catch (error) {
       lastError = error;
+      failures.push(`${provider.name}: ${String(error).slice(0, 300)}`);
       console.warn("llm provider failed", { provider: provider.name, error: String(error).slice(0, 300) });
       if (error instanceof LlmError && !error.retriable) throw error;
     }

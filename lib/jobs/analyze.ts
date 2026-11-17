@@ -1,6 +1,7 @@
 import { buildPerspectiveMap } from "@/lib/ai/perspective-map";
 import { LlmError } from "@/lib/ai/llm";
 import { createAdminClient } from "@/lib/db/admin";
+import type { Json } from "@/lib/db/types";
 
 const MAX_ATTEMPTS = 3;
 
@@ -63,7 +64,19 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, jobId: st
     if (error) throw error;
     await admin
       .from("analysis_jobs")
-      .update({ status: "done", result: { provider: result.provider, model: result.model, ms: result.ms }, locked_at: null })
+      .update({
+        status: "done",
+        // Raw output and failed providers make an empty or odd map traceable (pseudonyms only, no names).
+        result: {
+          provider: result.provider,
+          model: result.model,
+          ms: result.ms,
+          coveredByModel: result.coveredByModel,
+          failures: result.failures,
+          raw: result.raw as Json,
+        },
+        locked_at: null,
+      })
       .eq("id", jobId);
     return true;
   } catch (error) {
