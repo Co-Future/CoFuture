@@ -1,30 +1,11 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { Database } from "@/lib/db/types";
-import { publicEnv } from "@/lib/env";
+import { env, signUp, testRun as run } from "./helpers";
 
 /**
  * Checks the access rules from the initial migration against a real Supabase project.
  * Needs: migration applied, sign-up enabled, email confirmation switched off.
- * Creates throwaway test users with made-up data.
  */
-
-const env = publicEnv();
-const run = crypto.randomUUID().slice(0, 8);
-
-async function signUp(name: string): Promise<{ client: SupabaseClient<Database>; userId: string }> {
-  const client = createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data, error } = await client.auth.signUp({
-    email: `cofuture.test+${run}-${name}@gmail.com`,
-    password: `Test-${crypto.randomUUID()}`,
-    options: { data: { display_name: `Test ${name}` } },
-  });
-  if (error) throw error;
-  if (!data.session || !data.user) throw new Error("No session: is email confirmation switched off?");
-  return { client, userId: data.user.id };
-}
 
 describe("row level security", () => {
   let lead: Awaited<ReturnType<typeof signUp>>;
