@@ -84,7 +84,9 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, Pe
 - [ ] Vercel-Schutz für Preview-Links ausschalten, damit alle sie ohne Vercel-Login öffnen können.
 - [x] Integrationstests für die Organisations-Funktionen (`tests/integration/organizations.test.ts`).
 - [ ] `pg_cron` ruft `/api/worker` als Sicherheitsnetz auf, sobald die Produktions-URL fest steht.
-- [ ] Playwright-E2E-Tests im Repo.
+- [x] Büro-Simulation zum Testen in der App: 21 Personen, 5 Teams, 11 Runden, Live-Modus ([`simulation/`](simulation/README.md)).
+- [x] Testszenarien für alle bisherigen Funktionen mit Zuordnung zu den Tests ([`docs/testszenarien.md`](docs/testszenarien.md)).
+- [ ] Playwright-E2E-Tests im Repo (Grundlage: manuelle Szenarien und Demo-Durchlauf in `docs/testszenarien.md`).
 - [ ] Zuständigkeiten im Team festlegen und hier eintragen (wer verantwortet welchen Bereich).
 
 ---
@@ -248,8 +250,9 @@ lib/
 prompts/v1/              versionierte Prompts
 supabase/migrations/     alle Datenbankänderungen als SQL
 eval/poc/                KI-Proof-of-Concept mit Testdaten und Bericht
-tests/                   unit/, integration/, fixtures/
-docs/                    adr/, api.md
+simulation/              Büro-Simulation: erfundene Firma zum Testen in der App
+tests/                   unit/ (mit support/fake-supabase.ts), integration/, fixtures/
+docs/                    adr/, api.md, testszenarien.md
 ```
 
 ---
@@ -282,8 +285,9 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 | `pnpm dev` | Dev-Server |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Routen-Typen erzeugen und TypeScript prüfen |
-| `pnpm test` | Unit-Tests, ohne Netz |
+| `pnpm test` | Unit-Tests, ohne Netz (Routen und Jobs mit nachgebautem Supabase-Client) |
 | `pnpm test:integration` | Tests gegen Staging (legt Wegwerf-Nutzer an und löscht sie danach wieder) |
+| `pnpm sim:setup`, `sim:live`, `sim:reset` | Büro-Simulation auf Staging aufbauen, live weiterlaufen lassen, löschen ([`simulation/`](simulation/README.md)) |
 | `pnpm build` | Produktions-Build |
 | `pnpm db:push` | Migrationen nach Staging spielen (braucht `supabase login`) |
 | `pnpm db:types` | `lib/db/types.ts` aus Staging neu erzeugen |
