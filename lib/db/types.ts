@@ -463,6 +463,158 @@ export type Database = {
           },
         ]
       }
+      response_answers: {
+        Row: {
+          body: string
+          id: string
+          question_id: string
+          response_id: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          id?: string
+          question_id: string
+          response_id: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          question_id?: string
+          response_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "response_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "response_answers_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      round_clarifications: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          question_id: string | null
+          round_id: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          author_id?: string
+          body: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          round_id: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_clarifications_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_clarifications_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      round_question_targets: {
+        Row: {
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_question_targets_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_question_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      round_questions: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          position: number
+          round_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          position: number
+          round_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          position?: number
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "round_questions_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rounds: {
         Row: {
           anonymous: boolean
@@ -470,7 +622,7 @@ export type Database = {
           context: string | null
           created_at: string
           created_by: string | null
-          deadline: string
+          deadline: string | null
           id: string
           parent_round_id: string | null
           question: string
@@ -483,7 +635,7 @@ export type Database = {
           context?: string | null
           created_at?: string
           created_by?: string | null
-          deadline: string
+          deadline?: string | null
           id?: string
           parent_round_id?: string | null
           question: string
@@ -496,7 +648,7 @@ export type Database = {
           context?: string | null
           created_at?: string
           created_by?: string | null
-          deadline?: string
+          deadline?: string | null
           id?: string
           parent_round_id?: string | null
           question?: string
@@ -607,6 +759,32 @@ export type Database = {
       }
     }
     Views: {
+      round_answers: {
+        Row: {
+          body: string | null
+          id: string | null
+          is_own: boolean | null
+          pseudonym: string | null
+          question_id: string | null
+          round_id: string | null
+          source: Database["public"]["Enums"]["response_source"] | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      round_clarifications_public: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          body: string | null
+          created_at: string | null
+          id: string | null
+          is_own: boolean | null
+          question_id: string | null
+          round_id: string | null
+        }
+        Relationships: []
+      }
       round_responses: {
         Row: {
           body: string | null
@@ -631,6 +809,37 @@ export type Database = {
       }
     }
     Functions: {
+      answer_clarification: {
+        Args: { p_answer: string; p_id: string }
+        Returns: undefined
+      }
+      create_exchange: {
+        Args: {
+          p_context?: string
+          p_deadline?: string
+          p_parent_round_id?: string
+          p_questions: Json
+          p_team_id: string
+        }
+        Returns: string
+      }
+      can_see_question: { Args: { p_question_id: string }; Returns: boolean }
+      can_see_round: { Args: { p_round_id: string }; Returns: boolean }
+      question_is_for_me: { Args: { p_question_id: string }; Returns: boolean }
+      round_analysis: {
+        Args: { p_round_id: string }
+        Returns: { created_at: string; map: Json; model: string; prompt_version: string }[]
+      }
+      round_has_hidden_questions: { Args: { p_round_id: string }; Returns: boolean }
+      round_accepts_answers: { Args: { p_round_id: string }; Returns: boolean }
+      save_answers: {
+        Args: {
+          p_answers: Json
+          p_round_id: string
+          p_source?: Database["public"]["Enums"]["response_source"]
+        }
+        Returns: string
+      }
       accept_organization_invitation: {
         Args: { p_invitation_id: string }
         Returns: string

@@ -1,7 +1,7 @@
-import { draftQuestion, type QuestionDraft } from "@/lib/ai/question-draft";
 import { createAdminClient } from "@/lib/db/admin";
 import type { Database } from "@/lib/db/types";
 import { configuredProviders, SttError, transcribe, transcriptionHint } from "@/lib/stt";
+import { questionsFor, structureTranscript } from "./structure";
 
 type Job = Database["public"]["Tables"]["analysis_jobs"]["Row"];
 type Payload = { path: string; mime: string };
@@ -46,28 +46,23 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, job: Job)
   const { data: audio, error: downloadError } = await admin.storage.from("voice").download(path);
   if (downloadError || !audio) return fail("Die Aufnahme wurde nicht gefunden. Nimm sie bitte neu auf.", false);
 
-  const { data: round } = job.round_id
-    ? await admin.from("rounds").select("question, context").eq("id", job.round_id).maybeSingle()
-    : { data: null };
-  const hint = round ? transcriptionHint(round.question, round.context) : undefined;
+  // Vocabulary hint: the questions of the exchange, so terms are spelled the way the team writes them.
+  const questions = job.round_id ? await questionsFor(admin, job.round_id, job.created_by) : [];
+  const hint = questions.length > 0 ? transcriptionHint(questions.map((q) => q.body).join(" ")) : undefined;
 
   try {
     const transcript = await transcribe(audio, mime, configuredProviders(), hint);
     if (!transcript.text) return fail("In der Aufnahme wurde keine Sprache erkannt. Nimm sie bitte neu auf.", true);
 
-    // A dictated question (job of a team, no round yet): AsyncMeet suggests question and context.
-    // If that fails, the person still gets the plain transcript.
-    let draft: QuestionDraft | null = null;
-    if (!job.round_id) {
-      draft = await draftQuestion(transcript.text).catch((error) => {
-        console.warn("question draft failed", { jobId: job.id, error: String(error).slice(0, 300) });
-        return null;
-      });
-    }
+    // Questions or answers as structure. If AsyncMeet fails here, the person still gets the transcript.
+    const structured = await structureTranscript(admin, job, transcript.text).catch((error) => {
+      console.warn("structuring failed", { jobId: job.id, error: String(error).slice(0, 300) });
+      return null;
+    });
 
     await admin
       .from("analysis_jobs")
-      .update({ status: "done", result: { ...transcript, draft }, error: null, locked_at: null })
+      .update({ status: "done", result: { ...transcript, structured }, error: null, locked_at: null })
       .eq("id", job.id);
     // Data minimisation: the audio is gone as soon as we have the text.
     await admin.storage.from("voice").remove([path]);

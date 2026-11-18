@@ -26,19 +26,20 @@ CoFuture ist eine Plattform für Kommunikation und Wissensaustausch zwischen Fü
 
 ### Kernfeature: AsyncMeet
 
-Asynchrone Abstimmungsrunden statt Live-Meetings:
+Asynchroner **Austausch** statt Live-Meetings ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)):
 
-1. Eine Frage oder Entscheidungsvorlage wird als Runde mit Frist eingestellt.
-2. Alle antworten per **Sprache oder Text**, wann und wo es passt.
-3. Sprachantworten werden transkribiert, das Audio wird danach gelöscht.
-4. AsyncMeet erstellt eine **Perspektivenkarte**: Themen, Konsens, Dissens, Einzelstimmen, jede Aussage mit Quelle.
-5. Rückfragen und Folgerunden führen zum Beschluss, der mit Begründung an alle geht.
+1. Die Leitung spricht ihre Fragen in einem Rutsch ein. AsyncMeet zieht die einzelnen Fragen heraus und erkennt, an wen eine Frage nur gehen soll. Fragen lassen sich ändern, per Sprache ergänzen oder als Text hinzufügen. Eine Frist ist optional.
+2. Alle Gefragten antworten per **Sprache oder Text**, wann und wo es passt. AsyncMeet ordnet eine eingesprochene Antwort den Fragen zu, jede Antwort steht als Karte unter ihrer Frage und lässt sich prüfen und ergänzen.
+3. Sprachaufnahmen werden transkribiert, das Audio wird danach gelöscht.
+4. Rückfragen an die Leitung stehen im Austausch selbst. Sie sehen nur die fragende Person und die Leitung. Eine Frage nur für bestimmte Personen sehen nur diese und die Leitung.
+5. AsyncMeet erstellt **je Frage eine Perspektivenkarte**: Themen, Konsens, Dissens, Einzelstimmen, jede Aussage mit Quelle.
+6. Folge-Austausche führen zum Beschluss, der mit Begründung an alle geht.
 
 ### Gestaltungsprinzipien
 
 | Prinzip | Bedeutung |
 | --- | --- |
-| Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. |
+| Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. Ausnahme: Fragen nur für bestimmte Personen und Rückfragen sehen nur die Beteiligten ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)). |
 | Inhalte statt Personen bewerten | Die KI prüft Fristen, Vollständigkeit und offene Aufgaben, nie die Leistung einzelner. |
 | Pseudonym als Standard | Antworten erscheinen als A01, A02 …, Klarnamen nur mit Zustimmung. |
 | Minderheiten sichtbar | Einzelstimmen werden markiert, nicht herausgemittelt. |
@@ -76,7 +77,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, ne
 | 5 | Sprachantworten: Aufnahme im Browser (bis 10 Min.), Transkription im Hintergrund, Audio wird gelöscht. Auch die Frage einer Runde lässt sich einsprechen, AsyncMeet schlägt Frage und Kontext vor | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
 | 7 | Beschlüsse: 7a Datenbank und API (Beschluss mit Begründung, Folgerunden, Lesebestätigung) fertig, 7b Oberfläche | in Arbeit |
-| 7c | AsyncMeet ausbauen: mehrere Fragen, Gewichtung, Beschlussvorschläge (siehe Roadmap) | offen |
+| 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, Zielpersonen, Antworten je Frage, Rückfragen, Karte je Frage, Frist optional ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)). Offen: Gewichtung, Zusammenfassung, Beschlussvorschläge | in Arbeit |
 | 8 | Wissensspeicher | offen |
 | 9 | Rückkanal | offen |
 
@@ -98,15 +99,17 @@ Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit 
 
 ### 7c. AsyncMeet ausbauen: mehrere Fragen, Gewichtung, Beschlussvorschläge
 
-Zielbild (Constantin, 17.11.2026). Heute hat eine Runde eine Frage und jede Person eine Antwort.
+Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](docs/adr/012-austausch-mehrere-fragen.md).
 
-- **Fragen einsprechen:** Die Leitung spricht eine oder mehrere Fragen ein. AsyncMeet transkribiert und zieht die Fragen als JSON heraus, die Leitung bestätigt sie. *Teilweise fertig (#33): Die erste Frage wird Hauptfrage, weitere stehen im Kontext.*
-- **Alles auf einmal beantworten:** Mitarbeitende antworten per Sprache oder Text auf alle Fragen zusammen. AsyncMeet ordnet die Antwort den einzelnen Fragen zu (JSON mit Quell-IDs), die Person prüft die Zuordnung vor dem Speichern.
-- **Auswertung je Frage:** Perspektivenkarte mit Quellen, Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
+- **Fragen einsprechen:** Die Leitung spricht mehrere Fragen ein, AsyncMeet zieht sie einzeln heraus. Neu einsprechen ersetzt alle Fragen. Ergänzen gleicht mit den bisherigen ab (unverändert, geändert, neu). Dazu kommen Fragen als Text. *Fertig.*
+- **Zielpersonen:** „Die Frage geht nur an Tom“ wird erkannt, Personen lassen sich je Frage wählen. Rechts stehen alle Personen im Team. Gezielte Fragen sehen nur die Gefragten und wer den Austausch gestartet hat. *Fertig.* Gruppen ab etwa 30 Personen kommen später.
+- **Alles auf einmal beantworten:** AsyncMeet ordnet eine eingesprochene Antwort den Fragen zu. Jede Antwort steht als Karte unter ihrer Frage und lässt sich ändern, per Sprache ergänzen oder komplett neu einsprechen. *Fertig.*
+- **Rückfragen an die Leitung** im Austausch, sichtbar nur für die fragende Person und die Leitung. *Fertig.*
+- **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten *(fertig)*. Offen sind Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
 - **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*).
 - **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*
 
-**Umsetzung:** Erst eine ADR. Neue Tabelle `round_questions`, Antwortabschnitte je Frage mit Quell-ID, Analyse-Job je Frage über `lib/ai/`. Die Gewichtung zählt der Code aus den Quell-IDs, nicht das LLM. Spracheingabe über den vorhandenen Transkriptions-Job (`lib/stt/`).
+**Umsetzung:** Tabellen `round_questions`, `round_question_targets`, `response_answers`, `round_clarifications`. Die KI-Schritte liegen in `lib/ai/exchange.ts` und laufen über den Transkriptions-Job. Die Gewichtung soll der Code aus den Quell-IDs zählen, nicht das LLM.
 
 ### 8. Wissensspeicher (MVP)
 
@@ -206,23 +209,27 @@ Zielbild (Constantin, 17.11.2026). Heute hat eine Runde eine Frage und jede Pers
 
 Begründungen stehen in den [Architekturentscheidungen](docs/adr/).
 
-### Ablauf einer Runde
+### Ablauf eines Austauschs
 
 ```txt
 Browser                         Next.js (Vercel)                    Supabase (Frankfurt)
 ───────                         ────────────────                    ────────────────────
-Frage einsprechen
+Fragen einsprechen
   └─ Upload direkt, dann ────▶  POST /api/teams/{id}/voice ───────▶ analysis_jobs (transcribe, team_id)
-                                Transkript + Vorschlag Frage/Kontext (lib/ai/question-draft.ts)
-  ◀── Realtime: Vorschlag im Formular, prüfen und anpassen ────────
-Runde anlegen ───────────────▶  POST /api/teams/{id}/rounds ──────▶ rounds (RLS)
-Text antworten ──────────────▶  PUT  /api/rounds/{id}/response ───▶ responses (Pseudonym A01 …)
+                                Transkript → Fragen + Zielpersonen (lib/ai/exchange.ts)
+  ◀── Realtime: Fragenkarten im Formular, prüfen und anpassen ─────
+Austausch starten ───────────▶  POST /api/teams/{id}/rounds ──────▶ create_exchange(): rounds,
+                                                                    round_questions, round_question_targets
+Antworten speichern ─────────▶  PUT  /api/rounds/{id}/answers ────▶ save_answers(): responses (A01 …),
+                                                                    response_answers (je Frage)
+Rückfrage ───────────────────▶  POST /api/rounds/{id}/clarifications ▶ round_clarifications
 Sprache aufnehmen
   └─ Upload direkt ──────────────────────────────────────────────▶ Storage-Bucket "voice" (privat)
   └─ Auftrag ────────────────▶  POST /api/rounds/{id}/voice ──────▶ analysis_jobs (transcribe)
                                 after(): lib/jobs/transcribe.ts
                                   └─ lib/stt (Groq Whisper, Reserve Gemini)
                                   └─ Text in Job, Audio löschen
+                                  └─ Antwort den Fragen zuordnen (lib/ai/exchange.ts)
   ◀── Realtime: Transkript da, wird angehängt und gespeichert ─────
 Frist vorbei / Runde schließen                                     pg_cron oder PATCH → rounds.status = closed
                                                                     Trigger legt analysis_jobs (analyze) an

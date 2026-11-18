@@ -3,7 +3,7 @@ import { apiError, readJson, requireUserId } from "@/lib/api/respond";
 import { createClient } from "@/lib/db/server";
 import { runTranscribeJobs } from "@/lib/jobs/transcribe";
 import { uuidSchema } from "@/lib/validation/team";
-import { voiceJobSchema } from "@/lib/validation/voice";
+import { answerVoiceJobSchema } from "@/lib/validation/voice";
 
 export const maxDuration = 300;
 
@@ -20,7 +20,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/rounds/[rou
   const auth = await requireUserId(supabase);
   if ("response" in auth) return auth.response;
 
-  const body = await readJson(request, voiceJobSchema);
+  const body = await readJson(request, answerVoiceJobSchema);
   if ("response" in body) return body.response;
   if (!body.data.path.startsWith(`${auth.userId}/`)) return apiError(403, "forbidden", "Das ist nicht deine Aufnahme.");
 
@@ -29,7 +29,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/rounds/[rou
     .insert({
       kind: "transcribe",
       round_id: roundId,
-      payload: { path: body.data.path, mime: body.data.mime, durationMs: body.data.durationMs },
+      payload: { path: body.data.path, mime: body.data.mime, durationMs: body.data.durationMs, scope: body.data.scope },
     })
     .select("id")
     .single();

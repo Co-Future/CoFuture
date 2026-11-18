@@ -16,3 +16,19 @@ export const voiceJobSchema = z.object({
 });
 
 export type VoiceJobInput = z.infer<typeof voiceJobSchema>;
+
+/** Dictated questions for a new exchange: replace all questions or reconcile with the ones so far. */
+export const questionsVoiceJobSchema = voiceJobSchema.extend({
+  mode: z.enum(["replace", "merge"]).default("replace"),
+  questions: z
+    .array(z.object({ key: z.string().min(1).max(64), body: z.string().max(500), targets: z.array(z.uuid()).max(200) }))
+    .max(50)
+    .default([]),
+});
+
+/** Spoken answer: "all" lets AsyncMeet split it across your questions, "question" is for one card. */
+export const answerVoiceJobSchema = voiceJobSchema.extend({
+  scope: z.enum(["all", "question"]).default("all"),
+});
+
+export type QuestionsVoiceJobInput = z.input<typeof questionsVoiceJobSchema>;

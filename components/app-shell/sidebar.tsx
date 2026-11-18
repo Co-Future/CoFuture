@@ -79,7 +79,7 @@ export async function Sidebar() {
                     team.openRounds > 0 ? (
                       <span className="rounded-full bg-primary-soft px-2 text-caption text-ink">
                         {team.openRounds}
-                        <span className="sr-only"> offene Runden</span>
+                        <span className="sr-only"> offene Austausche</span>
                       </span>
                     ) : null
                   }

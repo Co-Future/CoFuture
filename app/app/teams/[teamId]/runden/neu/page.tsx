@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CreateRoundForm } from "@/components/rounds/create-round-form";
+import { ExchangeForm } from "@/components/rounds/exchange-form";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
 import { uuidSchema } from "@/lib/validation/team";
 
-export const metadata: Metadata = { title: "Runde starten – CoFuture" };
+export const metadata: Metadata = { title: "Austausch starten – CoFuture" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -22,7 +22,14 @@ async function NewRound({ params, searchParams }: { params: Promise<{ teamId: st
   const supabase = await createClient();
   const { data: team } = await supabase.from("teams").select("id, name").eq("id", teamId).maybeSingle();
   if (!team) notFound();
-  // Follow-up round: only for a closed or decided round of this team.
+  const { data: members } = await supabase
+    .from("team_members")
+    .select("user_id, profiles(display_name)")
+    .eq("team_id", team.id);
+  const people = (members ?? [])
+    .map((m) => ({ userId: m.user_id, name: m.profiles?.display_name ?? "Unbekannt" }))
+    .sort((a, b) => a.name.localeCompare(b.name, "de"));
+  // Follow-up exchange: only for a closed or decided exchange of this team.
   const { data: parent } = von
     ? await supabase.from("rounds").select("id, question, status").eq("id", von).eq("team_id", team.id).neq("status", "open").maybeSingle()
     : { data: null };
@@ -33,17 +40,23 @@ async function NewRound({ params, searchParams }: { params: Promise<{ teamId: st
         <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         Zurück zu {team.name}
       </Link>
-      <h1 className="text-h1">{parent ? (frage ? "Rückfrage stellen" : "Folgerunde starten") : "Runde starten"}</h1>
+      <h1 className="text-h1">{parent ? (frage ? "Rückfrage stellen" : "Folge-Austausch starten") : "Austausch starten"}</h1>
       {parent ? (
         <p className="mt-2 flex max-w-[680px] items-start gap-2 text-body text-ink-muted">
           <CornerDownRight aria-hidden size={20} strokeWidth={1.75} className="mt-0.5 shrink-0" />
           <span>
-            Verknüpft mit der Ursprungsrunde: <span className="font-semibold text-ink">{parent.question}</span>
+            Verknüpft mit dem Ursprungs-Austausch: <span className="font-semibold text-ink">{parent.question}</span>
           </span>
         </p>
       ) : null}
       <div className="mt-6">
-        <CreateRoundForm key={`${parent?.id ?? "neu"}-${frage ?? ""}`} teamId={team.id} parentRoundId={parent?.id} defaultQuestion={parent ? frage : undefined} />
+        <ExchangeForm
+          key={`${parent?.id ?? "neu"}-${frage ?? ""}`}
+          teamId={team.id}
+          people={people}
+          parentRoundId={parent?.id}
+          defaultQuestion={parent ? frage : undefined}
+        />
       </div>
     </>
   );

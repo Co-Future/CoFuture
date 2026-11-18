@@ -97,7 +97,7 @@ export function OrganizationDangerZone({ organizationId, organizationName, other
         ) : (
           <>
             <p className="text-body-sm text-ink-muted">
-              Alle Teams, Runden und Antworten der Organisation werden gelöscht. Gib zur Bestätigung den Namen ein.
+              Alle Teams, Austausche und Antworten der Organisation werden gelöscht. Gib zur Bestätigung den Namen ein.
             </p>
             <Field
               id="org-delete-name"

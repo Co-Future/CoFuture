@@ -71,7 +71,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   const openRounds = allRounds.filter((r) => r.status === "open");
   const pastRounds = allRounds.filter((r) => r.status !== "open");
   const stats = [
-    { label: "Offene Runden", value: openRounds.length, Icon: Clock },
+    { label: "Offen", value: openRounds.length, Icon: Clock },
     { label: "Geschlossen", value: allRounds.filter((r) => r.status === "closed").length, Icon: Lock },
     { label: "Entschieden", value: allRounds.filter((r) => r.status === "decided").length, Icon: CircleCheck },
     { label: "Mitglieder", value: members.length, Icon: Users },
@@ -93,13 +93,13 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
         {isGuest ? null : (
           <Link href={`/app/teams/${team.id}/runden/neu`} className={buttonStyles.primary}>
             <Plus size={20} strokeWidth={1.75} aria-hidden />
-            Runde starten
+            Austausch starten
           </Link>
         )}
       </div>
       <RoundsLiveRefresh
         filter={{ column: "team_id", value: team.id }}
-        openDeadlines={openRounds.map((r) => r.deadline)}
+        openDeadlines={openRounds.flatMap((r) => (r.deadline ? [r.deadline] : []))}
       />
 
       <section aria-label="Kennzahlen" className="mt-6">
@@ -120,7 +120,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
         <div className="flex flex-col gap-10">
           <section aria-labelledby="open-heading">
             <h2 id="open-heading" className="mb-4 text-h2">
-              Laufende Runden
+              Laufender Austausch
             </h2>
             {openRounds.length > 0 ? (
               <RoundList rounds={openRounds} />
@@ -128,8 +128,8 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
               <div className="rounded-lg border border-line bg-card p-4">
                 <p className="text-body text-ink-muted">
                   {allRounds.length === 0
-                    ? "Noch keine Runden. Starte die erste."
-                    : "Gerade läuft keine Runde. Starte eine neue, wenn es etwas zu klären gibt."}
+                    ? "Noch kein Austausch. Starte den ersten."
+                    : "Gerade läuft kein Austausch. Starte einen, wenn es etwas zu klären gibt."}
                 </p>
               </div>
             )}
@@ -169,7 +169,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
           {pastRounds.length > 0 ? (
             <section aria-labelledby="past-heading">
               <h2 id="past-heading" className="mb-4 text-h2">
-                Abgeschlossene Runden
+                Abgeschlossen
               </h2>
               <RoundList rounds={pastRounds} />
             </section>
@@ -228,7 +228,7 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   );
 }
 
-type RoundRow = { id: string; question: string; deadline: string; status: "open" | "closed" | "decided" };
+type RoundRow = { id: string; question: string; deadline: string | null; status: "open" | "closed" | "decided" };
 
 function RoundList({ rounds }: { rounds: RoundRow[] }) {
   return (
@@ -242,8 +242,8 @@ function RoundList({ rounds }: { rounds: RoundRow[] }) {
             <span className="text-h3">{round.question}</span>
             <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
               <StatusBadge status={round.status} />
-              Frist: {formatDateTime(round.deadline)}
-              {round.status === "open" ? <Countdown deadline={round.deadline} /> : null}
+              {round.deadline ? `Frist: ${formatDateTime(round.deadline)}` : "Ohne Frist"}
+              {round.status === "open" && round.deadline ? <Countdown deadline={round.deadline} /> : null}
             </span>
           </Link>
         </li>
