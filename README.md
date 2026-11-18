@@ -273,6 +273,32 @@ docs/                    adr/, api.md
 
 ---
 
+## Neu im Team
+
+**Nur anschauen und Feedback geben:** Die Live-Version läuft auf Vercel (Adresse bei Luca oder Constantin). Testkonten für das Team gibt es ebenfalls dort, nicht im Repo. Feedback als GitHub-Issue oder direkt an Luca oder Constantin.
+
+**Mitentwickeln:** Diese Zugänge brauchst du, bevor `pnpm dev` alles kann:
+
+| Was | Wie | Von wem |
+| --- | --- | --- |
+| GitHub | Mitglied der Organisation `Co-Future` | Luca oder Constantin laden ein |
+| Supabase | Einladung in die Organisation, Rolle Developer (Projekt `cofuture-staging`) | Luca lädt ein |
+| Supabase-Werte | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` und ein eigener `SUPABASE_SECRET_KEY` (Supabase → Project Settings → API Keys → Secret keys, einer pro Person) | Luca schickt sie privat |
+| Groq-Key | selbst anlegen: [console.groq.com](https://console.groq.com) → API Keys → Create API Key (kostenlos) | du |
+| Gemini-Key | selbst anlegen: [aistudio.google.com](https://aistudio.google.com) → Get API key → Create API key (kostenlos) | du |
+| Vercel | nicht nötig. Jeder PR bekommt automatisch eine Vorschau-URL. | – |
+
+Eigene KI-Keys, weil die Gratis-Kontingente pro Konto zählen und jeder Key einzeln gesperrt werden kann. Keys und Passwörter nie ins Repo, in Issues oder in Gruppenchats.
+
+**Erster Start:**
+
+1. Node.js 22 installieren ([nodejs.org](https://nodejs.org), LTS). Fehlt danach `corepack`, einmal `npm install -g corepack`.
+2. Repo klonen und einrichten (siehe *Lokal einrichten*), Werte in `.env.local` eintragen. `WORKER_SECRET` ist ein beliebiger Zufallswert mit mindestens 16 Zeichen.
+3. `corepack pnpm dev` starten, auf http://localhost:3000 eine Organisation anlegen (Registrieren), ein Team und eine Runde anlegen.
+4. `corepack pnpm test` und `corepack pnpm test:integration` müssen grün sein. Dann passt die Einrichtung.
+5. Mit Claude Code: im Repo-Ordner starten, es liest `CLAUDE.md` von selbst. Guter Einstieg: „Lies README.md und docs/api.md und erklär mir, wie eine Runde technisch abläuft.“
+6. Für jede Aufgabe einen Branch, dann PR (siehe *Mitmachen*).
+
 ## Lokal einrichten
 
 Voraussetzungen: Node.js 22 (`.nvmrc`), pnpm über corepack, Zugang zum Supabase-Projekt `cofuture-staging`.
