@@ -76,6 +76,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, ne
 | 5 | Sprachantworten: Aufnahme im Browser (bis 10 Min.), Transkription im Hintergrund, Audio wird gelöscht. Auch die Frage einer Runde lässt sich einsprechen, AsyncMeet schlägt Frage und Kontext vor | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
 | 7 | Beschlüsse: 7a Datenbank und API (Beschluss mit Begründung, Folgerunden, Lesebestätigung) fertig, 7b Oberfläche | in Arbeit |
+| 7c | AsyncMeet ausbauen: mehrere Fragen, Gewichtung, Beschlussvorschläge (siehe Roadmap) | offen |
 | 8 | Wissensspeicher | offen |
 | 9 | Rückkanal | offen |
 
@@ -94,6 +95,18 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, ne
 ## Roadmap
 
 Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit den vorhandenen KI-Adaptern in `lib/ai/` und `lib/stt/`. In der App stehen sie im Menü unter **Kommt noch** (Inhalt: `components/teams/planned-features.tsx`).
+
+### 7c. AsyncMeet ausbauen: mehrere Fragen, Gewichtung, Beschlussvorschläge
+
+Zielbild (Constantin, 17.11.2026). Heute hat eine Runde eine Frage und jede Person eine Antwort.
+
+- **Fragen einsprechen:** Die Leitung spricht eine oder mehrere Fragen ein. AsyncMeet transkribiert und zieht die Fragen als JSON heraus, die Leitung bestätigt sie. *Teilweise fertig (#33): Die erste Frage wird Hauptfrage, weitere stehen im Kontext.*
+- **Alles auf einmal beantworten:** Mitarbeitende antworten per Sprache oder Text auf alle Fragen zusammen. AsyncMeet ordnet die Antwort den einzelnen Fragen zu (JSON mit Quell-IDs), die Person prüft die Zuordnung vor dem Speichern.
+- **Auswertung je Frage:** Perspektivenkarte mit Quellen, Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
+- **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*).
+- **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*
+
+**Umsetzung:** Erst eine ADR. Neue Tabelle `round_questions`, Antwortabschnitte je Frage mit Quell-ID, Analyse-Job je Frage über `lib/ai/`. Die Gewichtung zählt der Code aus den Quell-IDs, nicht das LLM. Spracheingabe über den vorhandenen Transkriptions-Job (`lib/stt/`).
 
 ### 8. Wissensspeicher (MVP)
 
