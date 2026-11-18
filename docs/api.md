@@ -29,14 +29,19 @@ Organisationen bündeln Personen und Teams (ADR 011). Eine Person kann in mehrer
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/organizations` | `{ "name": string }` | `201 { id, name }` | alle Angemeldeten, werden Owner; App wechselt dorthin |
 | `POST` | `/api/organizations/current` | `{ "organizationId": uuid }` | `204` | Mitglieder der Organisation |
-| `POST` | `/api/organizations/{orgId}/members` | `{ "displayName": string, "email": string, "role"?: string, "teamId"?: uuid }` | `201 { userId, link }`, `link` ist `null`, wenn es schon ein Konto gab | Owner |
-| `POST` | `/api/organizations/{orgId}/members/{userId}/link` | `{ "resetPassword"?: boolean }` | `201 { link }` | Owner; macht ältere Links ungültig, `resetPassword` nur bei Konten der Organisation |
+| `POST` | `/api/organizations/{orgId}/members` | `{ "displayName": string, "email": string, "role"?: string, "teamIds"?: uuid[] }` | `201 { status: "created", userId, link }` bei neuem Konto, `201 { status: "invited" }` bei bestehendem Konto; `409 already_member`, `409 already_invited` | Owner |
+| `DELETE` | `/api/organizations/{orgId}/invitations/{invitationId}` | – | `204` | Owner; zieht eine offene Einladung zurück |
+| `POST` | `/api/organizations/{orgId}/members/{userId}/link` | `{ "resetPassword"?: boolean }` | `201 { link }`; `403 not_managed` | Owner; nur Konten der Organisation (von ihr angelegt, in keiner anderen); macht ältere Links ungültig |
 | `PATCH` | `/api/organizations/{orgId}/members/{userId}` | `{ "role": "owner" \| "member" \| "guest" }` | `200 { role }` | Owner; mindestens ein Owner bleibt |
 | `DELETE` | `/api/organizations/{orgId}/members/{userId}` | – | `204` | Owner; entfernt auch aus allen Teams der Organisation |
 | `DELETE` | `/api/organizations/{orgId}/members/{userId}/account` | – | `204` | Owner; nur Konten, die die Organisation angelegt hat und die in keiner anderen sind |
 | `POST` | `/api/organizations/{orgId}/transfer` | `{ "userId": uuid }` | `200` | Owner; die Person wird Owner, du Mitglied |
 | `DELETE` | `/api/organizations/{orgId}` | – | `204` | Owner, nur wenn sonst niemand drin ist; löscht Teams, Runden, Antworten |
 | `POST` | `/api/invites/accept` | `{ "token": string, "password": string }` | `200 { email }` | ohne Login, mit gültigem Link |
+| `POST` | `/api/invitations/{invitationId}/accept` | – | `200 { organizationId }` | die eingeladene Person; App wechselt in die Organisation |
+| `DELETE` | `/api/invitations/{invitationId}` | – | `204` | die eingeladene Person; lehnt ab |
+
+**Zwei Wege in eine Organisation.** Gibt es zur E-Mail-Adresse noch kein Konto, legt der Server es an (von der Organisation verwaltet) und gibt einen Zugangslink zurück. Gibt es schon ein Konto, entsteht nur eine Einladung (`organization_invitations`, höchstens eine je Person und Organisation, nie an Mitglieder). Die Person sieht sie nach dem Login auf `/app` und in der Seitenleiste (`my_organization_invitations`) und wird erst beim Annehmen Mitglied, mit der eingeladenen Rolle und den Teams, die es dann noch gibt. Owner sehen offene Einladungen über `organization_invitations_list`. Ins Team einer Organisation kommt nur, wer Mitglied ist; das prüft ein Trigger auf `team_members` auf allen Wegen.
 
 Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert wird nur der SHA-256-Hash des Tokens, die Tabelle `invites` ist für Clients gesperrt. Personenlisten liefert die Funktion `organization_people`; E-Mail-Adressen sehen nur Owner, Gäste sehen nur Personen aus ihren Teams.
 

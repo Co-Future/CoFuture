@@ -2,14 +2,16 @@ import { apiError, readJson, requireUserId } from "@/lib/api/respond";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { issueAccessLink } from "@/lib/organizations/invite-token";
-import { addPersonSchema } from "@/lib/validation/organization";
+import type { OrgRole } from "@/lib/organizations/roles";
+import { addPersonSchema, type AddPersonResult } from "@/lib/validation/organization";
 import { uuidSchema } from "@/lib/validation/team";
 
 /**
- * POST /api/organizations/{orgId}/members { displayName, email, role?, teamId? } → 201 { userId, link }.
- * Only admins. Creates the account without a password and returns a one-time access link,
- * with which the person sets their own password. If the email already has an account, the
- * person simply joins (link is null: they sign in as usual).
+ * POST /api/organizations/{orgId}/members { displayName, email, role?, teamIds? } → 201. Only owners.
+ * - No account yet: creates it (managed by the organization), adds it with role and teams and
+ *   returns a one-time access link → { status: "created", userId, link }.
+ * - Account exists: nobody joins yet. An invitation is created that the person accepts or declines
+ *   after signing in → { status: "invited" }.
  */
 export async function POST(request: Request, ctx: RouteContext<"/api/organizations/[orgId]/members">) {
   const { orgId } = await ctx.params;
@@ -21,15 +23,15 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
 
   const body = await readJson(request, addPersonSchema);
   if ("response" in body) return body.response;
-  const { displayName, email, teamId, role } = body.data;
+  const { displayName, email, teamIds, role } = body.data;
 
   const { data: isAdmin } = await supabase.rpc("is_org_admin", { p_org_id: orgId });
   if (!isAdmin) return apiError(403, "forbidden", "Nur Owner der Organisation können Personen hinzufügen.");
 
   const admin = createAdminClient();
-  if (teamId) {
-    const { data: team } = await admin.from("teams").select("id").eq("id", teamId).eq("organization_id", orgId).maybeSingle();
-    if (!team) return apiError(400, "validation_failed", "Bitte prüf deine Eingaben.", { teamId: "Dieses Team gibt es hier nicht." });
+  if (teamIds.length > 0) {
+    const { data: teams } = await admin.from("teams").select("id").in("id", teamIds).eq("organization_id", orgId);
+    if ((teams ?? []).length !== teamIds.length) return invalidTeam();
   }
 
   const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -38,7 +40,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
     user_metadata: { display_name: displayName },
   });
   if (createError?.code === "email_exists" || createError?.code === "user_already_exists") {
-    return addExistingAccount(admin, { orgId, email, teamId, role });
+    return inviteExistingAccount(supabase, { orgId, email, teamIds, role });
   }
   if (createError || !created.user) return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
   const userId = created.user.id;
@@ -48,8 +50,10 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
       .from("organization_members")
       .insert({ organization_id: orgId, user_id: userId, role, managed: true });
     if (memberError) throw memberError;
-    if (teamId) {
-      const { error: teamError } = await admin.from("team_members").insert({ team_id: teamId, user_id: userId, role: "member" });
+    if (teamIds.length > 0) {
+      const { error: teamError } = await admin
+        .from("team_members")
+        .insert(teamIds.map((teamId) => ({ team_id: teamId, user_id: userId, role: "member" as const })));
       if (teamError) throw teamError;
     }
     const link = await issueAccessLink(admin, {
@@ -58,31 +62,47 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
       createdBy: auth.userId,
       origin: new URL(request.url).origin,
     });
-    return Response.json({ userId, link }, { status: 201 });
+    return Response.json({ status: "created", userId, link } satisfies AddPersonResult, { status: 201 });
   } catch {
-    // Roll back the half-created person so the admin can simply try again.
+    // Roll back the half-created person so the owner can simply try again.
     await admin.auth.admin.deleteUser(userId);
     return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
   }
 }
 
-/** The email already has an account: add that person to the organization (and team) without a link. */
-async function addExistingAccount(
-  admin: ReturnType<typeof createAdminClient>,
-  { orgId, email, teamId, role }: { orgId: string; email: string; teamId?: string; role: "owner" | "member" | "guest" },
-) {
-  const { data: userId } = await admin.rpc("find_user_id_by_email", { p_email: email });
-  if (!userId) return apiError(500, "create_failed", "Die Person konnte nicht angelegt werden.");
+function invalidTeam() {
+  return apiError(400, "validation_failed", "Bitte prüf deine Eingaben.", { teamIds: "Eines der Teams gibt es hier nicht." });
+}
 
-  const { error } = await admin.from("organization_members").insert({ organization_id: orgId, user_id: userId, role });
-  if (error?.code === "23505") {
+/**
+ * The email already has an account: create an invitation as the signed-in owner. The database
+ * checks ownership, membership, duplicates and teams (invite_to_organization).
+ */
+async function inviteExistingAccount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  { orgId, email, teamIds, role }: { orgId: string; email: string; teamIds: string[]; role: OrgRole },
+) {
+  const { data, error } = await supabase.rpc("invite_to_organization", {
+    p_org_id: orgId,
+    p_email: email,
+    p_role: role,
+    p_team_ids: teamIds,
+  });
+  if (error?.code === "42501") return apiError(403, "forbidden", "Nur Owner der Organisation können Personen hinzufügen.");
+  if (error || !data || data === "not_found") {
+    return apiError(500, "invite_failed", "Die Einladung konnte nicht erstellt werden.");
+  }
+  if (data === "already_member") {
     return apiError(409, "already_member", "Diese Person ist schon in der Organisation.", {
       email: "Diese Person ist schon in der Organisation.",
     });
   }
-  if (error) return apiError(500, "create_failed", "Die Person konnte nicht hinzugefügt werden.");
-  if (teamId) {
-    await admin.from("team_members").upsert({ team_id: teamId, user_id: userId, role: "member" }, { ignoreDuplicates: true });
+  if (data === "already_invited") {
+    return apiError(409, "already_invited", "Diese Person ist schon eingeladen.", {
+      email: "Diese Person ist schon eingeladen. Sie sieht die Einladung nach dem Anmelden.",
+    });
   }
-  return Response.json({ userId, link: null }, { status: 201 });
+  if (data === "invalid_team") return invalidTeam();
+
+  return Response.json({ status: "invited" } satisfies AddPersonResult, { status: 201 });
 }

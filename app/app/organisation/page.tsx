@@ -1,4 +1,4 @@
-import { Hourglass } from "lucide-react";
+import { Hourglass, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -7,8 +7,10 @@ import { AddPersonForm } from "@/components/organizations/add-person-form";
 import { OrganizationDangerZone } from "@/components/organizations/organization-danger-zone";
 import { OrgRoleBadge } from "@/components/organizations/org-role-badge";
 import { PersonActions } from "@/components/organizations/person-actions";
+import { WithdrawInvitationButton } from "@/components/organizations/withdraw-invitation-button";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/db/server";
+import { formatDateTime } from "@/lib/format";
 import { getCurrentOrganization } from "@/lib/organizations/current";
 
 export const metadata: Metadata = { title: "Organisation – CoFuture" };
@@ -20,9 +22,10 @@ async function OrganizationDetail() {
   const isOwner = org.role === "owner";
 
   const supabase = await createClient();
-  const [{ data: people }, { data: teams }] = await Promise.all([
+  const [{ data: people }, { data: teams }, { data: invitations }] = await Promise.all([
     supabase.rpc("organization_people", { p_org_id: org.id }),
     supabase.from("teams").select("id, name").eq("organization_id", org.id).order("name"),
+    isOwner ? supabase.rpc("organization_invitations_list", { p_org_id: org.id }) : Promise.resolve({ data: [] }),
   ]);
 
   return (
@@ -68,6 +71,39 @@ async function OrganizationDetail() {
               );
             })}
           </ul>
+
+          {isOwner && invitations && invitations.length > 0 ? (
+            <section aria-labelledby="invitations-heading" className="mt-10">
+              <h2 id="invitations-heading" className="mb-1 text-h2">
+                Offene Einladungen ({invitations.length})
+              </h2>
+              <p className="mb-4 text-body-sm text-ink-muted">
+                Diese Personen haben schon ein Konto. Sie treten erst bei, wenn sie die Einladung annehmen.
+              </p>
+              <ul className="divide-y divide-line rounded-lg border border-line bg-card">
+                {invitations.map((inv) => (
+                  <li key={inv.id} className="flex flex-col gap-3 p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-body font-semibold">{inv.display_name}</span>
+                      <OrgRoleBadge role={inv.role} />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-body-sm text-ink-muted">
+                        <Mail size={16} strokeWidth={1.75} aria-hidden />
+                        Eingeladen am {formatDateTime(inv.created_at)}
+                      </span>
+                    </div>
+                    <span className="font-mono text-body-sm text-ink-muted">{inv.email}</span>
+                    {inv.team_names.length > 0 ? (
+                      <span className="text-body-sm">
+                        <span className="text-ink-muted">Teams: </span>
+                        {inv.team_names.join(", ")}
+                      </span>
+                    ) : null}
+                    <WithdrawInvitationButton organizationId={org.id} invitationId={inv.id} name={inv.display_name} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </section>
 
         <aside className="flex flex-col gap-10">
@@ -77,7 +113,8 @@ async function OrganizationDetail() {
                 Person hinzufügen
               </h2>
               <p className="mb-4 text-body-sm text-ink-muted">
-                Neue Konten werden sofort angelegt, du bekommst einen Zugangslink. Hat die Person schon ein Konto, tritt sie direkt bei.
+                Gibt es noch kein Konto, wird es sofort angelegt und du bekommst einen Zugangslink. Hat die Person schon ein
+                Konto, bekommt sie eine Einladung und tritt erst bei, wenn sie annimmt.
               </p>
               <AddPersonForm organizationId={org.id} teams={teams ?? []} />
             </section>

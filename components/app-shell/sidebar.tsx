@@ -1,4 +1,4 @@
-import { LayoutDashboard, Plus, Sparkles, Users } from "lucide-react";
+import { LayoutDashboard, Mail, Plus, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { NavLink } from "@/components/app-shell/nav-link";
 import { OrgSwitcher } from "@/components/app-shell/org-switcher";
@@ -8,6 +8,7 @@ import { phaseLabel, plannedFeatures } from "@/components/teams/planned-features
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getMyTeams, teamDotClass } from "@/lib/teams/my-teams";
 import { getCurrentOrganization, getMyOrganizations } from "@/lib/organizations/current";
+import { getMyInvitations } from "@/lib/organizations/invitations";
 
 function SectionLabel({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
@@ -21,7 +22,11 @@ function SectionLabel({ children, action }: { children: React.ReactNode; action?
 /** Main navigation: organization menu, personal overview, teams, organization and planned features. */
 export async function Sidebar() {
   const user = await getCurrentUser();
-  const [organizations, current] = await Promise.all([getMyOrganizations(user.id), getCurrentOrganization(user.id)]);
+  const [organizations, current, invitations] = await Promise.all([
+    getMyOrganizations(user.id),
+    getCurrentOrganization(user.id),
+    getMyInvitations(),
+  ]);
   const teams = await getMyTeams(user.id, current?.id ?? null);
 
   return (
@@ -32,6 +37,21 @@ export async function Sidebar() {
         <NavLink href="/app" icon={<LayoutDashboard size={20} strokeWidth={1.75} aria-hidden />} exact>
           Übersicht
         </NavLink>
+        {invitations.length > 0 ? (
+          <NavLink
+            href="/app#einladungen"
+            icon={<Mail size={20} strokeWidth={1.75} aria-hidden />}
+            exact
+            trailing={
+              <span className="rounded-full bg-primary-soft px-2 text-caption text-ink">
+                {invitations.length}
+                <span className="sr-only"> offen</span>
+              </span>
+            }
+          >
+            Einladungen
+          </NavLink>
+        ) : null}
 
         <SectionLabel
           action={

@@ -20,7 +20,7 @@ Wunsch aus dem Team: Eine Organisation anlegen, darin Personen und Teams verwalt
 
 | Rolle | Darf |
 | --- | --- |
-| Owner | Personen anlegen, entfernen und Rollen vergeben, Zugangslinks erzeugen, Passwörter selbst angelegter Konten zurücksetzen und diese Konten löschen, Organisation übergeben und löschen (wenn sonst niemand drin ist) |
+| Owner | Personen anlegen oder einladen, Einladungen zurückziehen, Personen entfernen und Rollen vergeben, Zugangslinks für Konten der Organisation erzeugen, Passwörter selbst angelegter Konten zurücksetzen und diese Konten löschen, Organisation übergeben und löschen (wenn sonst niemand drin ist) |
 | Mitglied | in Teams arbeiten, Teams und Runden anlegen |
 | Gast | sieht nur die Teams, in die er eingeladen ist, und nur die Personen daraus; antwortet auf Runden, startet keine, legt keine Teams an |
 | Team-Leitung | Mitglieder aus der Organisation hinzufügen, Team übergeben und löschen (wenn sonst niemand drin ist) |
@@ -36,6 +36,18 @@ Owner sehen **keine** zusätzlichen Auswertungen. Gleiche Sicht für alle gilt w
 3. **Link weitergeben.** Solange es keinen Mailversand gibt (ADR 008), kopiert der Owner den Link und schickt ihn selbst, z. B. per Chat. Mit Resend geht das später automatisch per E-Mail.
 4. **Erster Login.** Der Link öffnet „Passwort festlegen“. Die Person wählt ihr Passwort und ist angemeldet. Der Link ist danach verbraucht.
 5. **Teams.** Owner und Mitglieder legen Teams an und ordnet Personen zu. Team-Leitungen können Personen aus der eigenen Organisation hinzufügen, ohne E-Mail-Adresse zu tippen (Auswahl aus Liste).
+
+### Bestehende Konten: Einladung mit Bestätigung (entschieden 17.11.2026)
+
+Bis dahin trat eine Person mit bestehendem Konto sofort bei, wenn ein Owner ihre E-Mail-Adresse eingab. Sie wurde nicht gefragt, und ein Owner konnte danach einen Zugangslink für sie erzeugen und damit ihr Passwort neu setzen. Jetzt gilt:
+
+- **Kein Konto vorhanden:** wie bisher. Das Konto wird angelegt und von der Organisation verwaltet, dazu gibt es einen Zugangslink.
+- **Konto vorhanden:** Es entsteht nur eine Einladung (`organization_invitations`) mit Rolle und Teams. Die Person sieht sie nach dem Login in der Übersicht und in der Seitenleiste und nimmt an oder lehnt ab. Erst beim Annehmen wird sie Mitglied und kommt in die Teams, die es dann noch gibt. Owner sehen offene Einladungen auf der Organisationsseite und können sie zurückziehen.
+- **Keine Überschneidungen:** höchstens eine offene Einladung je Person und Organisation, keine Einladung an Mitglieder. Wird jemand auf anderem Weg Mitglied, verschwindet die Einladung (Trigger). Einladungen setzen nie ein Passwort.
+- **Zugangslinks nur für Konten der Organisation:** Owner erzeugen Links nur für Konten, die ihre Organisation angelegt hat und die in keiner anderen Organisation sind. Wer sich selbst registriert hat oder per Einladung beigetreten ist, meldet sich mit dem eigenen Passwort an. So kann kein Owner ein fremdes Konto übernehmen.
+- **Teams:** Ins Team einer Organisation kommt nur, wer Mitglied der Organisation ist. Ein Trigger auf `team_members` prüft das auf allen Wegen. Personen aus der Organisation fügt die Team-Leitung weiter direkt hinzu.
+
+Begriffe in der Oberfläche: **Zugangslink** (Passwort festlegen, neues Konto) und **Einladung** (bestehendes Konto, annehmen oder ablehnen).
 
 ### Einladungslink statt Initialpasswort (entschieden)
 
@@ -53,7 +65,8 @@ Der Link ist auch der Weg zurück, wenn jemand sein Passwort vergessen hat: Ein 
 
 - `organizations (id, name, created_at)`
 - `organization_members (organization_id, user_id, role: 'admin' | 'member', joined_at)`
-- `invites (id, organization_id, user_id, token_hash, expires_at, used_at, created_by)`
+- `invites (id, organization_id, user_id, token_hash, expires_at, used_at, created_by)` (Zugangslinks)
+- `organization_invitations (id, organization_id, user_id, role, team_ids, invited_by, created_at)` (Einladungen an bestehende Konten, Nachtrag 17.11.2026)
 - `teams.organization_id` (neu, Pflicht)
 
 RLS: Personen sehen nur ihre eigene Organisation. `invites` ist für Clients gar nicht lesbar, nur über Route Handler mit Secret Key.
@@ -65,6 +78,8 @@ RLS: Personen sehen nur ihre eigene Organisation. `invites` ist für Clients gar
 - `POST /api/organizations/[orgId]/members/[userId]/link` neuen Link erzeugen
 - `DELETE /api/organizations/[orgId]/members/[userId]` Person entfernen
 - `POST /api/invites/accept` Passwort setzen, Link verbrauchen
+- `POST /api/invitations/[id]/accept`, `DELETE /api/invitations/[id]` Einladung annehmen oder ablehnen
+- `DELETE /api/organizations/[orgId]/invitations/[id]` Einladung zurückziehen (Owner)
 - Seiten: `/registrieren` (heißt jetzt „Organisation anlegen“), `/zugang/[token]`, `/app/organisation`
 
 ## Folgen

@@ -10,8 +10,9 @@ const bodySchema = z.object({ resetPassword: z.boolean().optional() }).optional(
 
 /**
  * POST /api/organizations/{orgId}/members/{userId}/link { resetPassword? } → 201 { link }.
- * Only owners. Issues a new one-time access link and invalidates older ones.
- * With resetPassword (only for accounts the organization manages) the current password stops
+ * Only owners, only for accounts the organization manages (created by it, in no other organization).
+ * Issues a new one-time access link and invalidates older ones.
+ * With resetPassword the current password stops
  * working, so the person has to set a new one through the link.
  */
 export async function POST(request: Request, ctx: RouteContext<"/api/organizations/[orgId]/members/[userId]/link">) {
@@ -41,11 +42,18 @@ export async function POST(request: Request, ctx: RouteContext<"/api/organizatio
     .maybeSingle();
   if (!member) return apiError(404, "not_found", "Die Person gibt es hier nicht.");
 
+  // A link sets the password of the account. Only for accounts this organization created and that
+  // belong to no other organization. Everyone else (self-registered, joined by invitation) signs in
+  // with their own password, so no owner can take over their account.
+  if (!(await isManagedAccount(admin, orgId, userId))) {
+    return apiError(
+      403,
+      "not_managed",
+      "Zugangslinks gibt es nur für Konten, die deine Organisation angelegt hat. Diese Person meldet sich mit dem eigenen Passwort an.",
+    );
+  }
   if (resetPassword) {
     if (userId === auth.userId) return apiError(409, "self", "Dein eigenes Passwort änderst du nicht hier.");
-    if (!(await isManagedAccount(admin, orgId, userId))) {
-      return apiError(403, "not_managed", "Das Passwort kannst du nur bei Konten zurücksetzen, die deine Organisation angelegt hat.");
-    }
     const { error } = await admin.auth.admin.updateUserById(userId, { password: randomBytes(32).toString("base64url") });
     if (error) return apiError(500, "reset_failed", "Das Passwort konnte nicht zurückgesetzt werden.");
   }
