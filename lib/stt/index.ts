@@ -17,8 +17,11 @@ export class SttError extends Error {
 type Provider = {
   name: Transcript["provider"];
   model: string;
-  run: (audio: Blob, mime: string, hint?: string) => Promise<string>;
+  run: (audio: Blob, mime: string, hint?: string, signal?: AbortSignal) => Promise<string>;
 };
+
+/** Per provider; 10 minutes of audio take Groq a few seconds. After this the fallback takes over. */
+const STT_TIMEOUT_MS = 90_000;
 
 /** Whisper reads at most 224 prompt tokens; a few hundred characters of question text are plenty. */
 const MAX_HINT_CHARS = 600;
@@ -42,7 +45,7 @@ function groq(apiKey: string): Provider {
   return {
     name: "groq",
     model: GROQ_MODEL,
-    async run(audio, mime, hint) {
+    async run(audio, mime, hint, signal) {
       const ext = mime.split("/")[1]?.split(";")[0] ?? "webm";
       const form = new FormData();
       form.append("file", audio, `answer.${ext}`);
@@ -52,6 +55,7 @@ function groq(apiKey: string): Provider {
       if (hint) form.append("prompt", hint);
       const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
         method: "POST",
+        signal,
         headers: { authorization: `Bearer ${apiKey}` },
         body: form,
       });
@@ -65,10 +69,11 @@ function gemini(apiKey: string): Provider {
   return {
     name: "gemini",
     model: GEMINI_MODEL,
-    async run(audio, mime, hint) {
+    async run(audio, mime, hint, signal) {
       const data = Buffer.from(await audio.arrayBuffer()).toString("base64");
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
         method: "POST",
+        signal,
         headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify({
           contents: [
@@ -114,7 +119,7 @@ export async function transcribe(
   for (const provider of providers) {
     const start = performance.now();
     try {
-      const text = (await provider.run(audio, mime, hint)).trim();
+      const text = (await provider.run(audio, mime, hint, AbortSignal.timeout(STT_TIMEOUT_MS))).trim();
       return { text, provider: provider.name, model: provider.model, ms: Math.round(performance.now() - start) };
     } catch (error) {
       lastError = error;

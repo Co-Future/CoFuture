@@ -76,6 +76,7 @@ export async function buildPerspectiveMap(input: MapInput): Promise<MapResult> {
     user: buildUserPrompt(input),
     jsonSchema: modelMapJsonSchema,
     schema: modelMapSchema,
+    timeoutMs: 45_000,
   });
   const ids = input.responses.map((r) => r.id);
   const { map, coveredByModel } = finalizeMap(result.data, ids);
