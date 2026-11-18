@@ -39,7 +39,7 @@ export function CloseRoundButton({ roundId }: { roundId: string }) {
       ) : (
         <div>
           <Button variant="secondary" onClick={() => setConfirming(true)}>
-            Runde jetzt schließen
+            Austausch jetzt schließen
           </Button>
         </div>
       )}

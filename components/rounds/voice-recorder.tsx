@@ -41,21 +41,27 @@ function micError(error: unknown): string {
   return "Die Aufnahme konnte nicht starten. Antworte bitte als Text.";
 }
 
-/** Finished job result: the transcript, plus AsyncMeet's suggestion for a dictated question. */
-export type VoiceResult = { text: string; draft?: unknown };
+/** Finished job result: the transcript, plus the structure AsyncMeet made of it (questions or answers). */
+export type VoiceResult = { text: string; structured?: unknown };
 
 type Props = {
   /** Endpoint that queues the transcription, e.g. /api/rounds/{id}/voice or /api/teams/{id}/voice. */
   endpoint: string;
   label: string;
   onTranscript: (result: VoiceResult) => void;
+  /** Extra fields for the job request, read when the recording is sent (e.g. the current questions). */
+  extraBody?: () => Record<string, unknown>;
+  /** Text of the start button. */
+  startLabel?: string;
+  /** Smaller variant without border, e.g. inside a question card. */
+  compact?: boolean;
 };
 
 /**
  * Records a voice answer (max. 10 min), uploads it straight to the private bucket and waits for the
  * transcript. The transcript goes to the parent, which appends and saves it right away.
  */
-export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
+export function VoiceRecorder({ endpoint, label, onTranscript, extraBody, startLabel = "Aufnahme starten", compact = false }: Props) {
   const [phase, setPhase] = useState<Phase>({ name: "idle" });
   const [elapsed, setElapsed] = useState(0);
   const [level, setLevel] = useState(0);
@@ -82,8 +88,8 @@ export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
       if (!data || finished) return;
       if (data.status === "done") {
         finished = true;
-        const result = (data.result ?? {}) as { text?: string; draft?: unknown };
-        onTranscript({ text: String(result.text ?? ""), draft: result.draft });
+        const result = (data.result ?? {}) as { text?: string; structured?: unknown };
+        onTranscript({ text: String(result.text ?? ""), structured: result.structured });
         setPhase({ name: "idle" });
       } else if (data.status === "failed") {
         finished = true;
@@ -187,7 +193,7 @@ export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
     }
     const result = await apiFetch<{ jobId: string }>(endpoint, {
       method: "POST",
-      body: { path, mime: type, durationMs },
+      body: { ...(extraBody?.() ?? {}), path, mime: type, durationMs },
     });
     if (!result.ok) {
       setPhase({ name: "failed", message: result.error.message, canRetry: false });
@@ -213,16 +219,18 @@ export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-line bg-card p-4">
-      <p className="text-label text-ink">
-        {label} (max. {MAX_RECORDING_MS / 60_000} Min.)
-      </p>
+    <div className={compact ? "flex flex-col gap-3" : "flex flex-col gap-3 rounded-lg border border-line bg-card p-4"}>
+      {label ? (
+        <p className="text-label text-ink">
+          {label} (max. {MAX_RECORDING_MS / 60_000} Min.)
+        </p>
+      ) : null}
 
       {phase.name === "idle" ? (
         <div>
           <Button type="button" variant="secondary" onClick={start}>
             <Mic {...ICON} />
-            Aufnahme starten
+            {startLabel}
           </Button>
         </div>
       ) : null}
@@ -250,7 +258,7 @@ export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
           </audio>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={submit}>
-              Transkript erstellen
+              Aufnahme auswerten
             </Button>
             <Button type="button" variant="secondary" onClick={() => setPhase({ name: "idle" })}>
               <RotateCcw {...ICON} />
@@ -262,7 +270,7 @@ export function VoiceRecorder({ endpoint, label, onTranscript }: Props) {
       ) : null}
 
       <p role="status" className="text-body-sm text-ink">
-        {phase.name === "working" ? (phase.step === "upload" ? "Aufnahme wird hochgeladen …" : "Aufnahme wird transkribiert …") : null}
+        {phase.name === "working" ? (phase.step === "upload" ? "Aufnahme wird hochgeladen …" : "AsyncMeet transkribiert und ordnet die Aufnahme …") : null}
       </p>
 
       {phase.name === "failed" ? (

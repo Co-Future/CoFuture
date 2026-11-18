@@ -16,7 +16,7 @@ import { getMyTeams, teamDotClass } from "@/lib/teams/my-teams";
 
 export const metadata: Metadata = { title: "Übersicht – CoFuture" };
 
-type Round = { id: string; team_id: string; question: string; deadline: string; status: "open" | "closed" | "decided"; closed_at: string | null };
+type Round = { id: string; team_id: string; question: string; deadline: string | null; status: "open" | "closed" | "decided"; closed_at: string | null };
 
 async function PersonalDashboard() {
   const user = await getCurrentUser();
@@ -60,13 +60,13 @@ async function PersonalDashboard() {
   const running = open.filter((r) => answered.has(r.id));
   const finished = rounds
     .filter((r) => r.status !== "open")
-    .sort((a, b) => (b.closed_at ?? b.deadline).localeCompare(a.closed_at ?? a.deadline));
+    .sort((a, b) => (b.closed_at ?? b.deadline ?? "").localeCompare(a.closed_at ?? a.deadline ?? ""));
   const waitingByTeam = new Map<string, number>();
   for (const r of waiting) waitingByTeam.set(r.team_id, (waitingByTeam.get(r.team_id) ?? 0) + 1);
 
   const stats = [
     { label: "Wartet auf dich", value: waiting.length, Icon: Inbox },
-    { label: "Laufende Runden", value: open.length, Icon: Clock },
+    { label: "Laufender Austausch", value: open.length, Icon: Clock },
     { label: "Abgeschlossen", value: finished.length, Icon: CircleCheck },
     { label: "Deine Teams", value: teams.length, Icon: Users },
   ];
@@ -150,8 +150,8 @@ async function PersonalDashboard() {
                         <span className="text-h3">{round.question}</span>
                         <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
                           <TeamTag teamId={round.team_id} />
-                          <span>Frist: {formatDateTime(round.deadline)}</span>
-                          <Countdown deadline={round.deadline} />
+                          <span>{round.deadline ? `Frist: ${formatDateTime(round.deadline)}` : "Ohne Frist"}</span>
+                          {round.deadline ? <Countdown deadline={round.deadline} /> : null}
                         </span>
                       </span>
                       <span className="inline-flex items-center gap-2 self-start text-label text-primary sm:self-center">
@@ -246,7 +246,7 @@ async function PersonalDashboard() {
                         <RoleBadge role={team.role} />
                       </span>
                       <span className="text-body-sm text-ink-muted">
-                        {team.openRounds === 1 ? "1 offene Runde" : `${team.openRounds} offene Runden`}
+                        {team.openRounds === 1 ? "1 offener Austausch" : `${team.openRounds} offene Austausche`}
                         {waitingHere > 0 ? `, ${waitingHere} wartet auf dich` : ""}
                       </span>
                     </Link>
@@ -278,7 +278,7 @@ function RoundList({ rounds, TeamTag }: { rounds: Round[]; TeamTag: (p: { teamId
             <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
               <StatusBadge status={round.status} />
               <TeamTag teamId={round.team_id} />
-              <span>Frist: {formatDateTime(round.deadline)}</span>
+              <span>{round.deadline ? `Frist: ${formatDateTime(round.deadline)}` : "Ohne Frist"}</span>
             </span>
           </Link>
         </li>

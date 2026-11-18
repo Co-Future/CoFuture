@@ -95,7 +95,7 @@ export function TeamDangerZone({ teamId, others }: Props) {
           <ConfirmButton
             label="Team löschen"
             confirmLabel="Endgültig löschen"
-            warning="Alle Runden und Antworten des Teams werden gelöscht. Das lässt sich nicht rückgängig machen."
+            warning="Alle Austausche und Antworten des Teams werden gelöscht. Das lässt sich nicht rückgängig machen."
             onConfirm={remove}
           />
         )}

@@ -91,7 +91,7 @@ export function AnalysisStatus({ roundId, job }: Props) {
   }
 
   if (!job) {
-    return <p className="text-body text-ink-muted">Für diese Runde gibt es keine Perspektivenkarte.</p>;
+    return <p className="text-body text-ink-muted">Für diesen Austausch gibt es keine Perspektivenkarte.</p>;
   }
 
   if (job.status === "failed") {
