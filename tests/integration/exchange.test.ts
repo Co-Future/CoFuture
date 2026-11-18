@@ -71,6 +71,10 @@ describe("exchange", () => {
     expect((await start(lead, [{ body: "An Fremde?", targets: [outsider.userId] }])).error?.hint).toBe("invalid_target");
   });
 
+  it("the starter answers only questions they chose", async () => {
+    expect((await save(lead, [{ question_id: qAll, body: "Ich auch." }])).error?.hint).toBe("invalid_question");
+  });
+
   it("only the addressed person answers a targeted question", async () => {
     expect((await save(lars, [{ question_id: qTom, body: "Ich nicht." }])).error?.hint).toBe("invalid_question");
     expect((await save(tom, [{ question_id: qAll, body: "Ja." }, { question_id: qTom, body: "Mach ich." }])).data).toBe("A01");

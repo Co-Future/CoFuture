@@ -2,6 +2,7 @@ import { z } from "zod";
 
 /** What the model must return (validated with Zod, sent as JSON Schema). */
 export const modelMapSchema = z.object({
+  overview: z.object({ text: z.string(), source_ids: z.array(z.string()) }),
   clusters: z.array(
     z.object({
       title: z.string().min(1),
@@ -17,8 +18,14 @@ export type ModelMap = z.infer<typeof modelMapSchema>;
 export const modelMapJsonSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["clusters", "open_questions"],
+  required: ["overview", "clusters", "open_questions"],
   properties: {
+    overview: {
+      type: "object",
+      additionalProperties: false,
+      required: ["text", "source_ids"],
+      properties: { text: { type: "string" }, source_ids: { type: "array", items: { type: "string" } } },
+    },
     clusters: {
       type: "array",
       items: {
@@ -50,4 +57,6 @@ export type ClusterKind = ModelMap["clusters"][number]["kind"] | "unassigned";
 export type PerspectiveMapData = {
   clusters: { title: string; kind: ClusterKind; summary: string; source_ids: string[] }[];
   open_questions: { question: string; source_ids: string[] }[];
+  /** Cross-section of all answers ("Stimmungsbild"); null when the model gave none with a valid source. */
+  overview: { text: string; source_ids: string[] } | null;
 };

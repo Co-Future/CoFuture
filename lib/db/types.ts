@@ -585,6 +585,7 @@ export type Database = {
       }
       round_questions: {
         Row: {
+          asks_starter: boolean
           body: string
           created_at: string
           id: string
@@ -592,6 +593,7 @@ export type Database = {
           round_id: string
         }
         Insert: {
+          asks_starter?: boolean
           body: string
           created_at?: string
           id?: string
@@ -599,6 +601,7 @@ export type Database = {
           round_id: string
         }
         Update: {
+          asks_starter?: boolean
           body?: string
           created_at?: string
           id?: string
@@ -761,6 +764,7 @@ export type Database = {
     Views: {
       round_answers: {
         Row: {
+          author_name: string | null
           body: string | null
           id: string | null
           is_own: boolean | null
@@ -774,6 +778,7 @@ export type Database = {
       }
       round_clarifications_public: {
         Row: {
+          author_name: string | null
           answer: string | null
           answered_at: string | null
           body: string | null

@@ -43,7 +43,14 @@ const questionBody = z
 /** Start an exchange with several questions. No targets: the question goes to everyone in the team. */
 export const createExchangeSchema = z.object({
   questions: z
-    .array(z.object({ body: questionBody, targets: z.array(z.uuid()).max(200).default([]) }))
+    .array(
+      z.object({
+        body: questionBody,
+        targets: z.array(z.uuid()).max(200).default([]),
+        /** The person who starts the exchange answers this question too. */
+        asksStarter: z.boolean().default(false),
+      }),
+    )
     .min(1, "Füg mindestens eine Frage hinzu.")
     .max(50, "Ein Austausch hat höchstens 50 Fragen."),
   context: z

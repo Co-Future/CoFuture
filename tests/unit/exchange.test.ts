@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { finalizeAnswers, finalizeQuestions } from "@/lib/ai/exchange";
+import { finalizeAnswers, finalizeQuestions, nameKey } from "@/lib/ai/exchange";
 import { applySpokenAnswers, appendToAnswer } from "@/lib/rounds/answers-draft";
 import { applyDictatedQuestions, questionCountFor } from "@/lib/rounds/exchange-draft";
 import { createExchangeSchema, saveAnswersSchema } from "@/lib/validation/round";
-import { buildUserPrompt as answersPrompt } from "@/prompts/v1/answers-map";
-import { buildUserPrompt as questionsPrompt } from "@/prompts/v1/questions-extract";
+import { buildUserPrompt as answersPrompt } from "@/prompts/v2/answers-map";
+import { buildUserPrompt as questionsPrompt } from "@/prompts/v2/questions-extract";
 
 const TOM = "00000000-0000-4000-8000-000000000001";
 const LARS = "00000000-0000-4000-8000-000000000002";
@@ -55,6 +55,21 @@ describe("finalizeQuestions", () => {
       people,
     );
     expect(result[0]).toMatchObject({ change: "modified", targets: [LARS] });
+  });
+});
+
+describe("names", () => {
+  it("matches spoken names to people, also several at once", () => {
+    expect(nameKey("Test eins")).toBe(nameKey("test 1"));
+    const result = finalizeQuestions(
+      { questions: [{ body: "Könnt ihr das prüfen?", based_on: "", change: "added", targets: ["Test eins", "P2", "Test 3"] }] },
+      [],
+      [
+        { userId: TOM, name: "Test 1" },
+        { userId: LARS, name: "Test 2" },
+      ],
+    );
+    expect(result[0].targets).toEqual([TOM, LARS]);
   });
 });
 
@@ -148,6 +163,12 @@ describe("questionCountFor", () => {
   it("counts questions for everyone and targeted ones", () => {
     const qs = [{ targets: [] }, { targets: [TOM] }, { targets: [LARS] }];
     expect(questionCountFor(qs, TOM)).toBe(2);
+  });
+
+  it("the starter gets only the questions they chose to answer", () => {
+    const qs = [{ targets: [] }, { targets: [], asksStarter: true }, { targets: [TOM] }];
+    expect(questionCountFor(qs, LARS, LARS)).toBe(1);
+    expect(questionCountFor(qs, TOM, LARS)).toBe(3);
   });
 });
 

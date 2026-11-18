@@ -4,6 +4,7 @@ import { generateStructured, LlmError, resetProviderCooldown } from "@/lib/ai/ll
 import { modelMapSchema, type ModelMap } from "@/lib/ai/schema";
 import { buildUserPrompt } from "@/prompts/v1/perspective-map";
 
+const none = { text: "", source_ids: [] as string[] };
 const cluster = (
   kind: ModelMap["clusters"][number]["kind"],
   source_ids: string[],
@@ -13,6 +14,7 @@ describe("finalizeMap", () => {
   it("drops unknown and duplicate ids and discards statements without a source", () => {
     const { map } = finalizeMap(
       {
+        overview: none,
         clusters: [
           cluster("consensus", ["A01", "a01 ", "A99"]),
           cluster("dissent", ["X"]),
@@ -33,7 +35,7 @@ describe("finalizeMap", () => {
 
   it("puts answers the model left out into an unassigned cluster, so coverage is always 100 %", () => {
     const { map, coveredByModel } = finalizeMap(
-      { clusters: [cluster("consensus", ["A01"])], open_questions: [] },
+      { overview: none, clusters: [cluster("consensus", ["A01"])], open_questions: [] },
       ["A01", "A02", "A03"],
     );
     expect(coveredByModel).toBe(1);
@@ -47,6 +49,7 @@ describe("finalizeMap", () => {
   it("keeps single voices as their own cluster", () => {
     const { map } = finalizeMap(
       {
+        overview: none,
         clusters: [
           cluster("consensus", ["A01", "A02"]),
           cluster("single_voice", ["A03"]),
@@ -74,10 +77,19 @@ describe("idResolver", () => {
   });
 });
 
+describe("finalizeMap overview", () => {
+  it("keeps the cross-section only with valid sources", () => {
+    const withSource = finalizeMap({ overview: { text: "Fast alle sind dafür.", source_ids: ["a1", "A9"] }, clusters: [], open_questions: [] }, ["A01"]);
+    expect(withSource.map.overview).toEqual({ text: "Fast alle sind dafür.", source_ids: ["A01"] });
+    const without = finalizeMap({ overview: { text: "Erfunden.", source_ids: ["A9"] }, clusters: [], open_questions: [] }, ["A01"]);
+    expect(without.map.overview).toBeNull();
+  });
+});
+
 describe("finalizeMap kinds", () => {
   it("keeps shortened ids as sources instead of dropping the whole map", () => {
     const { map, coveredByModel } = finalizeMap(
-      { clusters: [cluster("consensus", ["A1", "A2"])], open_questions: [] },
+      { overview: none, clusters: [cluster("consensus", ["A1", "A2"])], open_questions: [] },
       ["A01", "A02"],
     );
     expect(coveredByModel).toBe(2);
@@ -86,7 +98,7 @@ describe("finalizeMap kinds", () => {
 
   it("turns a dissent backed by one answer into a single voice", () => {
     const { map } = finalizeMap(
-      { clusters: [cluster("consensus", ["A01"]), cluster("dissent", ["A02"])], open_questions: [] },
+      { overview: none, clusters: [cluster("consensus", ["A01"]), cluster("dissent", ["A02"])], open_questions: [] },
       ["A01", "A02"],
     );
     expect(map.clusters.map((c) => c.kind)).toEqual(["consensus", "single_voice"]);
@@ -112,7 +124,8 @@ describe("generateStructured", () => {
   beforeEach(() => resetProviderCooldown());
 
   const valid: ModelMap = {
-    clusters: [cluster("consensus", ["A01"])],
+    overview: none,
+        clusters: [cluster("consensus", ["A01"])],
     open_questions: [],
   };
   const request = {
@@ -141,7 +154,7 @@ describe("generateStructured", () => {
 
   it("falls back when the output does not match the schema", async () => {
     const result = await generateStructured(request, [
-      provider("gemini", async () => ({ clusters: "kaputt" })),
+      provider("gemini", async () => ({ overview: none, clusters: "kaputt" })),
       provider("groq", async () => valid),
     ]);
     expect(result.provider).toBe("groq");

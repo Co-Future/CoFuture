@@ -16,6 +16,7 @@ export type Clarification = {
   answeredAt: string | null;
   createdAt: string;
   isOwn: boolean;
+  authorName: string;
 };
 
 type Props = {
@@ -67,7 +68,7 @@ export function Clarifications({ roundId, items, questions, canAsk, canAnswer }:
               <p className="flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
                 <MessageCircleQuestion size={16} strokeWidth={1.75} aria-hidden />
                 {item.questionNumber ? `Zu Frage ${item.questionNumber}` : "Zum ganzen Austausch"}
-                {item.isOwn ? " · deine Rückfrage" : ""} · {formatDateTime(item.createdAt)}
+                {item.isOwn ? " · deine Rückfrage" : ` · von ${item.authorName}`} · {formatDateTime(item.createdAt)}
               </p>
               <p className="whitespace-pre-line text-body">{item.body}</p>
               {item.answer ? (

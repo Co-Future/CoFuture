@@ -5,7 +5,7 @@ type Status = "open" | "closed" | "decided";
 const config = {
   open: { label: "Offen", Icon: Clock, className: "bg-primary-soft text-ink" },
   closed: { label: "Geschlossen", Icon: Lock, className: "bg-sunken text-ink-muted" },
-  decided: { label: "Entschieden", Icon: CircleCheck, className: "bg-success-soft text-success-ink" },
+  decided: { label: "Abgeschlossen", Icon: CircleCheck, className: "bg-success-soft text-success-ink" },
 } as const;
 
 export function StatusBadge({ status }: { status: Status }) {

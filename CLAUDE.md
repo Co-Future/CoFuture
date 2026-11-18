@@ -19,7 +19,7 @@ Gelten für jedes Feature. Verstößt eine Umsetzung dagegen, darauf hinweisen.
 
 - **Gleiche Sicht für alle.** Keine Auswertungen nur für Führungskräfte oder Admins. Rollen ändern, was man tun darf, nie was man sieht. Ausnahme (ADR 012): Fragen nur für bestimmte Personen und Rückfragen sehen nur die Beteiligten und wer den Austausch gestartet hat.
 - **Inhalte bewerten, keine Personen.** Die KI prüft Fristen, Vollständigkeit, offene Aufgaben, nie die Leistung einzelner.
-- **Pseudonym als Standard.** Klarnamen nur nach Zustimmung.
+- **Pseudonym als Standard.** Klarnamen nur nach Zustimmung. Im Austausch zeigt die App den selbst gewählten Anzeigenamen statt A01 (ADR 012). An die KI gehen weiter nur Pseudonyme.
 - **Minderheiten sichtbar.** Einzelstimmen markieren, nicht herausmitteln.
 - **Belegbar.** Jede KI-Aussage hat mindestens eine Quell-ID, sonst wird sie verworfen.
 - **Mensch entscheidet.** Die KI bereitet vor, sie beschließt nichts.

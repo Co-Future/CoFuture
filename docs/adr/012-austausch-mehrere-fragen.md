@@ -69,6 +69,16 @@ Die Datenbank setzt das durch, nicht die Oberfläche:
 - Hier bekommt die Person, die den Austausch gestartet hat, die Antworten auf gezielte Fragen. Das sind Einzelgespräche im Austausch, keine Auswertung über das Team.
 - Es gibt weiterhin keine Anzeige, wer schon geantwortet hat. Personen werden nicht bewertet.
 
+### Überarbeitung (Entscheidung Constantin, 18.11.2026)
+
+- **Mehrere Personen je Frage:** „Die Frage geht an Test 1 und Test 2“ ergibt beide als Zielpersonen. Gesprochene Namen („Test eins“) werden auch ohne genaue Schreibweise zugeordnet (Prompt `v2/questions-extract`, `nameKey()`).
+- **Prüfschritt vor dem Start:** Alle Fragen werden noch einmal gezeigt. Die startende Person wählt dort, welche Fragen sie selbst beantwortet (`round_questions.asks_starter`). Fragen an alle gehen sonst an alle außer ihr.
+- **Antworten werden zusammengefasst:** Eine eingesprochene Antwort fasst AsyncMeet je Frage knapp zusammen, mit allen wichtigen Informationen und ohne Füllwörter (Prompt `v2/answers-map`). Die Person prüft und ändert die Zusammenfassung, bevor sie gespeichert wird. Die Antwort steht grün direkt unter der Frage.
+- **Zusammenfassung je Frage:** Nach dem Schließen gibt es zu jeder Frage einen Querschnitt aller Antworten in 2 bis 3 Sätzen. Dazu kommen die wichtigsten Punkte mit der Zahl der Personen und ihren Namen (Prompt `v2/perspective-map`, Feld `overviews`). Jede Aussage hat Quellen.
+- **Antworten je Person:** Unter jeder Person stehen ihre Antworten auf alle Fragen. Die startende Person sieht dort auch deren Rückfragen.
+- **Namen statt A01:** Antworten und Rückfragen zeigen den Anzeigenamen, den jede Person selbst festlegt. Das ist eine Ausnahme von „Pseudonym als Standard“. Pseudonyme bleiben interne Quell-IDs, und nur sie gehen an das Sprachmodell.
+- **Beschlüsse ausgeblendet:** Ein Austausch ist eher Frage und Rückkopplung als Abstimmung. Beschlüsse sind in der Oberfläche vorerst ausgeblendet. Tabellen, API und Lucas Code bleiben, damit sie später wieder eingebaut werden können.
+
 ## Folgen
 
 - Neue Endpunkte und Seiten siehe `docs/api.md`.
