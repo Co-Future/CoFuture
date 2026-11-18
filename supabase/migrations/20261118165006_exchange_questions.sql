@@ -192,7 +192,7 @@ create table public.response_answers (
 create index response_answers_question_idx on public.response_answers (question_id);
 
 -- ---------------------------------------------------------------------------
--- Follow-up questions to the person who started the exchange (or the team lead)
+-- Follow-up questions to the person who started the exchange
 -- ---------------------------------------------------------------------------
 create table public.round_clarifications (
   id uuid primary key default gen_random_uuid(),
