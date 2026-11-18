@@ -113,6 +113,8 @@ export async function extractQuestions(input: {
     }),
     jsonSchema: modelQuestionsJsonSchema,
     schema: modelQuestionsSchema,
+    // Someone waits in the form: give up on a slow provider early and use the fallback.
+    timeoutMs: 15_000,
   });
   return {
     questions: finalizeQuestions(result.data, input.existing, input.people),
@@ -188,6 +190,7 @@ export async function mapAnswers(input: {
     }),
     jsonSchema: modelAnswersJsonSchema,
     schema: modelAnswersSchema,
+    timeoutMs: 15_000,
   });
   return {
     ...finalizeAnswers(

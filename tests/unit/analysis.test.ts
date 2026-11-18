@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { finalizeMap, idResolver } from "@/lib/ai/perspective-map";
-import { generateStructured, LlmError } from "@/lib/ai/llm";
+import { generateStructured, LlmError, resetProviderCooldown } from "@/lib/ai/llm";
 import { modelMapSchema, type ModelMap } from "@/lib/ai/schema";
 import { buildUserPrompt } from "@/prompts/v1/perspective-map";
 
@@ -109,6 +109,8 @@ describe("buildUserPrompt", () => {
 });
 
 describe("generateStructured", () => {
+  beforeEach(() => resetProviderCooldown());
+
   const valid: ModelMap = {
     clusters: [cluster("consensus", ["A01"])],
     open_questions: [],
@@ -154,6 +156,30 @@ describe("generateStructured", () => {
         provider("groq", async () => valid),
       ]),
     ).rejects.toThrow("gemini 400");
+  });
+
+  it("gives up on a provider that does not answer in time", async () => {
+    const hanging = {
+      name: "gemini" as const,
+      model: "gemini-model",
+      run: (_req: unknown, signal?: AbortSignal) =>
+        new Promise((_, reject) => signal?.addEventListener("abort", () => reject(signal.reason))),
+    };
+    const result = await generateStructured({ ...request, timeoutMs: 20 }, [hanging, provider("groq", async () => valid)]);
+    expect(result.provider).toBe("groq");
+    expect(result.failures[0]).toContain("no answer within 20 ms");
+  });
+
+  it("pauses an overloaded provider for the next requests", async () => {
+    let calls = 0;
+    const busy = provider("gemini", async () => {
+      calls++;
+      throw new LlmError("gemini 503", true, true);
+    });
+    await generateStructured(request, [busy, provider("groq", async () => valid)]);
+    const second = await generateStructured(request, [busy, provider("groq", async () => valid)]);
+    expect(calls).toBe(1);
+    expect(second.failures[0]).toContain("übersprungen");
   });
 
   it("fails clearly without providers", async () => {

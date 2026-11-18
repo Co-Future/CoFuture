@@ -367,6 +367,7 @@ Werte für `.env.local` kommen aus den Dashboards von Supabase, Groq und Gemini,
 - Prompts nie überschreiben: neue Version unter `prompts/v2/` anlegen. Jede Analyse speichert ihre `prompt_version`.
 - Anbieter und Modelle nur in `lib/ai/llm.ts` bzw. `lib/stt/index.ts` ändern.
 - Ausgaben laufen durch `lib/ai/schema.ts` und `finalizeMap()`, Tests in `tests/unit/analysis.test.ts`. `finalizeMap()` erkennt verkürzte IDs (`A1` → `A01`) und macht aus einem Widerspruch mit nur einer Quelle eine Einzelstimme.
+- **Zeitlimits:** Jeder Anbieter bekommt ein Zeitlimit (Transkription 90 s, Fragen und Antworten zuordnen 15 s, Perspektivenkarte 45 s), danach übernimmt die Reserve. Ein Anbieter, der überlastet ist (429, 5xx) oder nicht antwortet, wird zwei Minuten übersprungen.
 - **Fehlersuche:** Jeder Analyse-Job speichert in `analysis_jobs.result` die Rohantwort des Modells (`raw`), wie viele Antworten das Modell selbst zugeordnet hat (`coveredByModel`) und welche Anbieter vorher ausgefallen sind (`failures`).
 - Die Transkription bekommt Frage und Kontext der Runde als Begriffshilfe, damit Fachbegriffe wie im Team geschrieben werden.
 - An Gratis-Tarife gehen nur ausgedachte Testdaten.
