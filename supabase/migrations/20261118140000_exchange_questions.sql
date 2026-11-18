@@ -2,11 +2,13 @@
 -- team members. People answer every question addressed to them, ask questions back, and the analysis
 -- runs per question. See ADR 012.
 --
--- Rules (design principles):
---   - Same view for all: everyone in the team sees all questions, targets, follow-up questions and,
---     after closing, all answers. Targets change who is asked, never who sees.
---   - Pseudonyms: answers stay pseudonymous (A01 …). Follow-up questions show no author to others.
---   - People decide: questions are written or confirmed by a person; AsyncMeet only suggests.
+-- Visibility (decision Constantin, 18.11.2026, deviates from "same view for all", see ADR 012):
+--   - A question for everyone is visible to the whole team.
+--   - A targeted question ("only for Tom") is visible only to its targets and the person who started
+--     the exchange: the question, its answers and its part of the perspective map.
+--   - An exchange whose questions are all targeted is visible only to those people.
+--   - Follow-up questions are visible only to their author and the person who started the exchange.
+-- Pseudonyms: answers stay pseudonymous (A01 …). People decide: AsyncMeet only suggests.
 
 -- ---------------------------------------------------------------------------
 -- Deadline is optional. Without one, the exchange stays open until it is closed by hand.
@@ -128,6 +130,54 @@ $$;
 revoke execute on function public.question_is_for_me(uuid) from public, anon;
 grant execute on function public.question_is_for_me(uuid) to authenticated;
 
+-- Who sees a question: the person who started the exchange, and everyone it is addressed to.
+create function public.can_see_question(p_question_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.round_questions q
+    join public.rounds r on r.id = q.round_id
+    where q.id = p_question_id
+      and public.is_team_member(r.team_id)
+      and (
+        r.created_by = (select auth.uid())
+        or not exists (select 1 from public.round_question_targets t where t.question_id = q.id)
+        or exists (select 1 from public.round_question_targets t where t.question_id = q.id and t.user_id = (select auth.uid()))
+      )
+  );
+$$;
+
+-- Who sees an exchange: team members who see at least one of its questions (or its starter).
+-- Older rounds without questions stay visible to the whole team.
+create function public.can_see_round(p_round_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.rounds r
+    where r.id = p_round_id
+      and public.is_team_member(r.team_id)
+      and (
+        r.created_by = (select auth.uid())
+        or not exists (select 1 from public.round_questions q where q.round_id = r.id)
+        or exists (select 1 from public.round_questions q where q.round_id = r.id and public.can_see_question(q.id))
+      )
+  );
+$$;
+
+-- Does the exchange have questions this person may not see?
+create function public.round_has_hidden_questions(p_round_id uuid)
+returns boolean
+language sql stable security definer set search_path = ''
+as $$
+  select exists (select 1 from public.round_questions q where q.round_id = p_round_id and not public.can_see_question(q.id));
+$$;
+revoke execute on function public.can_see_question(uuid), public.can_see_round(uuid), public.round_has_hidden_questions(uuid)
+  from public, anon;
+grant execute on function public.can_see_question(uuid), public.can_see_round(uuid), public.round_has_hidden_questions(uuid)
+  to authenticated;
+
 -- ---------------------------------------------------------------------------
 -- Answers per question. responses stays the person's envelope (pseudonym, full text).
 -- ---------------------------------------------------------------------------
@@ -173,8 +223,7 @@ join public.round_questions q on q.round_id = resp.round_id and q.position = 0;
 -- ---------------------------------------------------------------------------
 
 -- Starts an exchange with its questions in one step. Members of the team, no guests.
--- p_questions: [{ "body": text, "targets": [user id, …] }], 1 to 50 questions. The first question
--- also becomes rounds.question (title in lists).
+-- p_questions: [{ "body": text, "targets": [user id, …] }], 1 to 50 questions.
 create function public.create_exchange(
   p_team_id uuid,
   p_questions jsonb,
@@ -202,9 +251,17 @@ begin
     raise exception 'deadline must be in the future' using errcode = 'P0001', hint = 'invalid_deadline';
   end if;
 
+  -- Title in lists: the first question for everyone, so a targeted question never shows up there.
   insert into public.rounds (team_id, question, context, deadline, parent_round_id, created_by)
-  values (p_team_id, trim(p_questions -> 0 ->> 'body'), nullif(trim(coalesce(p_context, '')), ''), p_deadline,
-          p_parent_round_id, (select auth.uid()))
+  values (
+    p_team_id,
+    coalesce(
+      (select trim(e ->> 'body') from jsonb_array_elements(p_questions) e
+       where jsonb_array_length(coalesce(e -> 'targets', '[]'::jsonb)) = 0 limit 1),
+      trim(p_questions -> 0 ->> 'body')
+    ),
+    nullif(trim(coalesce(p_context, '')), ''), p_deadline, p_parent_round_id, (select auth.uid())
+  )
   returning id into new_id;
 
   for q in select * from jsonb_array_elements(p_questions) loop
@@ -293,7 +350,7 @@ $$;
 revoke execute on function public.save_answers(uuid, jsonb, public.response_source) from public, anon;
 grant execute on function public.save_answers(uuid, jsonb, public.response_source) to authenticated;
 
--- Answers a follow-up question: the person who started the exchange or the team lead.
+-- Answers a follow-up question: only the person who started the exchange.
 create function public.answer_clarification(p_id uuid, p_answer text)
 returns void
 language plpgsql security definer set search_path = ''
@@ -305,8 +362,8 @@ begin
   if not found or not public.is_team_member(r.team_id) then
     raise exception 'not found' using errcode = 'P0002';
   end if;
-  if not (r.created_by = (select auth.uid()) or public.is_team_lead(r.team_id)) then
-    raise exception 'only the starter or the team lead answers' using errcode = '42501';
+  if r.created_by is distinct from (select auth.uid()) then
+    raise exception 'only the starter answers' using errcode = '42501';
   end if;
   update public.round_clarifications
   set answer = trim(p_answer), answered_by = (select auth.uid()), answered_at = now()
@@ -333,7 +390,7 @@ from public.response_answers ra
 join public.responses resp on resp.id = ra.response_id
 join public.round_questions q on q.id = ra.question_id
 join public.rounds ro on ro.id = q.round_id
-where public.is_team_member(ro.team_id)
+where public.can_see_question(q.id)
   and (ro.status <> 'open' or resp.author_id = (select auth.uid()));
 revoke all on public.round_answers from anon, authenticated;
 grant select on public.round_answers to authenticated;
@@ -350,7 +407,8 @@ select
   (c.author_id = (select auth.uid())) as is_own
 from public.round_clarifications c
 join public.rounds ro on ro.id = c.round_id
-where public.is_team_member(ro.team_id);
+where public.is_team_member(ro.team_id)
+  and (c.author_id = (select auth.uid()) or ro.created_by = (select auth.uid()));
 revoke all on public.round_clarifications_public from anon, authenticated;
 grant select on public.round_clarifications_public to authenticated;
 
@@ -370,12 +428,9 @@ alter table public.response_answers enable row level security;
 alter table public.round_clarifications enable row level security;
 
 create policy "round_questions_select" on public.round_questions for select to authenticated
-  using (exists (select 1 from public.rounds r where r.id = round_id and public.is_team_member(r.team_id)));
+  using (public.can_see_question(id));
 create policy "round_question_targets_select" on public.round_question_targets for select to authenticated
-  using (exists (
-    select 1 from public.round_questions q join public.rounds r on r.id = q.round_id
-    where q.id = question_id and public.is_team_member(r.team_id)
-  ));
+  using (public.can_see_question(question_id));
 -- Your own answers only; everyone else reads through round_answers.
 create policy "response_answers_select_own" on public.response_answers for select to authenticated
   using (exists (select 1 from public.responses r where r.id = response_id and r.author_id = (select auth.uid())));
@@ -392,8 +447,66 @@ create policy "round_clarifications_insert" on public.round_clarifications for i
       or exists (
         select 1 from public.round_questions q
         where q.id = round_clarifications.question_id and q.round_id = round_clarifications.round_id
+          and public.can_see_question(q.id)
       )
     )
   );
 
 alter publication supabase_realtime add table public.round_clarifications;
+
+-- ---------------------------------------------------------------------------
+-- Existing tables: hide exchanges, decisions, analyses and jobs from people who see none of the questions
+-- ---------------------------------------------------------------------------
+drop policy "rounds_select" on public.rounds;
+create policy "rounds_select" on public.rounds for select to authenticated
+  using (public.can_see_round(id));
+
+drop policy "decisions_select" on public.decisions;
+create policy "decisions_select" on public.decisions for select to authenticated
+  using (public.is_team_member(team_id) and public.can_see_round(round_id));
+
+drop policy "jobs_select_analyze_team" on public.analysis_jobs;
+create policy "jobs_select_analyze_team" on public.analysis_jobs for select to authenticated
+  using (kind = 'analyze' and public.can_see_round(round_id));
+
+-- The full map only for people who see every question. Everyone else reads round_analysis().
+drop policy "analyses_select_team" on public.analyses;
+create policy "analyses_select_team" on public.analyses for select to authenticated
+  using (public.can_see_round(round_id) and not public.round_has_hidden_questions(round_id));
+
+-- The analysis as this person may see it: groups and open questions of hidden questions become null,
+-- so the indexes that decisions refer to stay the same.
+create function public.round_analysis(p_round_id uuid)
+returns table (map jsonb, model text, prompt_version text, created_at timestamptz)
+language sql stable security definer set search_path = ''
+as $$
+  select
+    jsonb_build_object(
+      'clusters', coalesce((
+        select jsonb_agg(
+          case when c ->> 'question_id' is null or public.can_see_question((c ->> 'question_id')::uuid) then c end
+          order by ord)
+        from jsonb_array_elements(a.map -> 'clusters') with ordinality as x(c, ord)
+      ), '[]'::jsonb),
+      'open_questions', coalesce((
+        select jsonb_agg(o order by ord)
+        from jsonb_array_elements(a.map -> 'open_questions') with ordinality as y(o, ord)
+        where o ->> 'question_id' is null or public.can_see_question((o ->> 'question_id')::uuid)
+      ), '[]'::jsonb)
+    ),
+    a.model, a.prompt_version, a.created_at
+  from public.analyses a
+  where a.round_id = p_round_id and public.can_see_round(p_round_id);
+$$;
+revoke execute on function public.round_analysis(uuid) from public, anon;
+grant execute on function public.round_analysis(uuid) to authenticated;
+
+-- Number of people who answered, only for people who see the exchange.
+create or replace function public.round_response_count(p_round_id uuid)
+returns integer
+language sql stable security definer set search_path = ''
+as $$
+  select count(*)::int
+  from public.responses r
+  where r.round_id = p_round_id and public.can_see_round(p_round_id);
+$$;

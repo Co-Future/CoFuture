@@ -20,7 +20,7 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/rounds/[ro
   if ("response" in auth) return auth.response;
 
   // RLS: team members see the analysis and the analysis job of their rounds.
-  const { data: analysis } = await supabase.from("analyses").select("id").eq("round_id", roundId).maybeSingle();
+  const { data: analysis } = await supabase.rpc("round_analysis", { p_round_id: roundId }).maybeSingle();
   if (analysis) return Response.json({ status: "done" });
 
   const { data: job } = await supabase

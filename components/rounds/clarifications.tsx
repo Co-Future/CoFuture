@@ -24,11 +24,11 @@ type Props = {
   questions: { id: string; number: number }[];
   /** The exchange is open: new follow-up questions are possible. */
   canAsk: boolean;
-  /** You started the exchange or lead the team: you answer follow-up questions. */
+  /** You started the exchange: you answer follow-up questions. */
   canAnswer: boolean;
 };
 
-/** Follow-up questions to the person who started the exchange. Visible to everyone, without the author. */
+/** Follow-up questions to the person who started the exchange. Only the author and the starter see them. */
 export function Clarifications({ roundId, items, questions, canAsk, canAnswer }: Props) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -114,7 +114,7 @@ export function Clarifications({ roundId, items, questions, canAsk, canAnswer }:
             maxLength={2000}
             value={body}
             onChange={(event) => setBody(event.target.value)}
-            hint="Alle im Team sehen die Rückfrage und die Antwort, aber nicht, wer gefragt hat."
+            hint="Nur du und die Person, die den Austausch gestartet hat, sehen die Rückfrage und die Antwort."
           />
           <div>
             <Button type="submit" variant="secondary" disabled={pending}>
@@ -156,7 +156,7 @@ function AnswerForm({ id, onDone }: { id: string; onDone: () => void }) {
       <TextAreaField
         id={`clarification-answer-${id}`}
         name="answer"
-        label="Antwort an alle"
+        label="Deine Antwort"
         rows={2}
         maxLength={4000}
         value={answer}

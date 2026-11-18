@@ -51,7 +51,8 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
     supabase.from("team_members").select("role").eq("team_id", round.team_id).eq("user_id", user.id).eq("role", "lead").maybeSingle(),
     // Your own answers while open; everyone's after closing (pseudonyms only).
     supabase.from("round_answers").select("id, question_id, pseudonym, body, is_own, source").eq("round_id", round.id).order("pseudonym"),
-    supabase.from("analyses").select("map, model, prompt_version, created_at").eq("round_id", round.id).maybeSingle(),
+    // Filtered in the database: parts of questions you may not see are null.
+    supabase.rpc("round_analysis", { p_round_id: round.id }).maybeSingle(),
     supabase
       .from("analysis_jobs")
       .select("id, status, error, attempts")
@@ -80,7 +81,9 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
         supabase.from("decision_reads").select("read_at").eq("decision_id", decision.id).eq("user_id", user.id).maybeSingle(),
       ])
     : [{ data: null }, { data: null }];
-  const map = analysis?.map as { clusters: (MapCluster & { question_id?: string })[]; open_questions: (MapQuestion & { question_id?: string })[] } | undefined;
+  const map = analysis?.map as
+    | { clusters: ((MapCluster & { question_id?: string }) | null)[]; open_questions: (MapQuestion & { question_id?: string })[] }
+    | undefined;
   const people = (members ?? [])
     .map((m) => ({ userId: m.user_id, name: m.profiles?.display_name ?? "Unbekannt" }))
     .sort((x, y) => x.name.localeCompare(y.name, "de"));
@@ -115,18 +118,25 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
 
   const deadlinePassed = round.deadline ? isPast(round.deadline) : false;
   const canAnswer = round.status === "open" && !deadlinePassed;
-  const isStarter = round.created_by === user.id || Boolean(lead);
+  const isCreator = round.created_by === user.id;
+  const isStarter = isCreator || Boolean(lead);
   const canClose = round.status === "open" && isStarter;
   const answerCount = count ?? 0;
   const canDecide = round.status === "closed" && !isGuest && isStarter;
   const canFollowUp = round.status !== "open" && !isGuest;
   const followUpHref = `/app/teams/${round.team_id}/runden/neu?von=${round.id}`;
   // Flat cluster list across questions: decisions refer to these indexes.
-  const mapClusters = (map?.clusters ?? []).map((c, index) => ({
-    index,
-    title: questions.length > 1 ? `F${questions.find((q) => q.id === (c.question_id ?? firstQuestionId))?.number ?? "?"}: ${c.title}` : c.title,
-    kindLabel: KIND_LABELS[c.kind],
-  }));
+  const mapClusters = (map?.clusters ?? []).flatMap((c, index) =>
+    c
+      ? [
+          {
+            index,
+            title: questions.length > 1 ? `F${questions.find((q) => q.id === (c.question_id ?? firstQuestionId))?.number ?? "?"}: ${c.title}` : c.title,
+            kindLabel: KIND_LABELS[c.kind],
+          },
+        ]
+      : [],
+  );
   const myQuestions = questions.filter((q) => q.forMe);
   const title = questions.length > 1 ? `Austausch mit ${questions.length} Fragen` : (questions[0]?.body ?? round.question);
 
@@ -185,13 +195,14 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                     ) : (
                       <>
                         <UserRound size={16} strokeWidth={1.75} aria-hidden />
-                        <span>Geht an:</span>
+                        <span>Nur für:</span>
                         {q.targets.map((t) => (
                           <span key={t} className="rounded-full bg-sunken px-2 py-0.5 text-ink">
                             {nameOf(t)}
                             {t === user.id ? " (du)" : ""}
                           </span>
                         ))}
+                        <span>und wer den Austausch gestartet hat</span>
                       </>
                     )}
                   </p>
@@ -230,13 +241,17 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               <h2 id="clarifications-heading" className="mb-1 text-h2">
                 Rückfragen ({clarifications.length})
               </h2>
-              <p className="mb-4 text-body-sm text-ink-muted">Fragen an die Person, die den Austausch gestartet hat.</p>
+              <p className="mb-4 text-body-sm text-ink-muted">
+                {isCreator
+                  ? "Rückfragen an dich. Nur du und die fragende Person sehen sie."
+                  : "Fragen an die Person, die den Austausch gestartet hat. Nur ihr beide seht sie."}
+              </p>
               <Clarifications
                 roundId={round.id}
                 items={clarifications}
                 questions={questions.map((q) => ({ id: q.id, number: q.number }))}
                 canAsk={round.status === "open"}
-                canAnswer={isStarter}
+                canAnswer={isCreator}
               />
             </section>
           ) : null}
@@ -266,7 +281,9 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               );
             })}
           </ul>
-          <p className="text-body-sm text-ink-muted">Zeigt, wie viele Fragen an jede Person gehen. Wer schon geantwortet hat, sieht niemand.</p>
+          <p className="text-body-sm text-ink-muted">
+            Zeigt, wie viele der Fragen, die du siehst, an jede Person gehen. Fragen nur für andere siehst du nicht. Wer schon geantwortet hat, sieht niemand.
+          </p>
         </aside>
       </div>
 
@@ -292,7 +309,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
               const qAnswers = answers.filter((a) => a.questionId === q.id);
               const sources = Object.fromEntries(qAnswers.map((a) => [a.pseudonym, { text: a.body, voice: a.voice, label: a.isOwn ? "du" : undefined }]));
               const belongs = (item: { question_id?: string }) => (item.question_id ?? firstQuestionId) === q.id;
-              const clusters = (map?.clusters ?? []).filter(belongs);
+              const clusters = (map?.clusters ?? []).flatMap((c) => (c && belongs(c) ? [c] : []));
               const openQs = (map?.open_questions ?? []).filter(belongs);
               const asked = q.targets.length === 0 ? people.length : q.targets.length;
               return (
@@ -371,11 +388,14 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                     <h3 className="text-label">Stützt sich auf</h3>
                     <ul className="mt-1 flex flex-wrap gap-2">
                       {decision.cluster_refs
-                        .filter((i) => map.clusters[i])
-                        .map((i) => (
+                        .flatMap((i) => {
+                          const c = map.clusters[i];
+                          return c ? [{ i, c }] : [];
+                        })
+                        .map(({ i, c }) => (
                           <li key={i} className="rounded-full bg-sunken px-3 py-1 text-body-sm">
-                            {map.clusters[i].title}
-                            <span className="text-ink-muted"> · {KIND_LABELS[map.clusters[i].kind]}</span>
+                            {c.title}
+                            <span className="text-ink-muted"> · {KIND_LABELS[c.kind]}</span>
                           </li>
                         ))}
                     </ul>

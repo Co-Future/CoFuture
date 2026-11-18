@@ -823,7 +823,14 @@ export type Database = {
         }
         Returns: string
       }
+      can_see_question: { Args: { p_question_id: string }; Returns: boolean }
+      can_see_round: { Args: { p_round_id: string }; Returns: boolean }
       question_is_for_me: { Args: { p_question_id: string }; Returns: boolean }
+      round_analysis: {
+        Args: { p_round_id: string }
+        Returns: { created_at: string; map: Json; model: string; prompt_version: string }[]
+      }
+      round_has_hidden_questions: { Args: { p_round_id: string }; Returns: boolean }
       round_accepts_answers: { Args: { p_round_id: string }; Returns: boolean }
       save_answers: {
         Args: {

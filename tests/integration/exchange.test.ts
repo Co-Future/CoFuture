@@ -46,8 +46,23 @@ describe("exchange", () => {
   it("starts with all questions and targets in one step, without a deadline", async () => {
     const { data: round } = await lead.client.from("rounds").select("question, deadline").eq("id", roundId).single();
     expect(round).toEqual({ question: "Passt der Termin für alle?", deadline: null });
-    const { data: targets } = await lars.client.from("round_question_targets").select("question_id, user_id");
+    const { data: targets } = await tom.client.from("round_question_targets").select("question_id, user_id");
     expect(targets).toEqual([{ question_id: qTom, user_id: tom.userId }]);
+  });
+
+  it("a targeted question is visible only to its targets and the starter", async () => {
+    const ids = async (u: TestUser) =>
+      ((await u.client.from("round_questions").select("id").eq("round_id", roundId)).data ?? []).map((q) => q.id).sort();
+    expect(await ids(tom)).toEqual([qAll, qTom].sort());
+    expect(await ids(lead)).toEqual([qAll, qTom].sort());
+    expect(await ids(lars)).toEqual([qAll]);
+    expect((await lars.client.from("round_question_targets").select("user_id")).data).toEqual([]);
+  });
+
+  it("an exchange with only targeted questions is hidden from everyone else", async () => {
+    const id = (await start(lead, [{ body: "Nur Tom: Wie läuft es?", targets: [tom.userId] }])).data!;
+    expect((await lars.client.from("rounds").select("id").eq("id", id)).data).toEqual([]);
+    expect((await tom.client.from("rounds").select("id").eq("id", id)).data).toHaveLength(1);
   });
 
   it("guests and outsiders cannot start, targets must be in the team", async () => {
@@ -75,24 +90,26 @@ describe("exchange", () => {
     expect(count).toBe(1);
   });
 
-  it("follow-up questions show no author and only the starter or lead answers", async () => {
+  it("follow-up questions are visible only to their author and the starter, who answers", async () => {
     const { data: c } = await lars.client
       .from("round_clarifications")
       .insert({ round_id: roundId, question_id: qAll, body: "Welcher Termin genau?" })
       .select("id")
       .single();
-    const { data: seen } = await tom.client.from("round_clarifications_public").select("*").eq("round_id", roundId);
+    expect((await tom.client.from("round_clarifications_public").select("id").eq("round_id", roundId)).data).toEqual([]);
+    const { data: seen } = await lead.client.from("round_clarifications_public").select("*").eq("round_id", roundId);
     expect(seen![0]).toMatchObject({ body: "Welcher Termin genau?", is_own: false });
     expect(Object.keys(seen![0])).not.toContain("author_id");
+    expect((await lars.client.from("round_clarifications_public").select("id").eq("round_id", roundId)).data).toHaveLength(1);
     expect((await tom.client.rpc("answer_clarification", { p_id: c!.id, p_answer: "Ich rate." })).error?.code).toBe("42501");
     expect((await lead.client.rpc("answer_clarification", { p_id: c!.id, p_answer: "Freitag, 10:00 Uhr." })).error).toBeNull();
   });
 
-  it("after closing everyone sees all answers with pseudonyms, nobody can change them", async () => {
+  it("after closing: answers to visible questions with pseudonyms, nobody can change them", async () => {
     await lead.client.from("rounds").update({ status: "closed" }).eq("id", roundId);
-    const { data } = await lars.client.from("round_answers").select("question_id, pseudonym, body").eq("round_id", roundId).order("question_id");
-    expect(data).toHaveLength(2);
-    expect(new Set(data!.map((a) => a.pseudonym))).toEqual(new Set(["A01"]));
+    const { data } = await lars.client.from("round_answers").select("question_id, pseudonym").eq("round_id", roundId);
+    expect(data).toEqual([{ question_id: qAll, pseudonym: "A01" }]);
+    expect((await lead.client.from("round_answers").select("id").eq("round_id", roundId)).data).toHaveLength(2);
     expect((await save(tom, [{ question_id: qAll, body: "Später." }])).error?.hint).toBe("round_closed");
   });
 });

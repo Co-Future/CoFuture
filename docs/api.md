@@ -63,7 +63,7 @@ Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert w
 | `PATCH` | `/api/rounds/{roundId}` | `{ "status": "closed" }` | `200 { id, status }` | wer die Runde gestartet hat, Leitung |
 | `PUT` | `/api/rounds/{roundId}/answers` | `{ "answers": [{ "questionId": uuid, "body": string }], "source"?: "text" \| "voice" }` | `200 { pseudonym }` | Gefragte Mitglieder, solange offen. Leerer Text entfernt die Antwort |
 | `POST` | `/api/rounds/{roundId}/clarifications` | `{ "body": string, "questionId"?: uuid }` | `201 { id }` | Rückfrage, Mitglieder, solange offen |
-| `POST` | `/api/clarifications/{id}/answer` | `{ "answer": string }` | `200` | wer den Austausch gestartet hat, Leitung |
+| `POST` | `/api/clarifications/{id}/answer` | `{ "answer": string }` | `200` | nur wer den Austausch gestartet hat |
 
 Regeln in der Datenbank: Die Frage ist nach der ersten Antwort gesperrt, Fristen lassen sich nur in die Zukunft verschieben, Status nur `open → closed → decided`. `pg_cron` schließt Runden jede Minute nach Fristende. Andere Antworten sind erst nach dem Schließen sichtbar, über die View `round_responses` ohne Personenbezug.
 

@@ -31,7 +31,7 @@ Asynchroner **Austausch** statt Live-Meetings ([ADR 012](docs/adr/012-austausch-
 1. Die Leitung spricht ihre Fragen in einem Rutsch ein. AsyncMeet zieht die einzelnen Fragen heraus und erkennt, an wen eine Frage nur gehen soll. Fragen lassen sich ändern, per Sprache ergänzen oder als Text hinzufügen. Eine Frist ist optional.
 2. Alle Gefragten antworten per **Sprache oder Text**, wann und wo es passt. AsyncMeet ordnet eine eingesprochene Antwort den Fragen zu, jede Antwort steht als Karte unter ihrer Frage und lässt sich prüfen und ergänzen.
 3. Sprachaufnahmen werden transkribiert, das Audio wird danach gelöscht.
-4. Rückfragen an die Leitung stehen im Austausch selbst, für alle sichtbar, ohne Absender.
+4. Rückfragen an die Leitung stehen im Austausch selbst. Sie sehen nur die fragende Person und die Leitung. Eine Frage nur für bestimmte Personen sehen nur diese und die Leitung.
 5. AsyncMeet erstellt **je Frage eine Perspektivenkarte**: Themen, Konsens, Dissens, Einzelstimmen, jede Aussage mit Quelle.
 6. Folge-Austausche führen zum Beschluss, der mit Begründung an alle geht.
 
@@ -39,7 +39,7 @@ Asynchroner **Austausch** statt Live-Meetings ([ADR 012](docs/adr/012-austausch-
 
 | Prinzip | Bedeutung |
 | --- | --- |
-| Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. |
+| Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. Ausnahme: Fragen nur für bestimmte Personen und Rückfragen sehen nur die Beteiligten ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)). |
 | Inhalte statt Personen bewerten | Die KI prüft Fristen, Vollständigkeit und offene Aufgaben, nie die Leistung einzelner. |
 | Pseudonym als Standard | Antworten erscheinen als A01, A02 …, Klarnamen nur mit Zustimmung. |
 | Minderheiten sichtbar | Einzelstimmen werden markiert, nicht herausgemittelt. |
@@ -102,9 +102,9 @@ Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit 
 Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](docs/adr/012-austausch-mehrere-fragen.md).
 
 - **Fragen einsprechen:** Die Leitung spricht mehrere Fragen ein, AsyncMeet zieht sie einzeln heraus. Neu einsprechen ersetzt alle Fragen. Ergänzen gleicht mit den bisherigen ab (unverändert, geändert, neu). Dazu kommen Fragen als Text. *Fertig.*
-- **Zielpersonen:** „Die Frage geht nur an Tom“ wird erkannt, Personen lassen sich je Frage wählen. Rechts stehen alle Personen im Team. *Fertig.* Gruppen ab etwa 30 Personen kommen später.
+- **Zielpersonen:** „Die Frage geht nur an Tom“ wird erkannt, Personen lassen sich je Frage wählen. Rechts stehen alle Personen im Team. Gezielte Fragen sehen nur die Gefragten und wer den Austausch gestartet hat. *Fertig.* Gruppen ab etwa 30 Personen kommen später.
 - **Alles auf einmal beantworten:** AsyncMeet ordnet eine eingesprochene Antwort den Fragen zu. Jede Antwort steht als Karte unter ihrer Frage und lässt sich ändern, per Sprache ergänzen oder komplett neu einsprechen. *Fertig.*
-- **Rückfragen an die Leitung** im Austausch, sichtbar für alle ohne Absender. *Fertig.*
+- **Rückfragen an die Leitung** im Austausch, sichtbar nur für die fragende Person und die Leitung. *Fertig.*
 - **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten *(fertig)*. Offen sind Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
 - **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*).
 - **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*

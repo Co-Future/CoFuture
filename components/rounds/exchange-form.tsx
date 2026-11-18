@@ -115,7 +115,7 @@ export function ExchangeForm({ teamId, people, parentRoundId, defaultQuestion }:
           </h2>
           <p className="text-body-sm text-ink-muted">
             Sprich alle Fragen in einem Rutsch ein. AsyncMeet zieht die einzelnen Fragen heraus. Sagst du, an wen eine Frage geht
-            („die Frage geht nur an Tom“), wird sie nur dieser Person gestellt.
+            („die Frage geht nur an Tom“), wird sie nur dieser Person gestellt und nur ihr angezeigt.
           </p>
           {questions.length > 0 ? (
             <fieldset className="flex flex-wrap gap-4">
@@ -211,7 +211,7 @@ export function ExchangeForm({ teamId, people, parentRoundId, defaultQuestion }:
                   </div>
                   {openTargets === q.key ? (
                     <fieldset className="flex flex-col gap-1 rounded-md bg-sunken p-3">
-                      <legend className="text-label">An wen geht Frage {index + 1}? Ohne Auswahl an alle.</legend>
+                      <legend className="text-label">An wen geht Frage {index + 1}? Ohne Auswahl an alle. Eine Frage nur für bestimmte Personen sehen nur diese und du.</legend>
                       {people.map((p) => (
                         <label key={p.userId} className="inline-flex min-h-11 items-center gap-2 text-body">
                           <input type="checkbox" checked={q.targets.includes(p.userId)} onChange={() => toggleTarget(q.key, p.userId)} />

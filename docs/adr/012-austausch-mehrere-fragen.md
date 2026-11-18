@@ -23,16 +23,16 @@ In der Oberfläche heißt eine Runde jetzt **Austausch** („Austausch starten�
 
 | Tabelle | Inhalt |
 | --- | --- |
-| `round_questions` | Fragen eines Austauschs mit Reihenfolge. Die erste Frage steht zusätzlich in `rounds.question` (Titel in Listen). |
+| `round_questions` | Fragen eines Austauschs mit Reihenfolge. Die erste Frage an alle steht zusätzlich in `rounds.question` (Titel in Listen). |
 | `round_question_targets` | An wen eine Frage geht. Keine Zeile heißt: an alle im Team. |
 | `response_answers` | Antwort einer Person auf eine Frage. `responses` bleibt die Hülle mit Pseudonym und Gesamttext. |
-| `round_clarifications` | Rückfragen an die Person, die den Austausch gestartet hat (oder die Teamleitung), mit Antwort. |
+| `round_clarifications` | Rückfragen an die Person, die den Austausch gestartet hat, mit ihrer Antwort. |
 
 Bestehende Runden werden übernommen: Ihre Frage wird Frage 1, jede Antwort die Antwort darauf.
 
 - Gestartet wird mit `create_exchange()` in einem Schritt (Austausch, Fragen, Zielpersonen). Gespeichert wird mit `save_answers()`. Beide prüfen Teammitgliedschaft, Status und Zielpersonen in der Datenbank.
 - Die **Frist ist optional**. Ohne Frist bleibt der Austausch offen, bis ihn jemand schließt.
-- Antworten anderer liest man nur über die View `round_answers` (nach dem Schließen, eigene sofort). Rückfragen liest man über `round_clarifications_public` ohne Absender.
+- Antworten anderer liest man nur über die View `round_answers` (nach dem Schließen, eigene sofort). Rückfragen liest man über `round_clarifications_public`, ohne Absender.
 
 ### KI-Schritte (über die vorhandenen Jobs)
 
@@ -50,9 +50,24 @@ Bestehende Runden werden übernommen: Ihre Frage wird Frage 1, jede Antwort die 
 - Für die Zuordnung „Frage geht an Tom“ bekommt das LLM die Anzeigenamen des Teams, nie E-Mail-Adressen oder IDs. Die Namen stehen ohnehin im eingesprochenen Text.
 - Anzeigenamen sind standardmäßig Pseudonyme.
 
-### Gleiche Sicht für alle
+### Sichtbarkeit: Ausnahme von „Gleiche Sicht für alle“ (Entscheidung Constantin, 18.11.2026)
 
-Zielpersonen ändern, **wer gefragt wird**, nicht wer etwas sieht. Alle im Team sehen alle Fragen, an wen sie gehen, alle Rückfragen und nach dem Schließen alle Antworten mit Pseudonym. Es gibt keine Anzeige, wer schon geantwortet hat.
+| Was | Wer sieht es |
+| --- | --- |
+| Frage an alle, ihre Antworten und ihr Teil der Perspektivenkarte | alle im Team |
+| Frage nur für bestimmte Personen, ihre Antworten und ihr Teil der Karte | diese Personen und wer den Austausch gestartet hat |
+| Austausch, dessen Fragen alle gezielt sind | nur diese Personen und wer ihn gestartet hat |
+| Rückfrage und Antwort | wer gefragt hat und wer den Austausch gestartet hat (beantwortet auch nur diese Person) |
+
+Die Datenbank setzt das durch, nicht die Oberfläche:
+- `can_see_question()` und `can_see_round()` stecken in den Policies von `rounds`, `round_questions`, `decisions` und `analysis_jobs` sowie in den Views.
+- Wer nicht alle Fragen sieht, liest die Karte über `round_analysis()`. Darin sind Gruppen verborgener Fragen `null`, damit die Indizes der Beschlüsse stimmen.
+- Der Titel in Listen ist die erste Frage an alle, damit gezielte Fragen dort nicht auftauchen.
+
+**Abwägung:**
+- Das Prinzip „Gleiche Sicht für alle“ soll verhindern, dass Führungskräfte Auswertungen sehen, die anderen verborgen bleiben.
+- Hier bekommt die Person, die den Austausch gestartet hat, die Antworten auf gezielte Fragen. Das sind Einzelgespräche im Austausch, keine Auswertung über das Team.
+- Es gibt weiterhin keine Anzeige, wer schon geantwortet hat. Personen werden nicht bewertet.
 
 ## Folgen
 
