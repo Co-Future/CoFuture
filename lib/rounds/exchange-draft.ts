@@ -6,6 +6,8 @@ export type DraftQuestion = {
   body: string;
   targets: string[];
   change?: "modified" | "added";
+  /** The person preparing the exchange answers this question too. */
+  asksStarter?: boolean;
 };
 
 const extractedSchema = z.object({
@@ -51,7 +53,8 @@ export function applyDictatedQuestions(
   const questions = parsed.data.questions.map((q) => {
     const key = q.basedOn && known.has(q.basedOn) ? q.basedOn : newKey();
     const change = mode === "replace" || q.change === "unchanged" ? undefined : q.change;
-    return { key, body: q.body, targets: q.targets, ...(change ? { change } : {}) };
+    const asksStarter = current.find((c) => c.key === key)?.asksStarter;
+    return { key, body: q.body, targets: q.targets, ...(change ? { change } : {}), ...(asksStarter ? { asksStarter } : {}) };
   });
   const added = questions.filter((q) => q.change === "added").length;
   const modified = questions.filter((q) => q.change === "modified").length;
@@ -62,7 +65,16 @@ export function applyDictatedQuestions(
   return { questions, note };
 }
 
-/** How many questions address this person (a question without targets addresses everyone). */
-export function questionCountFor(questions: { targets: string[] }[], userId: string): number {
-  return questions.filter((q) => q.targets.length === 0 || q.targets.includes(userId)).length;
+/**
+ * How many questions this person gets. A question without targets goes to everyone except the person
+ * who starts the exchange; they get only the questions they chose to answer themselves.
+ */
+export function questionCountFor(
+  questions: { targets: string[]; asksStarter?: boolean }[],
+  userId: string,
+  starterId?: string,
+): number {
+  return questions.filter((q) =>
+    q.targets.includes(userId) || (userId === starterId ? Boolean(q.asksStarter) : q.targets.length === 0),
+  ).length;
 }

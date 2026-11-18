@@ -29,6 +29,8 @@ export const questionsVoiceJobSchema = voiceJobSchema.extend({
 /** Spoken answer: "all" lets AsyncMeet split it across your questions, "question" is for one card. */
 export const answerVoiceJobSchema = voiceJobSchema.extend({
   scope: z.enum(["all", "question"]).default("all"),
+  /** With scope "question": the card the recording belongs to. AsyncMeet summarises it for that question. */
+  questionId: z.uuid().optional(),
 });
 
 export type QuestionsVoiceJobInput = z.input<typeof questionsVoiceJobSchema>;

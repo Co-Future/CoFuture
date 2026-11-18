@@ -18,7 +18,7 @@ async function NewRound({ params, searchParams }: { params: Promise<{ teamId: st
   const von = typeof query.von === "string" && uuidSchema.safeParse(query.von).success ? query.von : undefined;
   const frage = typeof query.frage === "string" ? query.frage.slice(0, 500) : undefined;
   if (!uuidSchema.safeParse(teamId).success) notFound();
-  await getCurrentUser();
+  const user = await getCurrentUser();
   const supabase = await createClient();
   const { data: team } = await supabase.from("teams").select("id, name").eq("id", teamId).maybeSingle();
   if (!team) notFound();
@@ -27,6 +27,7 @@ async function NewRound({ params, searchParams }: { params: Promise<{ teamId: st
     .select("user_id, profiles(display_name)")
     .eq("team_id", team.id);
   const people = (members ?? [])
+    .filter((m) => m.user_id !== user.id)
     .map((m) => ({ userId: m.user_id, name: m.profiles?.display_name ?? "Unbekannt" }))
     .sort((a, b) => a.name.localeCompare(b.name, "de"));
   // Follow-up exchange: only for a closed or decided exchange of this team.
@@ -54,6 +55,7 @@ async function NewRound({ params, searchParams }: { params: Promise<{ teamId: st
           key={`${parent?.id ?? "neu"}-${frage ?? ""}`}
           teamId={team.id}
           people={people}
+          currentUserId={user.id}
           parentRoundId={parent?.id}
           defaultQuestion={parent ? frage : undefined}
         />

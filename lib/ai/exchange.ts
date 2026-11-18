@@ -1,6 +1,6 @@
 import { z } from "zod";
-import * as answersPrompt from "@/prompts/v1/answers-map";
-import * as questionsPrompt from "@/prompts/v1/questions-extract";
+import * as answersPrompt from "@/prompts/v2/answers-map";
+import * as questionsPrompt from "@/prompts/v2/questions-extract";
 import { generateStructured } from "./llm";
 
 /** A question as the start form holds it. `key` is stable while editing (existing id or a client key). */
@@ -54,6 +54,19 @@ const questionKey = (i: number) => `F${i + 1}`;
 const personKey = (i: number) => `P${i + 1}`;
 const norm = (id: string) => id.trim().toUpperCase().replace(/^#/, "");
 
+const NUMBER_WORDS: Record<string, string> = {
+  null: "0", eins: "1", ein: "1", zwei: "2", drei: "3", vier: "4", fünf: "5", fuenf: "5", sechs: "6",
+  sieben: "7", acht: "8", neun: "9", zehn: "10", elf: "11", zwölf: "12", zwoelf: "12",
+};
+/** "Test eins", "test 1" and "Test-1" all become "test1", so spoken names find the person. */
+export function nameKey(name: string): string {
+  return name
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((part) => NUMBER_WORDS[part] ?? part)
+    .join("");
+}
+
 /**
  * Maps the model output back to real keys and user ids and enforces the rules:
  * unknown references and people are dropped, an existing question the model left out stays
@@ -62,10 +75,13 @@ const norm = (id: string) => id.trim().toUpperCase().replace(/^#/, "");
 export function finalizeQuestions(
   raw: ModelQuestions,
   existing: DraftQuestion[],
-  people: { userId: string }[],
+  people: { userId: string; name?: string }[],
 ): ExtractedQuestion[] {
   const byQuestionKey = new Map(existing.map((q, i) => [questionKey(i), q]));
   const byPersonKey = new Map(people.map((p, i) => [personKey(i), p.userId]));
+  // Fallback: the model sometimes writes the name instead of the P-id.
+  const byName = new Map(people.filter((p) => p.name).map((p) => [nameKey(p.name!), p.userId]));
+  const person = (t: string) => byPersonKey.get(norm(t)) ?? byName.get(nameKey(t));
 
   const result: ExtractedQuestion[] = [];
   const used = new Set<string>();
@@ -74,7 +90,7 @@ export function finalizeQuestions(
     const base = byQuestionKey.get(norm(q.based_on)) ?? null;
     if (body.length < 3) continue;
     if (base) used.add(base.key);
-    const targets = [...new Set(q.targets.map((t) => byPersonKey.get(norm(t))).filter((t): t is string => Boolean(t)))];
+    const targets = [...new Set(q.targets.map(person).filter((t): t is string => Boolean(t)))];
     const change: QuestionChange = !base ? "added" : body === base.body && sameSet(targets, base.targets) ? "unchanged" : "modified";
     result.push({ body, basedOn: base?.key ?? null, change, targets });
   }

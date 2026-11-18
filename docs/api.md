@@ -59,7 +59,7 @@ Zugangslinks (`/zugang/{token}`) gelten 72 Stunden und nur einmal. Gespeichert w
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/teams/{teamId}/rounds` | `{ "questions": [{ "body": string, "targets"?: uuid[] }], "deadline"?: ISO-8601, "context"?: string, "parentRoundId"?: uuid }` | `201 { id }` | Austausch starten. Mitglieder des Teams, keine Gäste. Ohne `targets` geht eine Frage an alle |
+| `POST` | `/api/teams/{teamId}/rounds` | `{ "questions": [{ "body": string, "targets"?: uuid[], "asksStarter"?: boolean }], "deadline"?: ISO-8601, "context"?: string, "parentRoundId"?: uuid }` | `201 { id }` | Austausch starten. Mitglieder des Teams, keine Gäste. Ohne `targets` geht eine Frage an alle |
 | `PATCH` | `/api/rounds/{roundId}` | `{ "status": "closed" }` | `200 { id, status }` | wer die Runde gestartet hat, Leitung |
 | `PUT` | `/api/rounds/{roundId}/answers` | `{ "answers": [{ "questionId": uuid, "body": string }], "source"?: "text" \| "voice" }` | `200 { pseudonym }` | Gefragte Mitglieder, solange offen. Leerer Text entfernt die Antwort |
 | `POST` | `/api/rounds/{roundId}/clarifications` | `{ "body": string, "questionId"?: uuid }` | `201 { id }` | Rückfrage, Mitglieder, solange offen |
@@ -73,7 +73,7 @@ Ablauf (ADR 009): Der Browser lädt die Aufnahme **direkt** in den privaten Buck
 
 | Methode | Pfad | Body | Antwort | Wer |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/rounds/{roundId}/voice` | `{ "path", "mime", "durationMs", "scope"?: "all" \| "question" }` | `202 { jobId }` | Antwort einsprechen: Mitglieder, offen, eigene Datei. Bei `all` liefert der Job `result.structured` (`answers: [{ questionId, text }]`, `unassigned`) |
+| `POST` | `/api/rounds/{roundId}/voice` | `{ "path", "mime", "durationMs", "scope"?: "all" \| "question", "questionId"?: uuid }` | `202 { jobId }` | Antwort einsprechen: Mitglieder, offen, eigene Datei. Bei `all` liefert der Job `result.structured` (`answers: [{ questionId, text }]`, `unassigned`) |
 | `POST` | `/api/teams/{teamId}/voice` | `{ "path", "mime", "durationMs", "mode"?: "replace" \| "merge", "questions"?: [{ key, body, targets }] }` | `202 { jobId }` | Fragen einsprechen: Mitglieder ohne Gäste, eigene Datei. Der Job liefert `result.structured.questions` (`body`, `basedOn`, `change`, `targets`) |
 | `POST` | `/api/jobs/{jobId}/retry` | – | `202` | Transkription: wer sie angelegt hat; Analyse: Teammitglieder. Nach Fehler, max. 3 Versuche |
 | `POST` | `/api/worker` | – (Header `Authorization: Bearer WORKER_SECRET`) | `200 { transcribe, analyze, sweptAudio }` | nur Server/pg_cron |

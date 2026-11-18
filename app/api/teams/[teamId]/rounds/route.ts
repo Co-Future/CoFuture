@@ -21,7 +21,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/teams/[team
 
   const { data, error } = await supabase.rpc("create_exchange", {
     p_team_id: teamId,
-    p_questions: body.data.questions,
+    p_questions: body.data.questions.map((q) => ({ body: q.body, targets: q.targets, asks_starter: q.asksStarter })),
     p_deadline: body.data.deadline,
     p_context: body.data.context,
     p_parent_round_id: body.data.parentRoundId,

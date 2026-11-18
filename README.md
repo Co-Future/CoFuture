@@ -41,7 +41,7 @@ Asynchroner **Austausch** statt Live-Meetings ([ADR 012](docs/adr/012-austausch-
 | --- | --- |
 | Gleiche Sicht für alle | Keine Auswertungen, die nur Führungskräfte sehen. Rollen ändern, was man tun darf, nie was man sieht. Ausnahme: Fragen nur für bestimmte Personen und Rückfragen sehen nur die Beteiligten ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)). |
 | Inhalte statt Personen bewerten | Die KI prüft Fristen, Vollständigkeit und offene Aufgaben, nie die Leistung einzelner. |
-| Pseudonym als Standard | Antworten erscheinen als A01, A02 …, Klarnamen nur mit Zustimmung. |
+| Pseudonym als Standard | Jede Person wählt ihren Anzeigenamen selbst, Klarnamen nur mit Zustimmung. Im Austausch erscheint dieser Name statt A01 (ADR 012), an die KI gehen nur Pseudonyme. |
 | Minderheiten sichtbar | Einzelstimmen werden markiert, nicht herausgemittelt. |
 | Belegbar | Jede KI-Aussage verweist auf mindestens eine Originalquelle, sonst wird sie verworfen. |
 | Mensch entscheidet | Die KI bereitet vor, Menschen beschließen. |
@@ -77,7 +77,7 @@ Stand 17.11.2026. AsyncMeet läuft von Anfang bis Ende: Organisation anlegen, ne
 | 5 | Sprachantworten: Aufnahme im Browser (bis 10 Min.), Transkription im Hintergrund, Audio wird gelöscht. Auch die Frage einer Runde lässt sich einsprechen, AsyncMeet schlägt Frage und Kontext vor | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
 | 7 | Beschlüsse: 7a Datenbank und API (Beschluss mit Begründung, Folgerunden, Lesebestätigung) fertig, 7b Oberfläche | in Arbeit |
-| 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, Zielpersonen, Antworten je Frage, Rückfragen, Karte je Frage, Frist optional ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)). Offen: Gewichtung, Zusammenfassung, Beschlussvorschläge | in Arbeit |
+| 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, mehrere Zielpersonen je Frage, Prüfschritt mit eigenen Fragen, Antworten je Frage zusammengefasst, Rückfragen, Zusammenfassung je Frage und Antworten je Person, Frist optional, Beschlüsse vorerst ausgeblendet ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)) | fertig |
 | 8 | Wissensspeicher | offen |
 | 9 | Rückkanal | offen |
 

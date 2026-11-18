@@ -29,7 +29,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/rounds/[rou
     .insert({
       kind: "transcribe",
       round_id: roundId,
-      payload: { path: body.data.path, mime: body.data.mime, durationMs: body.data.durationMs, scope: body.data.scope },
+      payload: { path: body.data.path, mime: body.data.mime, durationMs: body.data.durationMs, scope: body.data.scope, questionId: body.data.questionId },
     })
     .select("id")
     .single();

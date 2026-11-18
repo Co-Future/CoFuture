@@ -1,8 +1,8 @@
-import { buildUserPrompt, PROMPT_VERSION, SYSTEM_PROMPT } from "@/prompts/v1/perspective-map";
+import { buildUserPrompt, PROMPT_VERSION, SYSTEM_PROMPT } from "@/prompts/v2/perspective-map";
 import { generateStructured } from "./llm";
 import { modelMapJsonSchema, modelMapSchema, type ModelMap, type PerspectiveMapData } from "./schema";
 
-export type MapInput = { question: string; context: string | null; responses: { id: string; text: string }[] };
+export type MapInput = { question: string; responses: { id: string; text: string }[] };
 
 export type MapResult = {
   map: PerspectiveMapData;
@@ -66,7 +66,10 @@ export function finalizeMap(raw: ModelMap, knownIds: string[]): { map: Perspecti
       source_ids: missing,
     });
   }
-  return { map: { clusters, open_questions }, coveredByModel: covered.size };
+  const overviewSources = clean(raw.overview?.source_ids ?? []);
+  const overviewText = raw.overview?.text.trim() ?? "";
+  const overview = overviewText && overviewSources.length > 0 ? { text: overviewText, source_ids: overviewSources } : null;
+  return { map: { clusters, open_questions, overview }, coveredByModel: covered.size };
 }
 
 /** Builds the perspective map for a closed round. Only pseudonyms and answer texts go to the model. */

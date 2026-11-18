@@ -1,4 +1,4 @@
-import { CircleCheck, Clock, Gavel, Lock, Plus, Users } from "lucide-react";
+import { CircleCheck, Clock, Lock, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -41,18 +41,11 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
   if (!team || !members) notFound();
 
   const isLead = members.some((m) => m.user_id === user.id && m.role === "lead");
-  const [{ data: isGuest }, { data: isOrgOwner }, { data: decisions }, { data: ownReads }] = await Promise.all([
+  // Decisions are hidden in the interface for now (decision Constantin, 18.11.2026); the data stays.
+  const [{ data: isGuest }, { data: isOrgOwner }] = await Promise.all([
     supabase.rpc("is_guest_for_team", { p_team_id: team.id }),
     team.organization_id ? supabase.rpc("is_org_admin", { p_org_id: team.organization_id }) : Promise.resolve({ data: false }),
-    supabase
-      .from("decisions")
-      .select("id, body, created_at, round_id, rounds(question)")
-      .eq("team_id", team.id)
-      .order("created_at", { ascending: false }),
-    // RLS: only your own read receipts.
-    supabase.from("decision_reads").select("decision_id"),
   ]);
-  const readIds = new Set((ownReads ?? []).map((r) => r.decision_id));
   const canManage = isLead || Boolean(isOrgOwner);
   // Teams inside an organization: leads pick people from the organization instead of typing an email.
   let candidates: { id: string; name: string }[] | undefined;
@@ -135,36 +128,6 @@ async function TeamDetail({ params }: { params: Promise<{ teamId: string }> }) {
             )}
           </section>
 
-          {decisions && decisions.length > 0 ? (
-            <section aria-labelledby="decisions-heading">
-              <h2 id="decisions-heading" className="mb-4 flex items-center gap-2 text-h2">
-                <Gavel aria-hidden size={20} strokeWidth={1.75} />
-                Beschlüsse
-              </h2>
-              <ul className="flex flex-col gap-3">
-                {decisions.map((d) => (
-                  <li key={d.id}>
-                    <Link
-                      href={`/app/runden/${d.round_id}`}
-                      className="block rounded-lg border border-line bg-card p-4 shadow-card hover:border-border-strong"
-                    >
-                      <p className="flex flex-wrap items-center gap-2 text-caption text-ink-muted">
-                        {formatDateTime(d.created_at)}
-                        {readIds.has(d.id) ? null : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
-                            <span aria-hidden className="size-1.5 rounded-full bg-primary" />
-                            Neu für dich
-                          </span>
-                        )}
-                      </p>
-                      <p className="mt-1 text-body font-semibold">{d.body}</p>
-                      <p className="mt-1 text-body-sm text-ink-muted">Zur Frage: {d.rounds?.question}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
 
           {pastRounds.length > 0 ? (
             <section aria-labelledby="past-heading">

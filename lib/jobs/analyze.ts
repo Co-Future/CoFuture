@@ -56,11 +56,12 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, jobId: st
       }))
       .filter((i) => i.responses.length > 0);
     const results = await Promise.all(
-      inputs.map((i) => buildPerspectiveMap({ question: i.question.body, context: round.context, responses: i.responses })),
+      inputs.map((i) => buildPerspectiveMap({ question: i.question.body, responses: i.responses })),
     );
     const map = {
       clusters: results.flatMap((r, i) => r.map.clusters.map((c) => ({ ...c, question_id: inputs[i].question.id }))),
       open_questions: results.flatMap((r, i) => r.map.open_questions.map((q) => ({ ...q, question_id: inputs[i].question.id }))),
+      overviews: results.flatMap((r, i) => (r.map.overview ? [{ ...r.map.overview, question_id: inputs[i].question.id }] : [])),
     };
     const result = {
       provider: results[0].provider,
