@@ -8,6 +8,6 @@ labels: enhancement
 
 **Für wen und warum?**
 
-**Schritt in der README** (falls vorhanden)
+**Schritt in docs/roadmap.md** (falls vorhanden)
 
 **Passt das zu den Gestaltungsprinzipien?** (Belege, Pseudonyme, Mensch entscheidet)

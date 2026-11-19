@@ -1,6 +1,6 @@
 {
   "name": "cofuture",
-  "version": "0.1.0",
+  "version": "0.11.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.mts",
+    "docs:check": "node scripts/check-docs.mjs",
     "db:push": "supabase db push --remote=zdvxffleftcnomgexshy",
     "db:types": "supabase gen types typescript --remote=zdvxffleftcnomgexshy --schema public > lib/db/types.ts"
   },

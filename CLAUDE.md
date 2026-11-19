@@ -8,10 +8,10 @@ Kontext und Regeln für Claude Code und alle im Team. Die Datei liegt im Repo, d
 
 CoFuture ist eine KI-Plattform für Kommunikation und Wissensaustausch zwischen Führung, Mitarbeitenden und Kunden. Die KI fasst zusammen, strukturiert und belegt. **Menschen entscheiden.**
 
-- **Quelle der Wahrheit:** die [`README.md`](README.md). Dort stehen Scope, Stand, Roadmap und offene Aufgaben. Es gibt kein separates Planungstool. Wenn Code und README sich widersprechen, nachfragen statt raten.
-- **README aktuell halten:** Wer etwas fertigstellt oder den Plan ändert, passt die README im selben PR an (Abschnitte *Stand* und *Roadmap*).
+- **Quelle der Wahrheit:** die [`README.md`](README.md) für Ziel, Scope, Stand und offene Aufgaben, die Doku in [`docs/`](docs/README.md) für alles Technische. Jede Information steht an genau einem Ort ([Wo steht was](docs/README.md#wo-steht-was)). Es gibt kein separates Planungstool. Wenn Code und Doku sich widersprechen, nachfragen statt raten.
+- **Doku aktuell halten:** siehe [Dokumentation und Versionen](#dokumentation-und-versionen-pflicht). Gilt für jeden PR, auch für Claude Code.
 - **Abgabe:** 05.02.2027, lauffähige Plattform, kein Klickprototyp. Seminar „Zurück in die Digitale Zukunft“.
-- **Kernfeature AsyncMeet:** Runde mit Frist → Antworten per Sprache oder Text → Transkription → Perspektivenkarte mit Quellen → Beschluss.
+- **Kernfeature AsyncMeet:** Austausch mit einer oder mehreren Fragen → Antworten per Sprache oder Text → Transkription → Perspektivenkarte je Frage mit Quellen → Beschluss ([Ablauf](docs/architecture.md#ablauf-eines-austauschs)).
 
 ## Gestaltungsprinzipien (nicht verhandelbar)
 
@@ -27,27 +27,9 @@ Gelten für jedes Feature. Verstößt eine Umsetzung dagegen, darauf hinweisen.
 
 ## Tech-Stack
 
-Nur Vercel und Supabase als Plattform. Neue Funktionen werden damit umgesetzt (siehe *Roadmap* in der README), neue Dienste nur mit Begründung im PR.
+Einzige Quelle ist [`docs/tech-stack.md`](docs/tech-stack.md), hier eingebunden. Nicht hier ändern, sondern dort, mit Zeile im Änderungsprotokoll. Architektur mit Schaubildern: [`docs/architecture.md`](docs/architecture.md). Entscheidungen stehen als ADR in [`docs/adr/`](docs/adr/). Eine ADR gilt, sobald Constantin oder Luca sie freigeben.
 
-| Bereich | Technologie |
-| --- | --- |
-| Sprache | TypeScript (strict) |
-| Frontend | Next.js 16 (App Router, Server Components, `cacheComponents`), React 19, Tailwind CSS 4, lucide-react |
-| Formulare | eigene Felder in `components/ui/form.tsx`, Validierung mit Zod (Schemas in `lib/validation/`, geteilt mit der API) |
-| API | Route Handlers (REST), einheitliches Fehlerformat über `lib/api/respond.ts`, Aufrufe im Browser über `apiFetch` |
-| Datenbank | Supabase Postgres (Frankfurt), Row Level Security, `pg_cron`, Realtime, später pgvector |
-| Auth | Supabase Auth (E-Mail + Passwort), `@supabase/ssr`, einmalige Zugangslinks (ADR 011) |
-| Organisationen | mehrere je Person, Auswahl per Cookie (`lib/organizations/current.ts`), Mitgliedschaft prüft immer die Datenbank |
-| Storage | privater Bucket, Upload direkt aus dem Browser, nie durch eine Vercel-Funktion (Limit 4,5 MB), Audio max. 24 h |
-| Jobs | Tabelle `analysis_jobs`, Start per `after()`, Worker `/api/worker` (max. 300 s je Lauf, in kleinen Schritten) |
-| Speech-to-Text | Whisper large-v3-turbo über Groq, Reserve Gemini (`lib/stt/`) |
-| LLM | Gemini 3.5 Flash mit Structured Output, Reserve Groq (`lib/ai/`) |
-| E-Mail | vorerst keine; später Resend mit eigener Domain |
-| Hosting | Vercel Hobby (Frankfurt), Supabase Free (Projekte `cofuture-staging` und `cofuture-prod`) |
-| Tests | Vitest (Unit, Integration gegen Staging), GitHub Actions |
-| Paketmanager | pnpm über corepack |
-
-Entscheidungen stehen als ADR in [`docs/adr/`](docs/adr/). Eine ADR gilt, sobald Constantin oder Luca sie freigeben.
+@docs/tech-stack.md
 
 ## Designsprache
 
@@ -95,6 +77,24 @@ Fünf Leute arbeiten parallel im Repo, oft mit Claude Code.
 - Keine Schlüssel, Tokens oder echten Personendaten ins Repo, auch nicht in Tests oder Seed-Daten.
 - Variablen stehen ohne Werte in `.env.example`, echte Werte in `.env.local` (ignoriert) und in Vercel.
 
+## Dokumentation und Versionen (Pflicht)
+
+Fünf Leute und mehrere Claude-Code-Sitzungen arbeiten parallel. Damit niemand gegen einen veralteten Stand arbeitet, gilt:
+
+- **Im selben PR, nie später.** Wer Code ändert, passt die zugehörige Doku im selben PR an. Welche Datei: Tabelle [Was muss ich anpassen?](docs/README.md#was-muss-ich-anpassen).
+- **Ein Ort je Information.** Tech-Stack nur in `docs/tech-stack.md`, Architektur nur in `docs/architecture.md`, geplante Funktionen nur in `docs/roadmap.md`, Stand nur in der README, Änderungen je Version nur im `CHANGELOG.md`. Andere Dateien verlinken, statt zu kopieren.
+- **Tech-Stack-Änderungen protokollieren:** jede neue oder entfernte Abhängigkeit, jeder neue Dienst, jedes Major-Update, jeder Anbieter- oder Modellwechsel bekommt eine Zeile im [Änderungsprotokoll](docs/tech-stack.md#änderungsprotokoll). Größere Wechsel brauchen eine ADR.
+- **Architektur-Schaubilder pflegen:** neue Tabelle, neuer Job-Typ, neuer KI-Schritt oder geänderter Ablauf → Mermaid-Diagramm in `docs/architecture.md` und dessen Änderungsprotokoll anpassen.
+- **Versionen nach [Semantic Versioning](docs/versioning.md):** jeder PR mit Wirkung in der App trägt sich in `CHANGELOG.md` unter `[Unreleased]` ein (Neu, Geändert, Behoben, Entfernt, Sicherheit). Die Version in `package.json` steigt nur im Release-PR (`chore/release-X.Y.Z`), danach Git-Tag `vX.Y.Z`.
+- **Die CI prüft** Version, Changelog, Abhängigkeiten, Tabellen und ADR-Übersicht (`pnpm docs:check`, Details in [`docs/versioning.md`](docs/versioning.md#was-die-ci-prüft)).
+
+**Für Claude Code zusätzlich:**
+
+- Vor der Arbeit `docs/README.md` und die betroffenen Doku-Dateien lesen und von aktuellem `origin/main` ausgehen. Steht dort etwas anderes als im Auftrag oder im Code, nachfragen statt eine eigene Variante bauen.
+- Vor dem PR die Tabelle *Was muss ich anpassen?* durchgehen und `pnpm docs:check` laufen lassen.
+- Am Ende der Arbeit die Links zu den geänderten Doku-Abschnitten nennen.
+- Die Version nie selbst erhöhen oder taggen, außer im Release-PR auf ausdrücklichen Wunsch.
+
 ## Befehle
 
 ```bash
@@ -104,6 +104,7 @@ corepack pnpm lint        # ESLint
 corepack pnpm typecheck   # Routen-Typen + TypeScript
 corepack pnpm test        # Unit-Tests
 corepack pnpm build       # Produktions-Build
+corepack pnpm docs:check  # Doku, Version und Changelog prüfen
 ```
 
 Mit `corepack enable` reicht danach `pnpm …`.
