@@ -4,7 +4,7 @@
 
 ## Warum
 
-<!-- Schritt aus der README (Stand oder Roadmap), Problem, Ziel -->
+<!-- Schritt aus der README (Stand) oder docs/roadmap.md, Problem, Ziel -->
 
 ## Wie getestet
 
@@ -17,5 +17,7 @@
 - [ ] Keine Secrets oder echten Personendaten im Code
 - [ ] Hält die Designsprache ein (Tokens statt fester Farben, Du-Ansprache, Buttons Verb + Objekt)
 - [ ] Hält die Gestaltungsprinzipien ein (Belege, Pseudonyme, keine Personenbewertung)
-- [ ] README aktualisiert, falls sich Stand oder Plan ändern
+- [ ] `CHANGELOG.md` unter `[Unreleased]` ergänzt (entfällt bei reinen Doku-, Test- oder CI-PRs)
+- [ ] Doku angepasst, wo nötig ([was muss ich anpassen?](https://github.com/Co-Future/CoFuture/blob/main/docs/README.md#was-muss-ich-anpassen)): README *Stand*, `docs/roadmap.md`, `docs/tech-stack.md`, `docs/architecture.md`, `docs/api.md`
+- [ ] Version nicht erhöht (nur im Release-PR)
 - [ ] Höchstens eine neue Migration, bestehende Migrationen unverändert

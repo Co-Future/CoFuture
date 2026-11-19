@@ -24,7 +24,7 @@ export type PlannedFeature = {
   stack: string;
 };
 
-// Same content as the roadmap in README.md. Remove an entry once the feature ships.
+// Same content as docs/roadmap.md. Remove an entry once the feature ships.
 export const plannedFeatures: PlannedFeature[] = [
   {
     id: "wissensspeicher",

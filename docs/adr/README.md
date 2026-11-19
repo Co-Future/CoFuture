@@ -8,7 +8,7 @@ Jede wichtige technische Entscheidung bekommt eine Datei `NNN-titel.md` mit:
 
 ## Übersicht
 
-Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ganzen Teams ist nicht nötig. Begründung und Kosten stehen in der jeweiligen ADR, das Gesamtbild in der [README](../../README.md).
+Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ganzen Teams ist nicht nötig. Begründung und Kosten stehen in der jeweiligen ADR, das Gesamtbild in [Tech-Stack](../tech-stack.md) und [Architektur](../architecture.md). Neue ADR: Datei anlegen, Zeile unten ergänzen, betroffene Doku anpassen (die CI prüft die Übersicht).
 
 | ADR | Thema | Entscheidung |
 | --- | --- | --- |
@@ -23,3 +23,4 @@ Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ga
 | [009](009-hintergrundjobs-worker-vercel.md) | Hintergrundjobs | Worker als Next.js-Route, `pg_cron` |
 | [010](010-api-route-handlers.md) | API-Stil | Route Handlers (REST) |
 | [011](011-zugang-organisationen-einladungen.md) | Zugang | Organisationen + einmaliger Zugangslink |
+| [012](012-austausch-mehrere-fragen.md) | Austausch | Mehrere Fragen, Zielpersonen, Rückfragen |
