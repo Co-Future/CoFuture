@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createAdminClient } from "@/lib/db/admin";
+import { EMBEDDING_MARKER } from "@/lib/ai/embed";
 import { runEmbedJobs } from "@/lib/jobs/embed";
 import { signUp, testRun as run, type TestUser } from "./helpers";
 
@@ -197,7 +198,7 @@ describe("knowledge store", () => {
     const { data } = await admin.from("knowledge_items").select("embedding, embedding_model").eq("round_id", roundId);
     expect(data).toHaveLength(6);
     for (const row of data!) {
-      expect(row.embedding_model).toBe("gemini-embedding-2");
+      expect(row.embedding_model).toBe(EMBEDDING_MARKER);
       expect(JSON.parse(row.embedding as string)).toHaveLength(768);
     }
   }, 60_000);

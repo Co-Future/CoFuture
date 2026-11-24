@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { embedTexts, EmbedError, knowledgeText, normalize, toVectorLiteral } from "@/lib/ai/embed";
+import { embedTexts, EmbedError, knowledgeText, normalize, queryText, toVectorLiteral } from "@/lib/ai/embed";
 
 describe("embedding helpers", () => {
   it("normalizes to unit length", () => {
@@ -12,10 +12,11 @@ describe("embedding helpers", () => {
     expect(toVectorLiteral([0.1, -2, 3])).toBe("[0.1,-2,3]");
   });
 
-  it("represents an item by question, title and content", () => {
+  it("prefixes items and queries with their task", () => {
     expect(knowledgeText({ question: "Passt Donnerstag?", title: "Termin passt", content: "Fast alle können." })).toBe(
-      "Frage: Passt Donnerstag?\nTermin passt\nFast alle können.",
+      "title: Termin passt | text: Frage: Passt Donnerstag?\nFast alle können.",
     );
+    expect(queryText("Wann treffen wir uns?")).toBe("task: search result | query: Wann treffen wir uns?");
   });
 });
 
@@ -41,7 +42,7 @@ describe("embedTexts", () => {
       }),
     );
     const texts = Array.from({ length: 150 }, (_, i) => String(i + 1));
-    const out = await embedTexts(texts, "RETRIEVAL_DOCUMENT");
+    const out = await embedTexts(texts);
     expect(calls).toEqual([100, 50]);
     expect(out).toHaveLength(150);
     expect(out[149][0]).toBe(1); // normalized
@@ -53,12 +54,12 @@ describe("embedTexts", () => {
       "fetch",
       vi.fn(async () => new Response("slow down", { status: 429 })),
     );
-    await expect(embedTexts(["a"], "RETRIEVAL_DOCUMENT")).rejects.toMatchObject({ retriable: true });
+    await expect(embedTexts(["a"])).rejects.toMatchObject({ retriable: true });
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("bad", { status: 400 })),
     );
-    await expect(embedTexts(["a"], "RETRIEVAL_DOCUMENT")).rejects.toMatchObject({ retriable: false });
+    await expect(embedTexts(["a"])).rejects.toMatchObject({ retriable: false });
   });
 
   it("rejects vectors of the wrong size", async () => {
@@ -67,6 +68,17 @@ describe("embedTexts", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify({ embeddings: [{ values: [1, 2, 3] }] }))),
     );
-    await expect(embedTexts(["a"], "RETRIEVAL_DOCUMENT")).rejects.toBeInstanceOf(EmbedError);
+    await expect(embedTexts(["a"])).rejects.toBeInstanceOf(EmbedError);
+  });
+});
+
+describe("snippetParts", () => {
+  it("splits marked matches without any HTML", async () => {
+    const { snippetParts } = await import("@/lib/knowledge/search");
+    expect(snippetParts("Die [[Hotline]] bleibt <b>besetzt</b>")).toEqual([
+      { text: "Die ", mark: false },
+      { text: "Hotline", mark: true },
+      { text: " bleibt <b>besetzt</b>", mark: false },
+    ]);
   });
 });

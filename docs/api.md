@@ -115,4 +115,17 @@ Regeln in der Datenbank:
 - Alle im Team sehen den Beschluss (`decisions`, Realtime). Lesebestätigungen sieht jede Person nur für sich; `decision_read_count()` liefert nur Zahlen („3 von 5 gelesen“), nie Namen.
 - Folgerunden (`rounds.parent_round_id`) gehören zum selben Team, die Ursprungsrunde muss geschlossen oder entschieden sein.
 
+## Wissensspeicher
+
+Zusammenfassungen, Themengruppen und Beschlüsse, durchsuchbar über die ganze aktuelle Organisation ([ADR 013](adr/013-wissensspeicher.md)).
+
+| Methode | Pfad | Parameter | Antwort | Wer |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/knowledge` | `q` (2 bis 200 Zeichen), `team` (optional) | `200 { mode, hits }` | alle in der Organisation, sehen nur, was sie im Original sehen dürfen |
+
+- `mode` ist `hybrid` (Stichwort und Bedeutung) oder `text`, wenn Gemini für die Suchanfrage nicht erreichbar war.
+- Jeder Treffer: `kind` (`overview`, `cluster`, `decision`), `clusterKind`, `title`, `question`, `snippet` (Fundstellen als `[[…]]` markiert), `roundId`, `questionId`, `teamId`, `createdAt`, `matchedText`, `matchedMeaning`.
+- In der Datenbank: `search_knowledge()` mit den Rechten der Person (`security invoker`), Volltext (`german`) und Vektorsuche, zusammengeführt per Reciprocal Rank Fusion. Treffer nach Bedeutung erst ab einer Ähnlichkeit von 0,65.
+- Die Seite `/app/wissen` nutzt dieselbe Funktion direkt (`lib/knowledge/search.ts`).
+
 Lesen (Organisationen, Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.

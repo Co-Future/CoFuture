@@ -19,6 +19,14 @@ Der Wissensspeicher (Roadmap-Schritt 8) soll Ergebnisse aus dem Austausch auffin
 - **Sichtbarkeit in der Datenbank:** RLS über `can_see_knowledge()`, das dieselben Funktionen nutzt wie die Originale (`can_see_question`, `can_see_round`, `round_has_hidden_questions`). Schreiben nur über Trigger und Job.
 - **Nächste Schritte:** 8b Hybridsuche als Datenbankfunktion (Volltext und Vektor zusammengeführt, läuft mit den Rechten der Person), 8c Frage mit Belegen über `lib/ai/` (Aussagen ohne Quell-ID werden verworfen).
 
+### Nachtrag 8b (24.11.2026)
+
+- **Aufgaben-Kennung im Text:** Gespeicherte Einträge gehen als `title: … | text: …`, Suchanfragen als `task: search result | query: …` an Gemini. In einem Test mit ausgedachten deutschen Beispielen lagen passende Treffer damit bei einer Ähnlichkeit von 0,66 bis 0,77, unpassende höchstens bei 0,63. Ohne Kennung lagen beide zwischen 0,52 und 0,64 und ließen sich nicht trennen.
+- **Schwelle 0,65** für Treffer nach Bedeutung (`MIN_SIMILARITY` in `lib/ai/embed.ts`). Darunter zählt nur der Stichwort-Treffer.
+- **Kennzeichen `EMBEDDING_MARKER`** an jedem Vektor (`gemini-embedding-2:768:prefix-v1`). Ändern sich Modell, Größe oder Textformat, rechnet der Job alle Einträge mit anderem Kennzeichen von selbst neu.
+- **Suche:** `search_knowledge()` führt Volltext (`websearch_to_tsquery('german')`) und Vektorsuche per Reciprocal Rank Fusion (k = 60) zusammen und läuft mit den Rechten der Person. Fundstellen im Text markiert `ts_headline` mit `[[…]]`, die Oberfläche rendert das ohne HTML.
+- Grenze der Stichwortsuche: Zusammengesetzte Wörter werden nicht zerlegt („Hotline“ findet „Kundenhotline“ nicht per Stichwort). Die Suche nach Bedeutung fängt das auf.
+
 ## Folgen
 
 - Kosten: laut Google 0,15 $ je 1 Mio. Tokens, für unser Volumen vernachlässigbar. Im Gratis-Tarif reichen die Limits für die Entwicklung. Vor echten Nutzern gilt wie beim Sprachmodell: bezahlter Tarif.
