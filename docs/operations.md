@@ -13,7 +13,7 @@ Siehe [Tech-Stack → Umgebungen](tech-stack.md#umgebungen).
 1. Neue Datei `supabase/migrations/<JJJJMMTTHHMMSS>_<name>.sql` anlegen. Bestehende Migrationen nie ändern.
 2. Auf Staging einspielen (`pnpm db:push` oder über den Supabase-Connector), danach Typen neu erzeugen.
 3. Liegt die Version in Supabase anders als der Dateiname, die Datei auf die Version umbenennen.
-4. RLS für jede neue Tabelle mitliefern und in `tests/integration/` testen.
+4. RLS für jede neue Tabelle mitliefern und in `tests/integration/` testen. Testdaten über die Helfer in `tests/integration/helpers.ts` anlegen (`setUpTeam`, `startExchange`, `answer`). Sie nehmen denselben Weg wie die App; direkte Inserts in `rounds` oder `responses` lassen die Rechte seit ADR 012 nicht mehr zu.
 5. Migration einspielen, **bevor** der Code auf `main` geht.
 
 ## Testkonten

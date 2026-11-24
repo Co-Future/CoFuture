@@ -59,21 +59,19 @@ describe("knowledge store", () => {
     ],
   });
   const saveMap = (m: object) =>
-    admin
-      .from("analyses")
-      .upsert(
-        {
-          round_id: roundId,
-          map: m as never,
-          provider: "test",
-          model: "test",
-          prompt_version: "v1",
-          response_count: 4,
-          covered_count: 4,
-          duration_ms: 1,
-        },
-        { onConflict: "round_id" },
-      );
+    admin.from("analyses").upsert(
+      {
+        round_id: roundId,
+        map: m as never,
+        provider: "test",
+        model: "test",
+        prompt_version: "v1",
+        response_count: 4,
+        covered_count: 4,
+        duration_ms: 1,
+      },
+      { onConflict: "round_id" },
+    );
 
   beforeAll(async () => {
     [lead, tom, lars, neighbour, outsider] = await Promise.all([

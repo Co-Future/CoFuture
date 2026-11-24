@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { PerspectiveMapData } from "@/lib/ai/schema";
 import { runAnalyzeJobs } from "@/lib/jobs/analyze";
-import { signUp, testRun as run, type TestUser } from "./helpers";
+import { PROMPT_VERSION } from "@/prompts/v2/perspective-map";
+import { answer, setUpTeam, signUp, startExchange, type TestUser } from "./helpers";
 
 // Made-up answers only (free AI tiers). Groq first, to save the Gemini quota.
 process.env.LLM_PROVIDER = "groq";
@@ -24,46 +25,31 @@ describe("perspective map", () => {
     users = await Promise.all(answers.map((_, i) => signUp(`a${i}`)));
     outsider = await signUp("a-out");
     const [lead, ...members] = users;
-    const teamId = (
-      await lead.client.rpc("create_team", { p_name: `Analyse ${run}` })
-    ).data!.id;
-    for (const m of members)
-      await lead.client.rpc("add_team_member_by_email", {
-        p_team_id: teamId,
-        p_email: m.email,
-      });
-    const round = await lead.client
-      .from("rounds")
-      .insert({
-        team_id: teamId,
-        question: "Sollen wir die Vier-Tage-Woche testen?",
-        deadline: new Date(Date.now() + 3_600_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    roundId = round.data!.id;
+    const { teamId } = await setUpTeam(
+      lead,
+      members.map((user) => ({ user })),
+      "Analyse",
+    );
+    let questionId: string;
+    ({
+      roundId,
+      questionIds: [questionId],
+    } = await startExchange(lead, teamId, ["Sollen wir die Vier-Tage-Woche testen?"], {
+      deadlineMs: 3_600_000,
+    }));
     for (const [i, u] of users.entries()) {
-      const { error } = await u.client
-        .from("responses")
-        .insert({ round_id: roundId, body: answers[i] });
+      const { error } = await answer(u, roundId, questionId, answers[i]);
       if (error) throw error;
     }
   });
 
   it("does not queue an analysis while the round is open", async () => {
-    const { data } = await users[0].client
-      .from("analysis_jobs")
-      .select("id")
-      .eq("round_id", roundId)
-      .eq("kind", "analyze");
+    const { data } = await users[0].client.from("analysis_jobs").select("id").eq("round_id", roundId).eq("kind", "analyze");
     expect(data).toEqual([]);
   });
 
   it("closing queues one job, the worker builds the map and every member sees it", async () => {
-    await users[0].client
-      .from("rounds")
-      .update({ status: "closed" })
-      .eq("id", roundId);
+    await users[0].client.from("rounds").update({ status: "closed" }).eq("id", roundId);
     const { data: jobs } = await users[3].client
       .from("analysis_jobs")
       .select("id, status")
@@ -78,19 +64,12 @@ describe("perspective map", () => {
       failed: 0,
     });
 
-    const { data: analysis } = await users[4].client
-      .from("analyses")
-      .select("*")
-      .eq("round_id", roundId)
-      .single();
+    const { data: analysis } = await users[4].client.from("analyses").select("*").eq("round_id", roundId).single();
     expect(analysis).not.toBeNull();
-    expect(analysis!.prompt_version).toBe("v1");
+    expect(analysis!.prompt_version).toBe(PROMPT_VERSION);
     expect(analysis!.response_count).toBe(5);
 
-    const { data: own } = await users[0].client
-      .from("round_responses")
-      .select("pseudonym")
-      .eq("round_id", roundId);
+    const { data: own } = await users[0].client.from("round_responses").select("pseudonym").eq("round_id", roundId);
     const ids = new Set(own!.map((r) => r.pseudonym));
     const map = analysis!.map as PerspectiveMapData;
     expect(map.clusters.length).toBeGreaterThan(0);
@@ -101,23 +80,13 @@ describe("perspective map", () => {
     expect(new Set(map.clusters.flatMap((c) => c.source_ids))).toEqual(ids);
 
     // The outsider sees neither the map nor the job.
-    const foreign = await outsider.client
-      .from("analyses")
-      .select("id")
-      .eq("round_id", roundId);
+    const foreign = await outsider.client.from("analyses").select("id").eq("round_id", roundId);
     expect(foreign.data).toEqual([]);
   }, 120_000);
 
   it("closing again does not queue a second job", async () => {
-    await users[0].client
-      .from("rounds")
-      .update({ status: "closed" })
-      .eq("id", roundId);
-    const { data } = await users[0].client
-      .from("analysis_jobs")
-      .select("id")
-      .eq("round_id", roundId)
-      .eq("kind", "analyze");
+    await users[0].client.from("rounds").update({ status: "closed" }).eq("id", roundId);
+    const { data } = await users[0].client.from("analysis_jobs").select("id").eq("round_id", roundId).eq("kind", "analyze");
     expect(data).toHaveLength(1);
   });
 });

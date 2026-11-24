@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { POST as acceptInvite } from "@/app/api/invites/accept/route";
 import { createAdminClient } from "@/lib/db/admin";
 import { issueAccessLink } from "@/lib/organizations/invite-token";
-import { signUp, testRun as run, env, type TestUser } from "./helpers";
+import { answer, env, signUp, startExchange, testRun as run, type TestUser } from "./helpers";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -138,12 +138,10 @@ describe("organizations and roles", () => {
     });
 
     it("answer rounds that others started", async () => {
-      const { data: round } = await member.client
-        .from("rounds")
-        .insert({ team_id: teamId, question: "Gästetest?", deadline: new Date(Date.now() + 3_600_000).toISOString() })
-        .select("id")
-        .single();
-      expect((await guest.client.from("responses").insert({ round_id: round!.id, body: "Ja" })).error).toBeNull();
+      const { roundId, questionIds } = await startExchange(member, teamId, ["Passt dir der Gästetermin?"], {
+        deadlineMs: 3_600_000,
+      });
+      expect((await answer(guest, roundId, questionIds[0], "Ja")).error).toBeNull();
     });
 
     it("cannot be made team lead", async () => {

@@ -38,8 +38,17 @@ describe("exchange", () => {
     teamId = (await lead.client.rpc("create_team", { p_name: `Team ${run}`, p_organization_id: orgId })).data!.id;
     for (const u of [tom, lars, guest]) await lead.client.rpc("add_team_member", { p_team_id: teamId, p_user_id: u.userId });
 
-    roundId = (await start(lead, [{ body: "Passt der Termin für alle?" }, { body: "Tom, übernimmst du den Support?", targets: [tom.userId] }])).data!;
-    const { data: qs } = await lead.client.from("round_questions").select("id, position").eq("round_id", roundId).order("position");
+    roundId = (
+      await start(lead, [
+        { body: "Passt der Termin für alle?" },
+        { body: "Tom, übernimmst du den Support?", targets: [tom.userId] },
+      ])
+    ).data!;
+    const { data: qs } = await lead.client
+      .from("round_questions")
+      .select("id, position")
+      .eq("round_id", roundId)
+      .order("position");
     [qAll, qTom] = qs!.map((q) => q.id);
   });
 
@@ -77,7 +86,14 @@ describe("exchange", () => {
 
   it("only the addressed person answers a targeted question", async () => {
     expect((await save(lars, [{ question_id: qTom, body: "Ich nicht." }])).error?.hint).toBe("invalid_question");
-    expect((await save(tom, [{ question_id: qAll, body: "Ja." }, { question_id: qTom, body: "Mach ich." }])).data).toBe("A01");
+    expect(
+      (
+        await save(tom, [
+          { question_id: qAll, body: "Ja." },
+          { question_id: qTom, body: "Mach ich." },
+        ])
+      ).data,
+    ).toBe("A01");
     expect((await save(guest, [{ question_id: qAll, body: "Passt." }])).data).toBe("A02");
   });
 

@@ -22,7 +22,10 @@ describe("team management", () => {
   });
 
   it("reports unknown emails without adding anyone", async () => {
-    const result = await lead.client.rpc("add_team_member_by_email", { p_team_id: teamId, p_email: `niemand-${run}@example.com` });
+    const result = await lead.client.rpc("add_team_member_by_email", {
+      p_team_id: teamId,
+      p_email: `niemand-${run}@example.com`,
+    });
     expect(result.data).toBe("not_found");
   });
 

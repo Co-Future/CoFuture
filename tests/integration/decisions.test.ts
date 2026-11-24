@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createAdminClient } from "@/lib/db/admin";
-import { signUp, testRun as run, type TestUser } from "./helpers";
+import { answer, signUp, testRun as run, type TestUser } from "./helpers";
 
 /** Decisions and follow-up rounds (step 7) against staging. */
 describe("decisions", () => {
@@ -13,12 +13,13 @@ describe("decisions", () => {
   let roundId: string;
 
   const hour = () => new Date(Date.now() + 3_600_000).toISOString();
-  const newRound = async (by: TestUser, extra: { parent_round_id?: string; team_id?: string } = {}) =>
-    by.client
-      .from("rounds")
-      .insert({ team_id: teamId, question: `Frage ${run}?`, deadline: hour(), ...extra })
-      .select("id")
-      .single();
+  const newRound = (by: TestUser, parentRoundId?: string, team = teamId) =>
+    by.client.rpc("create_exchange", {
+      p_team_id: team,
+      p_questions: [{ body: `Wie gehen wir weiter vor ${run}?` }] as never,
+      p_deadline: hour(),
+      p_parent_round_id: parentRoundId,
+    });
   const decide = (by: TestUser, id = roundId) =>
     by.client.rpc("decide_round", {
       p_round_id: id,
@@ -45,8 +46,9 @@ describe("decisions", () => {
     teamId = (await lead.client.rpc("create_team", { p_name: `Team ${run}`, p_organization_id: orgId })).data!.id;
     for (const u of [creator, member, guest])
       await lead.client.rpc("add_team_member", { p_team_id: teamId, p_user_id: u.userId });
-    roundId = (await newRound(creator)).data!.id;
-    await member.client.from("responses").insert({ round_id: roundId, body: "Dafür" });
+    roundId = (await newRound(creator)).data!;
+    const { data: q } = await creator.client.from("round_questions").select("id").eq("round_id", roundId).single();
+    await answer(member, roundId, q!.id, "Dafür");
   });
 
   it("cannot decide while the round is open", async () => {
@@ -60,20 +62,16 @@ describe("decisions", () => {
   });
 
   it("follow-up rounds need a closed origin in the same team", async () => {
-    const open = (await newRound(creator)).data!.id;
-    expect((await newRound(creator, { parent_round_id: open })).error?.hint).toBe("parent_open");
+    const open = (await newRound(creator)).data!;
+    expect((await newRound(creator, open)).error?.hint).toBe("parent_open");
 
     const otherTeam = (await outsider.client.rpc("create_team", { p_name: `Fremd ${run}` })).data!.id;
-    const foreign = await outsider.client
-      .from("rounds")
-      .insert({ team_id: otherTeam, question: "Fremd?", deadline: hour(), parent_round_id: roundId })
-      .select("id")
-      .single();
+    const foreign = await newRound(outsider, roundId, otherTeam);
     expect(foreign.error?.hint).toBe("invalid_parent");
 
-    const followUp = await newRound(member, { parent_round_id: roundId });
+    const followUp = await newRound(member, roundId);
     expect(followUp.error).toBeNull();
-    const { data } = await lead.client.from("rounds").select("parent_round_id").eq("id", followUp.data!.id).single();
+    const { data } = await lead.client.from("rounds").select("parent_round_id").eq("id", followUp.data!).single();
     expect(data?.parent_round_id).toBe(roundId);
   });
 

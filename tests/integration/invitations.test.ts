@@ -36,7 +36,9 @@ describe("organization invitations", () => {
     const org = await owner.client.rpc("create_organization", { p_name: `Einladung ${run}` });
     if (org.error) throw org.error;
     orgId = org.data.id;
-    const { error } = await admin.from("organization_members").insert({ organization_id: orgId, user_id: member.userId, role: "member" });
+    const { error } = await admin
+      .from("organization_members")
+      .insert({ organization_id: orgId, user_id: member.userId, role: "member" });
     if (error) throw error;
     teamA = (await owner.client.rpc("create_team", { p_name: `A ${run}`, p_organization_id: orgId })).data!.id;
     teamB = (await owner.client.rpc("create_team", { p_name: `B ${run}`, p_organization_id: orgId })).data!.id;
@@ -104,9 +106,7 @@ describe("organization invitations", () => {
     });
 
     it("an invited person cannot be put into a team before accepting", async () => {
-      expect((await owner.client.rpc("add_team_member", { p_team_id: teamA, p_user_id: invitee.userId })).data).toBe(
-        "not_found",
-      );
+      expect((await owner.client.rpc("add_team_member", { p_team_id: teamA, p_user_id: invitee.userId })).data).toBe("not_found");
       expect((await owner.client.rpc("add_team_member_by_email", { p_team_id: teamA, p_email: invitee.email })).data).toBe(
         "not_found",
       );
@@ -178,7 +178,11 @@ describe("organization invitations", () => {
 
     it("an account the organization created stops being managed once it joins another organization", async () => {
       const email = `cofuture.test+${run}-i-managed@gmail.com`;
-      const { data, error } = await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { display_name: "Neu" } });
+      const { data, error } = await admin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { display_name: "Neu" },
+      });
       if (error) throw error;
       const userId = data.user.id;
       await admin.from("organization_members").insert({ organization_id: orgId, user_id: userId, role: "member", managed: true });
