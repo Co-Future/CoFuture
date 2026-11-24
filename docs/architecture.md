@@ -212,6 +212,7 @@ Größere Änderungen an der Architektur, neueste oben. Kleinere stehen nur im [
 
 | Datum | Version | Änderung | ADR / PR |
 | --- | --- | --- | --- |
+| 24.11.2026 | – | Frage mit Belegen (8c): Hybridsuche, dann Antwort über `lib/ai/knowledge-answer.ts` mit Quellenprüfung, im Request, `POST /api/knowledge/ask` | [013](adr/013-wissensspeicher.md), dieser PR |
 | 24.11.2026 | – | Wissenssuche (8b): `search_knowledge()` (Volltext und Vektor, Reciprocal Rank Fusion, mit den Rechten der Person), Seite `/app/wissen`, `GET /api/knowledge` | [013](adr/013-wissensspeicher.md), dieser PR |
 | 24.11.2026 | – | Wissensspeicher (8a): `knowledge_items` mit pgvector und Volltext, Trigger auf `analyses` und `decisions`, Embedding-Job | [013](adr/013-wissensspeicher.md), dieser PR |
 | 18.11.2026 | 0.10.0 | Austausch mit mehreren Fragen, Zielpersonen und Rückfragen: neue Tabellen `round_questions`, `round_question_targets`, `response_answers`, `round_clarifications` | [012](adr/012-austausch-mehrere-fragen.md), #36 |

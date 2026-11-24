@@ -1,6 +1,6 @@
 # ADR 013: Wissensspeicher mit Gemini Embedding und Hybridsuche
 
-**Status:** Vorgeschlagen und umgesetzt (8a), 24.11.2026 (Freigabe durch Constantin oder Luca). Ergänzt [ADR 006](006-vektorsuche-pgvector.md).
+**Status:** Vorgeschlagen und umgesetzt (8a bis 8c), 24.11.2026 (Freigabe durch Constantin oder Luca). Ergänzt [ADR 006](006-vektorsuche-pgvector.md).
 
 ## Kontext
 
@@ -26,6 +26,13 @@ Der Wissensspeicher (Roadmap-Schritt 8) soll Ergebnisse aus dem Austausch auffin
 - **Kennzeichen `EMBEDDING_MARKER`** an jedem Vektor (`gemini-embedding-2:768:prefix-v1`). Ändern sich Modell, Größe oder Textformat, rechnet der Job alle Einträge mit anderem Kennzeichen von selbst neu.
 - **Suche:** `search_knowledge()` führt Volltext (`websearch_to_tsquery('german')`) und Vektorsuche per Reciprocal Rank Fusion (k = 60) zusammen und läuft mit den Rechten der Person. Fundstellen im Text markiert `ts_headline` mit `[[…]]`, die Oberfläche rendert das ohne HTML.
 - Grenze der Stichwortsuche: Zusammengesetzte Wörter werden nicht zerlegt („Hotline“ findet „Kundenhotline“ nicht per Stichwort). Die Suche nach Bedeutung fängt das auf.
+
+### Nachtrag 8c (24.11.2026)
+
+- **Frage mit Belegen:** Erst die Hybridsuche (8 Treffer), dann antwortet das Sprachmodell nur aus diesen Einträgen (Gemini, Reserve Groq, Structured Output). Jede Aussage braucht mindestens eine Quell-ID, sonst verwirft `finalizeAnswer()` sie. Höchstens 5 Aussagen.
+- **Keine Treffer, kein Modell:** Findet die Suche nichts, antwortet die App ohne KI-Aufruf „Dazu gibt es noch nichts im Wissensspeicher“. Passen die Treffer nicht zur Frage, meldet das Modell `insufficient` und die Seite zeigt die Treffer zum selbst Nachlesen.
+- **Im Request, nicht als Job:** Die Antwort ist kurz (wenige Quellen, Zeitlimit 20 s je Anbieter) und wird direkt gebraucht. Deshalb läuft sie bewusst im Request (`maxDuration` 60 s), anders als Transkription und Perspektivenkarte.
+- An das Modell gehen nur Frage, Titel, Inhalt und Datum der gefundenen Einträge, keine Namen.
 
 ## Folgen
 
