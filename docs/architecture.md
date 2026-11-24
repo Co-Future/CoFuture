@@ -27,14 +27,14 @@ flowchart LR
 
   subgraph Supabase["Supabase (Frankfurt)"]
     AUTH["Auth"]
-    DB[("Postgres<br/>RLS, pg_cron")]
+    DB[("Postgres<br/>RLS, pg_cron, pgvector")]
     RT["Realtime"]
     ST[("Storage<br/>Bucket voice")]
   end
 
   subgraph KI["KI-Anbieter (nur Pseudonyme und Texte)"]
     GROQ["Groq<br/>Whisper, Reserve-LLM"]
-    GEM["Gemini 3.5 Flash<br/>Reserve-STT"]
+    GEM["Gemini 3.5 Flash<br/>Reserve-STT, Embeddings"]
   end
 
   UI --> PROXY --> RSC --> DB
@@ -119,6 +119,7 @@ stateDiagram-v2
 | --- | --- | --- |
 | `transcribe` | `lib/jobs/transcribe.ts`, danach `lib/jobs/structure.ts` | Audio → Text (`lib/stt`), dann Fragen herausziehen (Team-Job) oder Antwort den Fragen zuordnen (`lib/ai/exchange.ts`), Audio löschen |
 | `analyze` | `lib/jobs/analyze.ts` | Perspektivenkarte je Frage (`lib/ai/perspective-map.ts`), Quellenprüfung mit `finalizeMap()` |
+| Embeddings (kein Eintrag in `analysis_jobs`) | `lib/jobs/embed.ts` | Trigger legen Einträge in `knowledge_items` an, der Job holt über `claim_knowledge_items()` alle ohne Vektor und berechnet sie (`lib/ai/embed.ts`). Start nach Analyse und Beschluss, Sicherheitsnetz `/api/worker` |
 
 **Zeitlimits je Anbieter:** Transkription 90 s, Fragen und Antworten zuordnen 15 s, Perspektivenkarte 45 s. Danach übernimmt die Reserve. Ein überlasteter Anbieter (429, 5xx, keine Antwort) wird zwei Minuten übersprungen.
 
@@ -148,6 +149,9 @@ erDiagram
   rounds ||--o| analyses : Perspektivenkarte
   rounds ||--o| decisions : Beschluss
   decisions ||--o{ decision_reads : Lesebestätigung
+  analyses ||--o{ knowledge_items : "Zusammenfassung, Cluster"
+  decisions ||--o| knowledge_items : Beschluss
+  round_questions ||--o{ knowledge_items : "Sichtbarkeit je Frage"
 ```
 
 | Tabelle | Zweck |
@@ -164,6 +168,7 @@ erDiagram
 | `analysis_jobs` | Hintergrundaufträge `transcribe` und `analyze` mit Status, Versuchen, Ergebnis und Fehler |
 | `analyses` | Perspektivenkarte je Runde mit `prompt_version` |
 | `decisions`, `decision_reads` | Beschluss mit Begründung und Lesebestätigungen ohne Namen |
+| `knowledge_items` | Wissensspeicher: Zusammenfassungen, Cluster und Beschlüsse mit Volltext-Index und Vektor, Sichtbarkeit wie das Original ([ADR 013](adr/013-wissensspeicher.md)) |
 
 ## Regeln im Code
 
@@ -207,6 +212,7 @@ Größere Änderungen an der Architektur, neueste oben. Kleinere stehen nur im [
 
 | Datum | Version | Änderung | ADR / PR |
 | --- | --- | --- | --- |
+| 24.11.2026 | – | Wissensspeicher (8a): `knowledge_items` mit pgvector und Volltext, Trigger auf `analyses` und `decisions`, Embedding-Job | [013](adr/013-wissensspeicher.md), dieser PR |
 | 18.11.2026 | 0.10.0 | Austausch mit mehreren Fragen, Zielpersonen und Rückfragen: neue Tabellen `round_questions`, `round_question_targets`, `response_answers`, `round_clarifications` | [012](adr/012-austausch-mehrere-fragen.md), #36 |
 | 18.11.2026 | 0.9.0 | Einladungen mit Bestätigung: `organization_invitations` | #32 |
 | 17.11.2026 | 0.9.0 | Fragen einsprechen: Transkriptions-Job auch für Teams (`analysis_jobs.team_id`) | #33 |

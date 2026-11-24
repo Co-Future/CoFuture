@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { apiError } from "@/lib/api/respond";
 import { serverEnv } from "@/lib/env";
 import { runAnalyzeJobs } from "@/lib/jobs/analyze";
+import { runEmbedJobs } from "@/lib/jobs/embed";
 import { runTranscribeJobs, sweepOldAudio } from "@/lib/jobs/transcribe";
 
 export const maxDuration = 300;
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   if (!authorized(request)) return apiError(401, "unauthenticated", "Nicht berechtigt.");
   const transcribe = await runTranscribeJobs({ limit: 10 });
   const analyze = await runAnalyzeJobs({ limit: 2 });
+  const embed = await runEmbedJobs({ limit: 100 });
   const sweptAudio = await sweepOldAudio();
-  return Response.json({ transcribe, analyze, sweptAudio });
+  return Response.json({ transcribe, analyze, embed, sweptAudio });
 }
