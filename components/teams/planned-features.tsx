@@ -1,5 +1,4 @@
 import {
-  BookOpen,
   CalendarClock,
   Globe,
   Headset,
@@ -26,20 +25,6 @@ export type PlannedFeature = {
 
 // Same content as docs/roadmap.md. Remove an entry once the feature ships.
 export const plannedFeatures: PlannedFeature[] = [
-  {
-    id: "wissensspeicher",
-    title: "Fragen an den Wissen-Bereich",
-    description: "Suche und Speicher sind unter „Wissen“ da. Als Nächstes: eine Frage stellen und eine Antwort mit Belegen bekommen.",
-    phase: "mvp",
-    Icon: BookOpen,
-    functions: [
-      "Frage in eigenen Worten stellen, AsyncMeet antwortet aus dem Wissensspeicher",
-      "Jede Aussage der Antwort mit Link zur Quelle, Aussagen ohne Quelle werden verworfen",
-      "Findet AsyncMeet nichts, sagt es das, statt etwas zu erfinden",
-      "Sichtbar nur, was du auch im Original sehen darfst",
-    ],
-    stack: "Hybridsuche search_knowledge(), Antwort über lib/ai mit Structured Output und Quellenprüfung",
-  },
   {
     id: "rueckkanal",
     title: "Rückkanal",

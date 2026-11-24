@@ -1,6 +1,7 @@
-import { Search } from "lucide-react";
+import { MessageCircleQuestion, Search } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { KnowledgeAnswerSection } from "@/components/knowledge/knowledge-answer";
 import { KnowledgeHitCard } from "@/components/knowledge/knowledge-hit";
 import { buttonStyles } from "@/components/ui/form";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/db/server";
 import { recentKnowledge, searchKnowledge, type KnowledgeSearch } from "@/lib/knowledge/search";
 import { getCurrentOrganization } from "@/lib/organizations/current";
 import { getMyTeams } from "@/lib/teams/my-teams";
-import { knowledgeSearchSchema } from "@/lib/validation/knowledge";
+import { knowledgeQuestionSchema, knowledgeSearchSchema } from "@/lib/validation/knowledge";
 
 export const metadata: Metadata = { title: "Wissen – CoFuture" };
 
@@ -20,6 +21,7 @@ async function Knowledge({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const rawQuery = typeof params.q === "string" ? params.q : "";
   const rawTeam = typeof params.team === "string" && params.team ? params.team : undefined;
+  const asking = params.mode === "ask";
 
   if (!org) {
     return (
@@ -32,10 +34,15 @@ async function Knowledge({ searchParams }: { searchParams: SearchParams }) {
   const teamName = new Map(teams.map((t) => [t.id, t.name]));
   const teamId = rawTeam && teamName.has(rawTeam) ? rawTeam : undefined;
 
-  const parsed = rawQuery ? knowledgeSearchSchema.safeParse({ q: rawQuery, team: teamId }) : null;
+  const parsedQuestion = asking && rawQuery ? knowledgeQuestionSchema.safeParse({ question: rawQuery, team: teamId }) : null;
+  const parsed = rawQuery && !asking ? knowledgeSearchSchema.safeParse({ q: rawQuery, team: teamId }) : null;
   let result: KnowledgeSearch | null = null;
   let searchError: string | null =
-    parsed && !parsed.success ? (parsed.error.issues[0]?.message ?? "Die Suche ist ungültig.") : null;
+    parsed && !parsed.success
+      ? (parsed.error.issues[0]?.message ?? "Die Suche ist ungültig.")
+      : parsedQuestion && !parsedQuestion.success
+        ? (parsedQuestion.error.issues[0]?.message ?? "Die Frage ist ungültig.")
+        : null;
   if (parsed?.success) {
     try {
       result = await searchKnowledge(supabase, { organizationId: org.id, query: parsed.data.q, teamId });
@@ -43,7 +50,7 @@ async function Knowledge({ searchParams }: { searchParams: SearchParams }) {
       searchError = "Die Suche hat nicht geklappt. Versuch es gleich noch einmal.";
     }
   }
-  const recent = result || rawQuery ? [] : await recentKnowledge(supabase, { organizationId: org.id, teamId });
+  const recent = result || rawQuery || asking ? [] : await recentKnowledge(supabase, { organizationId: org.id, teamId });
 
   return (
     <>
@@ -87,10 +94,16 @@ async function Knowledge({ searchParams }: { searchParams: SearchParams }) {
             </select>
           </div>
         ) : null}
-        <button type="submit" className={buttonStyles.primary}>
-          <Search size={20} strokeWidth={1.75} aria-hidden />
-          Wissen durchsuchen
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" name="mode" value="search" className={buttonStyles.primary}>
+            <Search size={20} strokeWidth={1.75} aria-hidden />
+            Wissen durchsuchen
+          </button>
+          <button type="submit" name="mode" value="ask" className={buttonStyles.secondary}>
+            <MessageCircleQuestion size={20} strokeWidth={1.75} aria-hidden />
+            Frage beantworten
+          </button>
+        </div>
       </form>
 
       {searchError ? (
@@ -99,7 +112,24 @@ async function Knowledge({ searchParams }: { searchParams: SearchParams }) {
         </p>
       ) : null}
 
-      {result ? (
+      {parsedQuestion?.success ? (
+        <Suspense
+          key={`${parsedQuestion.data.question}-${teamId ?? ""}`}
+          fallback={
+            <p role="status" className="mt-8 text-body text-ink-muted">
+              AsyncMeet sucht im Wissensspeicher und fasst die Antwort zusammen …
+            </p>
+          }
+        >
+          <KnowledgeAnswerSection
+            supabase={supabase}
+            organizationId={org.id}
+            question={parsedQuestion.data.question}
+            teamId={teamId}
+            teamName={teamName}
+          />
+        </Suspense>
+      ) : result ? (
         <section aria-labelledby="hits-heading" className="mt-8 flex flex-col gap-4">
           <div>
             <h2 id="hits-heading" className="text-h2">
@@ -158,7 +188,8 @@ export default function KnowledgePage({ searchParams }: PageProps<"/app/wissen">
     <div className="max-w-[760px]">
       <h1 className="text-h1">Wissen</h1>
       <p className="mt-2 mb-6 text-body-lg text-ink-muted">
-        Zusammenfassungen, Themengruppen und Beschlüsse aus allen Teams deiner Organisation, die du sehen darfst.
+        Zusammenfassungen, Themengruppen und Beschlüsse aus allen Teams deiner Organisation, die du sehen darfst. Such nach
+        Stichworten oder stell eine Frage, AsyncMeet antwortet mit Quellen.
       </p>
       <Suspense fallback={<p className="text-body text-ink-muted">Wird geladen …</p>}>
         <Knowledge searchParams={searchParams} />

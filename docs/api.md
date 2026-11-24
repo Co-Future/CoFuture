@@ -122,10 +122,12 @@ Zusammenfassungen, Themengruppen und Beschlüsse, durchsuchbar über die ganze a
 | Methode | Pfad | Parameter | Antwort | Wer |
 | --- | --- | --- | --- | --- |
 | `GET` | `/api/knowledge` | `q` (2 bis 200 Zeichen), `team` (optional) | `200 { mode, hits }` | alle in der Organisation, sehen nur, was sie im Original sehen dürfen |
+| `POST` | `/api/knowledge/ask` | `{ "question": string (5 bis 300 Zeichen), "team"?: uuid }` | `200 { statements, consulted, mode, model, promptVersion }` | wie oben |
 
 - `mode` ist `hybrid` (Stichwort und Bedeutung) oder `text`, wenn Gemini für die Suchanfrage nicht erreichbar war.
 - Jeder Treffer: `kind` (`overview`, `cluster`, `decision`), `clusterKind`, `title`, `question`, `snippet` (Fundstellen als `[[…]]` markiert), `roundId`, `questionId`, `teamId`, `createdAt`, `matchedText`, `matchedMeaning`.
 - In der Datenbank: `search_knowledge()` mit den Rechten der Person (`security invoker`), Volltext (`german`) und Vektorsuche, zusammengeführt per Reciprocal Rank Fusion. Treffer nach Bedeutung erst ab einer Ähnlichkeit von 0,65.
-- Die Seite `/app/wissen` nutzt dieselbe Funktion direkt (`lib/knowledge/search.ts`).
+- **Frage mit Belegen:** sucht die 8 besten Treffer und lässt AsyncMeet nur daraus antworten (`lib/ai/knowledge-answer.ts`, Prompt `prompts/v1/knowledge-answer.ts`). Jede Aussage in `statements` hat `sources` (Treffer aus `consulted`), Aussagen ohne gültige Quelle werden verworfen. Ohne Treffer ruft die App kein Modell auf, `statements` ist dann leer. Fehler `answer_failed` (503), wenn alle KI-Anbieter ausfallen.
+- Die Seite `/app/wissen` nutzt dieselben Funktionen direkt (`lib/knowledge/search.ts`).
 
 Lesen (Organisationen, Teams, Mitglieder, Runden, Antworten) läuft direkt in Server Components über Supabase mit RLS, ohne eigenen Endpunkt.

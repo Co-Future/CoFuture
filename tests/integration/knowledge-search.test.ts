@@ -1,13 +1,16 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createAdminClient } from "@/lib/db/admin";
 import { runEmbedJobs } from "@/lib/jobs/embed";
-import { searchKnowledge } from "@/lib/knowledge/search";
+import { askKnowledge, searchKnowledge } from "@/lib/knowledge/search";
 import { setUpTeam, signUp, startExchange, type TestUser } from "./helpers";
 
 /**
  * Hybrid search (step 8b) against staging and the real Gemini embeddings.
  * Made-up texts only (Gemini free tier).
  */
+// Answers (8c) use Groq first, to save the Gemini quota.
+process.env.LLM_PROVIDER = "groq";
+
 describe("knowledge search", () => {
   const admin = createAdminClient();
   let lead: TestUser;
@@ -124,4 +127,30 @@ describe("knowledge search", () => {
     // Another organization finds nothing, even with our organization id.
     expect((await search(outsider, "Hotline")).hits).toEqual([]);
   });
+
+  const ask = (u: TestUser, question: string) => askKnowledge(u.client, { organizationId: orgId, question });
+
+  it("answers a question with statements that cite the right sources", async () => {
+    const a = await ask(lars, "Muss die Hotline am Freitag besetzt sein?");
+    expect(a.statements.length).toBeGreaterThan(0);
+    const cited = new Set(a.statements.flatMap((s) => s.sources.map((h) => h.title)));
+    expect(cited).toContain("Hotline-Erreichbarkeit sicherstellen");
+    for (const s of a.statements) {
+      expect(s.sources.length).toBeGreaterThan(0);
+      for (const h of s.sources) expect(a.consulted.map((c) => c.id)).toContain(h.id);
+    }
+  }, 60_000);
+
+  it("says nothing when the store holds nothing on the question, without calling a model", async () => {
+    const a = await ask(lars, "Wie hoch ist das Budget für die Weihnachtsfeier?");
+    expect(a.statements).toEqual([]);
+    expect(a.consulted).toEqual([]);
+    expect(a.model).toBeNull();
+  });
+
+  it("never answers from items you may not see", async () => {
+    const a = await ask(lars, "Was wünscht sich Tom beim Gehalt?");
+    expect(a.consulted.map((h) => h.title)).not.toContain("Vertrauliche Gehaltsfrage");
+    expect(a.statements.flatMap((s) => s.sources.map((h) => h.title))).not.toContain("Vertrauliche Gehaltsfrage");
+  }, 60_000);
 });

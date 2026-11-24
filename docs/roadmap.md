@@ -11,7 +11,7 @@ Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit 
 | Schritt | Funktion | Kurz: was sie können soll | Scope | Status |
 | --- | --- | --- | --- | --- |
 | [7c](#7c-asyncmeet-ausbauen-mehrere-fragen-gewichtung-beschlussvorschläge) | AsyncMeet ausbauen | mehrere Fragen, Gewichtung der Sichten, Beschlussvorschläge mit Belegen | MVP | in Arbeit |
-| [8](#8-wissensspeicher-mvp) | Wissensspeicher | Beschlüsse und Ergebnisse durchsuchen, Fragen mit Belegen beantworten | MVP | in Arbeit |
+| [8](#8-wissensspeicher-mvp) | Wissensspeicher | Beschlüsse und Ergebnisse durchsuchen, Fragen mit Belegen beantworten | MVP | fertig |
 | [9](#9-rückkanal-mvp) | Rückkanal | Fragen und Hinweise an die Leitung, Antworten für alle sichtbar | MVP | offen |
 | [–](#statusrunden) | Statusrunden | wiederkehrende Kurzrunden mit Zusammenfassung zu Fortschritt und Blockern | Danach | offen |
 | [–](#besprechungen) | Besprechungen | Agenda, Aufnahme, Protokoll mit Beschlüssen und Zeitmarken | Danach | offen |
@@ -46,10 +46,10 @@ Umgesetzt nach [ADR 013](adr/013-wissensspeicher.md): Inhalt sind Zusammenfassun
 - Beschlüsse und Rundenergebnisse werden automatisch aufgenommen *(fertig, 8a)*
 - Suche nach Bedeutung und nach Stichwort in einem Feld *(fertig, 8b)*
 - Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss *(fertig, 8b)*
-- Frage stellen, Antwort mit Belegen erhalten
+- Frage stellen, Antwort mit Belegen erhalten *(fertig, 8c)*
 - Sichtbar ist nur, was man auch im Original sehen darf
 
-**Umsetzung:** pgvector und Postgres-Volltextsuche (`german`), Embeddings als Job über `lib/ai/embed.ts`, RLS auf jedem Eintrag *(8a fertig)*. 8b Hybridsuche und Seite „Wissen“ fertig. Offen: 8c Frage mit Belegen.
+**Umsetzung:** pgvector und Postgres-Volltextsuche (`german`), Embeddings als Job über `lib/ai/embed.ts`, RLS auf jedem Eintrag *(8a fertig)*. 8b Hybridsuche und Seite „Wissen“, 8c Frage mit Belegen fertig.
 
 ### 9. Rückkanal (MVP)
 

@@ -79,10 +79,8 @@ Stand 18.11.2026, Version 0.11.0. AsyncMeet läuft von Anfang bis Ende: Organisa
 | 5 | Sprachantworten: Aufnahme im Browser (bis 10 Min.), Transkription im Hintergrund, Audio wird gelöscht. Auch die Frage einer Runde lässt sich einsprechen, AsyncMeet schlägt Frage und Kontext vor | fertig |
 | 6 | Perspektivenkarte: Analyse im Hintergrund, Quellenprüfung, Anzeige auf der Rundenseite | fertig |
 | 7 | Beschlüsse: Beschluss mit Begründung, Folgerunden, Lesebestätigung, Oberfläche | fertig |
-| 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, mehrere Zielpersonen je Frage, Prüfschritt mit eigenen Fragen, Antworten je Frage zusammengefasst, Rückfragen, Zusammenfassung je Frage und Antworten je Person, Frist optional, Beschlüsse vorerst ausgeblendet ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)) | fertig |
-| 8 | Wissensspeicher: 8a Speicher, Rechte und Embeddings, 8b Suche (Seite „Wissen“) fertig; 8c Frage mit Belegen offen ([Roadmap](docs/roadmap.md#8-wissensspeicher-mvp), [ADR 013](docs/adr/013-wissensspeicher.md)) | in Arbeit |
 | 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, mehrere Zielpersonen je Frage, Prüfschritt mit eigenen Fragen, Antworten je Frage zusammengefasst, Rückfragen, Zusammenfassung je Frage und Antworten je Person, Frist optional, Beschlüsse seit 24.11.2026 wieder eingeblendet ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)) | fertig |
-| 8 | Wissensspeicher: 8a Speicher, Rechte und Embeddings fertig; 8b Suche und 8c Frage mit Belegen offen ([Roadmap](docs/roadmap.md#8-wissensspeicher-mvp), [ADR 013](docs/adr/013-wissensspeicher.md)) | in Arbeit |
+| 8 | Wissensspeicher: Speicher mit Rechten wie im Original, Suche nach Stichwort und Bedeutung über die Organisation, Frage mit Belegen (Seite „Wissen“) ([Roadmap](docs/roadmap.md#8-wissensspeicher-mvp), [ADR 013](docs/adr/013-wissensspeicher.md)) | fertig |
 | 9 | Rückkanal ([Roadmap](docs/roadmap.md#9-rückkanal-mvp)) | offen |
 
 ### Offene Aufgaben im Betrieb
