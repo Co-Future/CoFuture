@@ -78,6 +78,7 @@ Die Datenbank setzt das durch, nicht die Oberfläche:
 - **Antworten je Person:** Unter jeder Person stehen ihre Antworten auf alle Fragen. Die startende Person sieht dort auch deren Rückfragen.
 - **Namen statt A01:** Antworten und Rückfragen zeigen den Anzeigenamen, den jede Person selbst festlegt. Das ist eine Ausnahme von „Pseudonym als Standard“. Pseudonyme bleiben interne Quell-IDs, und nur sie gehen an das Sprachmodell.
 - **Beschlüsse ausgeblendet:** Ein Austausch ist eher Frage und Rückkopplung als Abstimmung. Beschlüsse sind in der Oberfläche vorerst ausgeblendet. Tabellen, API und Lucas Code bleiben, damit sie später wieder eingebaut werden können.
+  *Nachtrag 24.11.2026 (Luca, Constantin):* Beschlüsse sind wieder eingeblendet, als freiwilliger Abschluss eines Austauschs. Nicht jeder Austausch braucht einen.
 
 ## Folgen
 
