@@ -1,4 +1,4 @@
-import { ArrowRight, CircleCheck, Clock, Inbox, Plus, Users } from "lucide-react";
+import { ArrowRight, CircleCheck, Clock, Gavel, Inbox, Plus, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -16,7 +16,14 @@ import { getMyTeams, teamDotClass } from "@/lib/teams/my-teams";
 
 export const metadata: Metadata = { title: "Übersicht – CoFuture" };
 
-type Round = { id: string; team_id: string; question: string; deadline: string | null; status: "open" | "closed" | "decided"; closed_at: string | null };
+type Round = {
+  id: string;
+  team_id: string;
+  question: string;
+  deadline: string | null;
+  status: "open" | "closed" | "decided";
+  closed_at: string | null;
+};
 
 async function PersonalDashboard() {
   const user = await getCurrentUser();
@@ -37,9 +44,30 @@ async function PersonalDashboard() {
   const rounds = (roundRows ?? []) as Round[];
   const open = rounds.filter((r) => r.status === "open");
   const { data: mine } = open.length
-    ? await supabase.from("responses").select("round_id").in("round_id", open.map((r) => r.id))
+    ? await supabase
+        .from("responses")
+        .select("round_id")
+        .in(
+          "round_id",
+          open.map((r) => r.id),
+        )
     : { data: [] as { round_id: string }[] };
   const answered = new Set((mine ?? []).map((r) => r.round_id));
+
+  // Decisions you have not confirmed yet (RLS: decisions you may see, only your own read receipts).
+  const [{ data: decisionRows }, { data: ownReads }] = teamIds.length
+    ? await Promise.all([
+        supabase
+          .from("decisions")
+          .select("id, team_id, round_id, body, created_at")
+          .in("team_id", teamIds)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase.from("decision_reads").select("decision_id"),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const readIds = new Set((ownReads ?? []).map((r) => r.decision_id));
+  const unreadDecisions = (decisionRows ?? []).filter((d) => !readIds.has(d.id));
 
   const waiting = open.filter((r) => !answered.has(r.id));
   const running = open.filter((r) => answered.has(r.id));
@@ -157,13 +185,40 @@ async function PersonalDashboard() {
             )}
           </section>
 
+          {unreadDecisions.length > 0 ? (
+            <section aria-labelledby="decisions-heading">
+              <h2 id="decisions-heading" className="mb-1 flex items-center gap-2 text-h2">
+                <Gavel size={20} strokeWidth={1.75} aria-hidden />
+                Neue Beschlüsse
+              </h2>
+              <p className="mb-4 text-body-sm text-ink-muted">Lies sie und bestätige, dass du sie kennst.</p>
+              <ul className="flex flex-col gap-3">
+                {unreadDecisions.map((d) => (
+                  <li key={d.id}>
+                    <Link
+                      href={`/app/runden/${d.round_id}`}
+                      className="flex flex-col gap-2 rounded-lg border border-line bg-card p-4 shadow-card hover:border-border-strong"
+                    >
+                      <span className="text-body font-semibold">{d.body}</span>
+                      <span className="flex flex-wrap items-center gap-3 text-body-sm text-ink-muted">
+                        <TeamTag teamId={d.team_id} />
+                        <span>{formatDateTime(d.created_at)}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {running.length > 0 ? (
             <section aria-labelledby="running-heading">
               <h2 id="running-heading" className="mb-1 text-h2">
                 Läuft noch
               </h2>
-              <p className="mb-4 text-body-sm text-ink-muted">Du hast geantwortet. Bis zur Frist kannst du deine Antwort noch ändern.</p>
+              <p className="mb-4 text-body-sm text-ink-muted">
+                Du hast geantwortet. Bis zur Frist kannst du deine Antwort noch ändern.
+              </p>
               <RoundList rounds={running} TeamTag={TeamTag} />
             </section>
           ) : null}
