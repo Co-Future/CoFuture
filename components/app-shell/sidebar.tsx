@@ -1,4 +1,4 @@
-import { LayoutDashboard, Mail, Plus, Sparkles, Users } from "lucide-react";
+import { BookOpen, LayoutDashboard, Mail, Plus, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { NavLink } from "@/components/app-shell/nav-link";
 import { OrgSwitcher } from "@/components/app-shell/org-switcher";
@@ -37,6 +37,11 @@ export async function Sidebar() {
         <NavLink href="/app" icon={<LayoutDashboard size={20} strokeWidth={1.75} aria-hidden />} exact>
           Übersicht
         </NavLink>
+        {current ? (
+          <NavLink href="/app/wissen" icon={<BookOpen size={20} strokeWidth={1.75} aria-hidden />}>
+            Wissen
+          </NavLink>
+        ) : null}
         {invitations.length > 0 ? (
           <NavLink
             href="/app#einladungen"

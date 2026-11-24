@@ -28,18 +28,17 @@ export type PlannedFeature = {
 export const plannedFeatures: PlannedFeature[] = [
   {
     id: "wissensspeicher",
-    title: "Wissensspeicher",
-    description: "Beschlüsse und Antworten bleiben auffindbar, auch mit Suche nach Bedeutung statt nur nach Wörtern.",
+    title: "Fragen an den Wissen-Bereich",
+    description: "Suche und Speicher sind unter „Wissen“ da. Als Nächstes: eine Frage stellen und eine Antwort mit Belegen bekommen.",
     phase: "mvp",
     Icon: BookOpen,
     functions: [
-      "Beschlüsse und Rundenergebnisse werden automatisch aufgenommen",
-      "Suche nach Bedeutung und nach Stichwort in einem Feld",
-      "Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss",
-      "Frage stellen, Antwort mit Belegen erhalten",
+      "Frage in eigenen Worten stellen, AsyncMeet antwortet aus dem Wissensspeicher",
+      "Jede Aussage der Antwort mit Link zur Quelle, Aussagen ohne Quelle werden verworfen",
+      "Findet AsyncMeet nichts, sagt es das, statt etwas zu erfinden",
       "Sichtbar nur, was du auch im Original sehen darfst",
     ],
-    stack: "pgvector und Postgres-Volltextsuche (german), Embeddings als Job über lib/ai, RLS auf jedem Abschnitt",
+    stack: "Hybridsuche search_knowledge(), Antwort über lib/ai mit Structured Output und Quellenprüfung",
   },
   {
     id: "rueckkanal",

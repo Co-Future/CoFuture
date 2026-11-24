@@ -7,13 +7,18 @@ import { serverEnv } from "@/lib/env";
  */
 
 export const EMBEDDING_MODEL = "gemini-embedding-2";
+/**
+ * Stored in knowledge_items.embedding_model. Change it whenever model, size or text format change:
+ * the job then recomputes every vector with another marker by itself.
+ */
+export const EMBEDDING_MARKER = `${EMBEDDING_MODEL}:768:prefix-v1`;
+/** Minimum cosine similarity for a meaning-based hit (measured with made-up German examples, ADR 013). */
+export const MIN_SIMILARITY = 0.65;
 /** Fixed size of knowledge_items.embedding. Changing it means re-embedding everything. */
 export const EMBEDDING_DIMENSIONS = 768;
 /** Gemini accepts up to 100 texts per batch request. */
 const BATCH_SIZE = 100;
 const TIMEOUT_MS = 20_000;
-
-export type EmbedTask = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY";
 
 export class EmbedError extends Error {
   constructor(
@@ -35,8 +40,12 @@ export function toVectorLiteral(vector: number[]): string {
   return `[${vector.join(",")}]`;
 }
 
-/** One embedding per text, in the same order. Texts hold no names or e-mail addresses. */
-export async function embedTexts(texts: string[], task: EmbedTask): Promise<number[][]> {
+/**
+ * One embedding per text, in the same order. Texts hold no names or e-mail addresses.
+ * Use knowledgeText() for stored items and queryText() for search queries: the short task prefixes
+ * separate relevant from unrelated hits much better than without.
+ */
+export async function embedTexts(texts: string[]): Promise<number[][]> {
   const apiKey = serverEnv().GEMINI_API_KEY;
   if (!apiKey) throw new EmbedError("GEMINI_API_KEY is not configured.", false);
 
@@ -51,7 +60,6 @@ export async function embedTexts(texts: string[], task: EmbedTask): Promise<numb
         requests: batch.map((text) => ({
           model: `models/${EMBEDDING_MODEL}`,
           content: { parts: [{ text }] },
-          taskType: task,
           outputDimensionality: EMBEDDING_DIMENSIONS,
         })),
       }),
@@ -72,7 +80,12 @@ export async function embedTexts(texts: string[], task: EmbedTask): Promise<numb
   return out;
 }
 
-/** The text that represents a knowledge item for search: question, title and content. */
+/** The text that represents a knowledge item for search: title, question and content. */
 export function knowledgeText(item: { question: string; title: string; content: string }): string {
-  return `Frage: ${item.question}\n${item.title}\n${item.content}`;
+  return `title: ${item.title} | text: Frage: ${item.question}\n${item.content}`;
+}
+
+/** The text for a search query. */
+export function queryText(query: string): string {
+  return `task: search result | query: ${query}`;
 }

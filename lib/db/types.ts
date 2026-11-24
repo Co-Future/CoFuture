@@ -1026,7 +1026,7 @@ export type Database = {
         }
       }
       claim_knowledge_items: {
-        Args: { p_limit?: number }
+        Args: { p_limit?: number; p_model?: string }
         Returns: {
           content: string
           id: string
@@ -1196,6 +1196,32 @@ export type Database = {
           p_source?: Database["public"]["Enums"]["response_source"]
         }
         Returns: string
+      }
+      search_knowledge: {
+        Args: {
+          p_embedding?: string
+          p_limit?: number
+          p_min_similarity?: number
+          p_organization_id: string
+          p_query: string
+          p_team_id?: string
+        }
+        Returns: {
+          cluster_kind: string
+          content: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["knowledge_kind"]
+          matched_text: boolean
+          question: string
+          question_id: string
+          round_id: string
+          score: number
+          similarity: number
+          snippet: string
+          team_id: string
+          title: string
+        }[]
       }
       set_organization_role: {
         Args: {

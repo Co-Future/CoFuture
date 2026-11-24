@@ -43,12 +43,12 @@ Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](adr/012-aust
 Umgesetzt nach [ADR 013](adr/013-wissensspeicher.md): Inhalt sind Zusammenfassungen je Frage, Cluster und Beschlüsse (keine einzelnen Antworten), Suche über die ganze Organisation mit Team-Filter.
 
 - Beschlüsse und Rundenergebnisse werden automatisch aufgenommen *(fertig, 8a)*
-- Suche nach Bedeutung und nach Stichwort in einem Feld
-- Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss
+- Suche nach Bedeutung und nach Stichwort in einem Feld *(fertig, 8b)*
+- Jeder Treffer mit Quelle und Link zur Runde oder zum Beschluss *(fertig, 8b)*
 - Frage stellen, Antwort mit Belegen erhalten
 - Sichtbar ist nur, was man auch im Original sehen darf
 
-**Umsetzung:** pgvector und Postgres-Volltextsuche (`german`), Embeddings als Job über `lib/ai/embed.ts`, RLS auf jedem Eintrag *(8a fertig)*. Offen: 8b Hybridsuche und Seite „Wissen“, 8c Frage mit Belegen.
+**Umsetzung:** pgvector und Postgres-Volltextsuche (`german`), Embeddings als Job über `lib/ai/embed.ts`, RLS auf jedem Eintrag *(8a fertig)*. 8b Hybridsuche und Seite „Wissen“ fertig. Offen: 8c Frage mit Belegen.
 
 ### 9. Rückkanal (MVP)
 
