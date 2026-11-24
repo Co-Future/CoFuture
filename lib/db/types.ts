@@ -132,6 +132,13 @@ export type Database = {
             referencedRelation: "rounds"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "analysis_jobs_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
         ]
       }
       decision_reads: {
@@ -277,6 +284,105 @@ export type Database = {
           },
         ]
       }
+      knowledge_items: {
+        Row: {
+          cluster_index: number | null
+          cluster_kind: string | null
+          content: string
+          created_at: string
+          decision_id: string | null
+          embed_attempts: number
+          embed_locked_at: string | null
+          embedding: string | null
+          embedding_model: string | null
+          id: string
+          kind: Database["public"]["Enums"]["knowledge_kind"]
+          organization_id: string | null
+          question: string
+          question_id: string | null
+          round_id: string
+          search: unknown
+          team_id: string
+          title: string
+        }
+        Insert: {
+          cluster_index?: number | null
+          cluster_kind?: string | null
+          content: string
+          created_at?: string
+          decision_id?: string | null
+          embed_attempts?: number
+          embed_locked_at?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["knowledge_kind"]
+          organization_id?: string | null
+          question: string
+          question_id?: string | null
+          round_id: string
+          search?: unknown
+          team_id: string
+          title: string
+        }
+        Update: {
+          cluster_index?: number | null
+          cluster_kind?: string | null
+          content?: string
+          created_at?: string
+          decision_id?: string | null
+          embed_attempts?: number
+          embed_locked_at?: string | null
+          embedding?: string | null
+          embedding_model?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["knowledge_kind"]
+          organization_id?: string | null
+          question?: string
+          question_id?: string | null
+          round_id?: string
+          search?: unknown
+          team_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_items_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_invitations: {
         Row: {
           created_at: string
@@ -415,6 +521,52 @@ export type Database = {
         }
         Relationships: []
       }
+      response_answers: {
+        Row: {
+          body: string
+          id: string
+          question_id: string
+          response_id: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          id?: string
+          question_id: string
+          response_id: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          question_id?: string
+          response_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "response_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "response_answers_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "responses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "response_answers_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "round_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       responses: {
         Row: {
           author_id: string
@@ -463,45 +615,6 @@ export type Database = {
           },
         ]
       }
-      response_answers: {
-        Row: {
-          body: string
-          id: string
-          question_id: string
-          response_id: string
-          updated_at: string
-        }
-        Insert: {
-          body: string
-          id?: string
-          question_id: string
-          response_id: string
-          updated_at?: string
-        }
-        Update: {
-          body?: string
-          id?: string
-          question_id?: string
-          response_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "response_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "round_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "response_answers_response_id_fkey"
-            columns: ["response_id"]
-            isOneToOne: false
-            referencedRelation: "responses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       round_clarifications: {
         Row: {
           answer: string | null
@@ -537,6 +650,20 @@ export type Database = {
           round_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "round_clarifications_answered_by_fkey"
+            columns: ["answered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_clarifications_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "round_clarifications_question_id_fkey"
             columns: ["question_id"]
@@ -774,13 +901,28 @@ export type Database = {
           source: Database["public"]["Enums"]["response_source"] | null
           updated_at: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "response_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_questions_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       round_clarifications_public: {
         Row: {
-          author_name: string | null
           answer: string | null
           answered_at: string | null
+          author_name: string | null
           body: string | null
           created_at: string | null
           id: string | null
@@ -788,7 +930,22 @@ export type Database = {
           question_id: string | null
           round_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "round_clarifications_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "round_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "round_clarifications_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       round_responses: {
         Row: {
@@ -814,37 +971,6 @@ export type Database = {
       }
     }
     Functions: {
-      answer_clarification: {
-        Args: { p_answer: string; p_id: string }
-        Returns: undefined
-      }
-      create_exchange: {
-        Args: {
-          p_context?: string
-          p_deadline?: string
-          p_parent_round_id?: string
-          p_questions: Json
-          p_team_id: string
-        }
-        Returns: string
-      }
-      can_see_question: { Args: { p_question_id: string }; Returns: boolean }
-      can_see_round: { Args: { p_round_id: string }; Returns: boolean }
-      question_is_for_me: { Args: { p_question_id: string }; Returns: boolean }
-      round_analysis: {
-        Args: { p_round_id: string }
-        Returns: { created_at: string; map: Json; model: string; prompt_version: string }[]
-      }
-      round_has_hidden_questions: { Args: { p_round_id: string }; Returns: boolean }
-      round_accepts_answers: { Args: { p_round_id: string }; Returns: boolean }
-      save_answers: {
-        Args: {
-          p_answers: Json
-          p_round_id: string
-          p_source?: Database["public"]["Enums"]["response_source"]
-        }
-        Returns: string
-      }
       accept_organization_invitation: {
         Args: { p_invitation_id: string }
         Returns: string
@@ -857,6 +983,20 @@ export type Database = {
         Args: { p_email: string; p_team_id: string }
         Returns: string
       }
+      answer_clarification: {
+        Args: { p_answer: string; p_id: string }
+        Returns: undefined
+      }
+      can_see_knowledge: {
+        Args: {
+          p_kind: Database["public"]["Enums"]["knowledge_kind"]
+          p_question_id: string
+          p_round_id: string
+        }
+        Returns: boolean
+      }
+      can_see_question: { Args: { p_question_id: string }; Returns: boolean }
+      can_see_round: { Args: { p_round_id: string }; Returns: boolean }
       claim_jobs: {
         Args: {
           p_job_id?: string
@@ -885,7 +1025,27 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_knowledge_items: {
+        Args: { p_limit?: number }
+        Returns: {
+          content: string
+          id: string
+          kind: Database["public"]["Enums"]["knowledge_kind"]
+          question: string
+          title: string
+        }[]
+      }
       close_expired_rounds: { Args: never; Returns: number }
+      create_exchange: {
+        Args: {
+          p_context?: string
+          p_deadline?: string
+          p_parent_round_id?: string
+          p_questions: Json
+          p_team_id: string
+        }
+        Returns: string
+      }
       create_organization: {
         Args: { p_name: string }
         Returns: {
@@ -1009,11 +1169,34 @@ export type Database = {
         Args: { p_older_than?: string; p_run?: string }
         Returns: number
       }
+      question_is_for_me: { Args: { p_question_id: string }; Returns: boolean }
       remove_organization_member: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: undefined
       }
+      round_accepts_answers: { Args: { p_round_id: string }; Returns: boolean }
+      round_analysis: {
+        Args: { p_round_id: string }
+        Returns: {
+          created_at: string
+          map: Json
+          model: string
+          prompt_version: string
+        }[]
+      }
+      round_has_hidden_questions: {
+        Args: { p_round_id: string }
+        Returns: boolean
+      }
       round_response_count: { Args: { p_round_id: string }; Returns: number }
+      save_answers: {
+        Args: {
+          p_answers: Json
+          p_round_id: string
+          p_source?: Database["public"]["Enums"]["response_source"]
+        }
+        Returns: string
+      }
       set_organization_role: {
         Args: {
           p_org_id: string
@@ -1024,6 +1207,10 @@ export type Database = {
       }
       shares_org_with: { Args: { p_user_id: string }; Returns: boolean }
       shares_team_with: { Args: { p_user_id: string }; Returns: boolean }
+      sync_analysis_knowledge: {
+        Args: { p_round_id: string }
+        Returns: undefined
+      }
       transfer_organization: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: undefined
@@ -1036,6 +1223,7 @@ export type Database = {
     Enums: {
       job_kind: "transcribe" | "analyze"
       job_status: "pending" | "running" | "done" | "failed"
+      knowledge_kind: "overview" | "cluster" | "decision"
       org_role: "owner" | "member" | "guest"
       response_source: "text" | "voice"
       round_status: "open" | "closed" | "decided"
@@ -1169,6 +1357,7 @@ export const Constants = {
     Enums: {
       job_kind: ["transcribe", "analyze"],
       job_status: ["pending", "running", "done", "failed"],
+      knowledge_kind: ["overview", "cluster", "decision"],
       org_role: ["owner", "member", "guest"],
       response_source: ["text", "voice"],
       round_status: ["open", "closed", "decided"],

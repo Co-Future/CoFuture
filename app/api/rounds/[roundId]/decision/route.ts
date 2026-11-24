@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { apiError, readJson, requireUserId } from "@/lib/api/respond";
 import { createClient } from "@/lib/db/server";
+import { runEmbedJobs } from "@/lib/jobs/embed";
 import { decisionSchema } from "@/lib/validation/decision";
 import { uuidSchema } from "@/lib/validation/team";
 
@@ -31,5 +33,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/rounds/[rou
   if (error?.hint === "round_open") return apiError(409, "round_open", "Die Runde läuft noch. Schließ sie zuerst.");
   if (error?.hint === "already_decided") return apiError(409, "already_decided", "Für diese Runde gibt es schon einen Beschluss.");
   if (error || !data) return apiError(500, "decide_failed", "Der Beschluss konnte nicht gespeichert werden.");
+  // The database added the decision to the knowledge store; add its embedding in the background.
+  after(() => runEmbedJobs().catch((e) => console.error("embed after decision", e)));
   return Response.json({ id: data.id }, { status: 201 });
 }

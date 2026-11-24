@@ -1,6 +1,7 @@
 import { buildPerspectiveMap } from "@/lib/ai/perspective-map";
 import { LlmError } from "@/lib/ai/llm";
 import { createAdminClient } from "@/lib/db/admin";
+import { runEmbedJobs } from "@/lib/jobs/embed";
 import type { Json } from "@/lib/db/types";
 
 const MAX_ATTEMPTS = 3;
@@ -105,6 +106,8 @@ async function processJob(admin: ReturnType<typeof createAdminClient>, jobId: st
         locked_at: null,
       })
       .eq("id", jobId);
+    // The database put summaries and clusters into the knowledge store; add their embeddings now.
+    await runEmbedJobs().catch((e) => console.error("embed after analysis", e));
     return true;
   } catch (error) {
     console.error("analysis failed", { jobId, attempts, error: String(error) });

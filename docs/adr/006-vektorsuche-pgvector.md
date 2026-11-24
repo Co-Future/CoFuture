@@ -13,4 +13,4 @@ pgvector in Supabase.
 ## Folgen
 
 - Kein weiterer Dienst, RLS gilt auch für die Suche.
-- Embedding-Anbieter wird mit E7 festgelegt.
+- Embedding-Anbieter wird mit E7 festgelegt: Gemini `gemini-embedding-2`, siehe [ADR 013](013-wissensspeicher.md).

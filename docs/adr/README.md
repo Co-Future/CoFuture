@@ -24,3 +24,4 @@ Eine ADR gilt, sobald Constantin oder Luca sie freigeben. Eine Zustimmung des ga
 | [010](010-api-route-handlers.md) | API-Stil | Route Handlers (REST) |
 | [011](011-zugang-organisationen-einladungen.md) | Zugang | Organisationen + einmaliger Zugangslink |
 | [012](012-austausch-mehrere-fragen.md) | Austausch | Mehrere Fragen, Zielpersonen, Rückfragen |
+| [013](013-wissensspeicher.md) | Wissensspeicher | `knowledge_items`, Gemini Embedding, Hybridsuche |

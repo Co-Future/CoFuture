@@ -14,13 +14,14 @@ Nur Vercel und Supabase als Plattform. Neue Funktionen werden damit umgesetzt (s
 | Frontend | Next.js 16 (App Router, Server Components, `cacheComponents`), React 19, Tailwind CSS 4 mit eigenen Design-Tokens, lucide-react | [001](adr/001-web-framework-nextjs.md), [007](adr/007-auslieferung-web-app-pwa.md) |
 | Formulare | eigene Felder in `components/ui/form.tsx`, Validierung mit Zod 4 (Schemas in `lib/validation/`, geteilt mit der API) | – |
 | API | Route Handlers (REST), einheitliches Fehlerformat über `lib/api/respond.ts`, Aufrufe im Browser über `apiFetch` ([API-Referenz](api.md)) | [010](adr/010-api-route-handlers.md) |
-| Datenbank | Supabase Postgres (Frankfurt), Row Level Security, `pg_cron`, Realtime, später pgvector | [002](adr/002-backend-datenbank-supabase.md), [006](adr/006-vektorsuche-pgvector.md) |
+| Datenbank | Supabase Postgres (Frankfurt), Row Level Security, `pg_cron`, Realtime, pgvector (HNSW) und Volltextsuche (`german`) für den Wissensspeicher | [002](adr/002-backend-datenbank-supabase.md), [006](adr/006-vektorsuche-pgvector.md), [013](adr/013-wissensspeicher.md) |
 | Auth | Supabase Auth (E-Mail und Passwort), `@supabase/ssr`, einmalige Zugangslinks, Schutz über `proxy.ts` | [008](adr/008-login-email-passwort.md), [011](adr/011-zugang-organisationen-einladungen.md) |
 | Organisationen | mehrere je Person, Auswahl per Cookie (`lib/organizations/current.ts`), Mitgliedschaft prüft immer die Datenbank | [011](adr/011-zugang-organisationen-einladungen.md) |
 | Storage | Supabase Storage, privater Bucket `voice`, Upload direkt aus dem Browser, nie durch eine Vercel-Funktion (Limit 4,5 MB), Audio max. 24 h | [002](adr/002-backend-datenbank-supabase.md) |
 | Jobs | Tabelle `analysis_jobs`, Start per `after()`, Worker `/api/worker` (max. 300 s je Lauf, in kleinen Schritten) | [009](adr/009-hintergrundjobs-worker-vercel.md) |
 | Speech-to-Text | Whisper large-v3-turbo über Groq, Reserve Gemini (`lib/stt/`) | [004](adr/004-speech-to-text-groq-whisper.md) |
 | Sprachmodell | Gemini 3.5 Flash mit Structured Output, Reserve Groq (`lib/ai/`) | [005](adr/005-sprachmodell.md) |
+| Embeddings | Gemini `gemini-embedding-2`, 768 Dimensionen, ohne Reserve (`lib/ai/embed.ts`) | [013](adr/013-wissensspeicher.md) |
 | E-Mail | vorerst keine, später Resend mit eigener Domain | – |
 | Hosting | Vercel Hobby (Frankfurt), Supabase Free (Projekte `cofuture-staging` und `cofuture-prod`) | [003](adr/003-hosting-vercel.md) |
 | Tests | Vitest (Unit, Integration gegen Staging), GitHub Actions | – |
@@ -57,6 +58,7 @@ Jede Änderung am Stack bekommt eine Zeile, neueste oben: neuer oder entfernter 
 
 | Datum | Version | Änderung | ADR / PR |
 | --- | --- | --- | --- |
+| 24.11.2026 | – | pgvector-Erweiterung aktiviert, Gemini `gemini-embedding-2` für den Wissensspeicher | [013](adr/013-wissensspeicher.md), dieser PR |
 | 19.11.2026 | – | Semantic Versioning mit `CHANGELOG.md` und Git-Tags eingeführt, Doku-Prüfung in der CI | dieser PR |
 | 18.11.2026 | 0.10.1 | Zeitlimit je KI-Anbieter, überlastete Anbieter werden zwei Minuten übersprungen | #37 |
 | 17.11.2026 | 0.7.0 | `pg_cron`-Job `purge-test-users` löscht Testkonten | #25 |

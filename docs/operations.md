@@ -23,7 +23,8 @@ Integrationstests legen Konten `cofuture.test+…@gmail.com` an und löschen sie
 ## KI-Pipeline erweitern
 
 - Prompts nie überschreiben: neue Version unter `prompts/v2/` anlegen. Jede Analyse speichert ihre `prompt_version`.
-- Anbieter und Modelle nur in `lib/ai/llm.ts` bzw. `lib/stt/index.ts` ändern.
+- Anbieter und Modelle nur in `lib/ai/llm.ts`, `lib/ai/embed.ts` bzw. `lib/stt/index.ts` ändern.
+- **Wissensspeicher:** Einträge in `knowledge_items` schreiben nur die Trigger auf `analyses` und `decisions`. Fehlende Vektoren holt `runEmbedJobs()` nach (nach jeder Analyse, jedem Beschluss und über `/api/worker`). Wechsel von Embedding-Modell oder Dimension: Konstanten in `lib/ai/embed.ts` und die Spalte anpassen, dann `embedding = null` setzen, der Job berechnet alles neu. Prüfen: `select count(*) from knowledge_items where embedding is null`.
 - Ausgaben laufen durch `lib/ai/schema.ts` und `finalizeMap()`, Tests in `tests/unit/analysis.test.ts`. `finalizeMap()` erkennt verkürzte IDs (`A1` → `A01`) und macht aus einem Widerspruch mit nur einer Quelle eine Einzelstimme.
 - **Zeitlimits:** Jeder Anbieter bekommt ein Zeitlimit (Transkription 90 s, Fragen und Antworten zuordnen 15 s, Perspektivenkarte 45 s), danach übernimmt die Reserve. Ein Anbieter, der überlastet ist (429, 5xx) oder nicht antwortet, wird zwei Minuten übersprungen.
 - **Fehlersuche:** Jeder Analyse-Job speichert in `analysis_jobs.result` die Rohantwort des Modells (`raw`), wie viele Antworten das Modell selbst zugeordnet hat (`coveredByModel`) und welche Anbieter vorher ausgefallen sind (`failures`).
