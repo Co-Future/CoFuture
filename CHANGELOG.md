@@ -9,6 +9,7 @@ Die Versionen bis 0.10.1 wurden am 19.11.2026 nachträglich aus der Git-Historie
 ### Neu
 
 - Wissen (8b): neue Seite „Wissen“ in der Seitenleiste mit Suche nach Stichwort und nach Bedeutung über alle Teams der Organisation, Filter nach Team, markierte Fundstellen, Link zum Austausch. `GET /api/knowledge` (ADR 013)
+- Beschlüsse wieder in der Oberfläche: im Austausch festhalten mit Begründung und Verweis auf die Zusammenfassung, Lesebestätigung, Archiv auf der Teamseite, „Neue Beschlüsse“ im Dashboard. Status „Entschieden“ statt „Abgeschlossen“
 - Wissensspeicher, Teil 1 (8a): Zusammenfassungen, Cluster und Beschlüsse werden automatisch gespeichert, mit Volltext-Index und Vektor für die Suche nach Bedeutung. Sichtbar ist nur, was man auch im Original sieht (ADR 013)
 - Semantic Versioning mit `CHANGELOG.md` und Git-Tags, Doku-Prüfung `pnpm docs:check` in der CI
 - Dokumentation in `docs/` aufgeteilt: Tech-Stack, Architektur mit Diagrammen, Roadmap, Einrichten, Betrieb, Versionierung

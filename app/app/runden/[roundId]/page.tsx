@@ -1,8 +1,12 @@
-import { ArrowLeft, CornerDownRight, MessageCircleQuestion, Mic } from "lucide-react";
+import { ArrowLeft, CornerDownRight, Gavel, MessageCircleQuestion, Mic } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { DecisionForm } from "@/components/decisions/decision-form";
+import { KIND_LABELS } from "@/components/decisions/kind-labels";
+import { ReadReceipt } from "@/components/decisions/read-receipt";
+import type { MapKind } from "@/components/perspective-map";
 import { AnalysisStatus } from "@/components/rounds/analysis-status";
 import { AnswerEditor } from "@/components/rounds/answer-editor";
 import { Clarifications } from "@/components/rounds/clarifications";
@@ -59,9 +63,18 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       .order("position"),
     supabase.from("team_members").select("user_id, profiles(display_name)").eq("team_id", round.team_id),
     supabase.rpc("round_response_count", { p_round_id: round.id }),
-    supabase.from("team_members").select("role").eq("team_id", round.team_id).eq("user_id", user.id).eq("role", "lead").maybeSingle(),
+    supabase
+      .from("team_members")
+      .select("role")
+      .eq("team_id", round.team_id)
+      .eq("user_id", user.id)
+      .eq("role", "lead")
+      .maybeSingle(),
     // Your own answers while open; after closing all answers to questions you may see.
-    supabase.from("round_answers").select("id, question_id, pseudonym, author_name, body, is_own, source").eq("round_id", round.id),
+    supabase
+      .from("round_answers")
+      .select("id, question_id, pseudonym, author_name, body, is_own, source")
+      .eq("round_id", round.id),
     // Filtered in the database: parts of questions you may not see are left out.
     supabase.rpc("round_analysis", { p_round_id: round.id }).maybeSingle(),
     supabase
@@ -78,6 +91,19 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
       ? supabase.from("rounds").select("id, question").eq("id", round.parent_round_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+
+  // Decision of this exchange (RLS: like the exchange itself), with read receipts as numbers only.
+  const { data: decision } = await supabase
+    .from("decisions")
+    .select("id, body, rationale, cluster_refs, created_at, profiles!decisions_decided_by_fkey(display_name)")
+    .eq("round_id", round.id)
+    .maybeSingle();
+  const [{ data: readCounts }, { data: ownRead }] = decision
+    ? await Promise.all([
+        supabase.rpc("decision_read_count", { p_decision_id: decision.id }),
+        supabase.from("decision_reads").select("read_at").eq("decision_id", decision.id).eq("user_id", user.id).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
 
   const isCreator = round.created_by === user.id;
   const people = (members ?? [])
@@ -138,10 +164,26 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
   const canAnswer = isOpen && !deadlinePassed;
   const canClose = isOpen && (isCreator || Boolean(lead));
   const canFollowUp = !isOpen && !isGuest;
+  const canDecide = round.status === "closed" && !decision && !isGuest && (isCreator || Boolean(lead));
   const myQuestions = questions.filter((q) => isFor(q, user.id));
   const otherQuestions = questions.filter((q) => !isFor(q, user.id));
   const listed = canAnswer ? otherQuestions : questions;
   const title = questions.length > 1 ? `${questions.length} Fragen an das Team` : (questions[0]?.body ?? round.question);
+
+  // Clusters the decision can refer to: positions in the map, labelled with their question.
+  const numberOf = (qId?: string) => questions.find((q) => q.id === (qId ?? firstQuestionId))?.number;
+  const decisionClusters = (map?.clusters ?? []).flatMap((c, index) =>
+    c && c.kind !== "unassigned"
+      ? [
+          {
+            index,
+            title: questions.length > 1 && numberOf(c.question_id) ? `Frage ${numberOf(c.question_id)}: ${c.title}` : c.title,
+            kindLabel: KIND_LABELS[c.kind as MapKind] ?? c.kind,
+          },
+        ]
+      : [],
+  );
+  const refTitle = (i: number) => decisionClusters.find((c) => c.index === i);
 
   // Answers per person, in question order (only after closing; while open you only see your own).
   const byPerson = [...new Set(answers.map((a) => a.key))]
@@ -158,11 +200,17 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
 
   return (
     <>
-      <Link href={`/app/teams/${round.team_id}`} className="mb-6 inline-flex min-h-11 items-center gap-2 text-label text-primary underline">
+      <Link
+        href={`/app/teams/${round.team_id}`}
+        className="mb-6 inline-flex min-h-11 items-center gap-2 text-label text-primary underline"
+      >
         <ArrowLeft size={20} strokeWidth={1.75} aria-hidden />
         Zurück zu {round.teams?.name ?? "Team"}
       </Link>
-      <RoundsLiveRefresh filter={{ column: "id", value: round.id }} openDeadlines={isOpen && round.deadline ? [round.deadline] : []} />
+      <RoundsLiveRefresh
+        filter={{ column: "id", value: round.id }}
+        openDeadlines={isOpen && round.deadline ? [round.deadline] : []}
+      />
 
       <header className="mb-8 flex flex-col gap-3">
         <p className="text-label text-ink-muted">Austausch · {round.teams?.name ?? "Team"}</p>
@@ -239,7 +287,8 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                     Zusammenfassung je Frage
                   </h2>
                   <p className="mt-1 text-body-sm text-ink-muted">
-                    AsyncMeet fasst die Antworten zusammen und zeigt, wer was gesagt hat. Die einzelnen Antworten stehen weiter unten.
+                    AsyncMeet fasst die Antworten zusammen und zeigt, wer was gesagt hat. Die einzelnen Antworten stehen weiter
+                    unten.
                   </p>
                 </div>
                 {!analysis && answers.length > 0 ? <AnalysisStatus roundId={round.id} job={job} /> : null}
@@ -282,6 +331,57 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                 </ol>
               </section>
 
+              <section aria-labelledby="decision-heading" className="flex flex-col gap-4">
+                <h2 id="decision-heading" className="flex items-center gap-2 text-h2">
+                  <Gavel aria-hidden size={20} strokeWidth={1.75} />
+                  Beschluss
+                </h2>
+                {decision ? (
+                  <Card className="flex flex-col gap-4">
+                    <p className="text-caption text-ink-muted">
+                      Beschlossen am {formatDateTime(decision.created_at)}
+                      {decision.profiles?.display_name ? ` von ${decision.profiles.display_name}` : ""}
+                    </p>
+                    <p className="whitespace-pre-line text-body-lg font-semibold">{decision.body}</p>
+                    <div>
+                      <h3 className="text-label">Begründung</h3>
+                      <p className="mt-1 whitespace-pre-line text-body">{decision.rationale}</p>
+                    </div>
+                    {decision.cluster_refs.some((i) => refTitle(i)) ? (
+                      <div>
+                        <h3 className="text-label">Stützt sich auf</h3>
+                        <ul className="mt-1 flex flex-wrap gap-2">
+                          {decision.cluster_refs.flatMap((i) => {
+                            const ref = refTitle(i);
+                            return ref
+                              ? [
+                                  <li key={i} className="rounded-full bg-sunken px-3 py-1 text-body-sm">
+                                    {ref.title}
+                                    <span className="text-ink-muted"> · {ref.kindLabel}</span>
+                                  </li>,
+                                ]
+                              : [];
+                          })}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <ReadReceipt
+                      decisionId={decision.id}
+                      hasRead={Boolean(ownRead)}
+                      readCount={readCounts?.[0]?.read_count ?? 0}
+                      memberCount={readCounts?.[0]?.member_count ?? 0}
+                    />
+                  </Card>
+                ) : canDecide ? (
+                  <DecisionForm roundId={round.id} clusters={decisionClusters} />
+                ) : (
+                  <p className="text-body text-ink-muted">
+                    Noch kein Beschluss. Festhalten kann ihn, wer den Austausch gestartet hat, oder die Teamleitung. Nicht jeder
+                    Austausch braucht einen.
+                  </p>
+                )}
+              </section>
+
               <section aria-labelledby="people-answers-heading" className="flex flex-col gap-4">
                 <h2 id="people-answers-heading" className="text-h2">
                   Antworten je Person
@@ -290,7 +390,11 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                   <p className="text-body text-ink-muted">In diesem Austausch hat niemand geantwortet.</p>
                 ) : (
                   byPerson.map((person) => (
-                    <details key={person.key} className="rounded-lg border border-line bg-card shadow-card" open={byPerson.length <= 3}>
+                    <details
+                      key={person.key}
+                      className="rounded-lg border border-line bg-card shadow-card"
+                      open={byPerson.length <= 3}
+                    >
                       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 p-4">
                         <Avatar name={person.name} />
                         <span className="flex-1 font-display text-h3">{person.name}</span>
@@ -379,7 +483,9 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                     {p.name}
                     {p.userId === user.id ? <span className="text-ink-muted"> (du)</span> : null}
                   </span>
-                  <span className={`rounded-full px-2 py-0.5 text-body-sm ${asked > 0 ? "bg-primary-soft text-ink" : "bg-sunken text-ink-muted"}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-body-sm ${asked > 0 ? "bg-primary-soft text-ink" : "bg-sunken text-ink-muted"}`}
+                  >
                     {asked}
                   </span>
                 </li>

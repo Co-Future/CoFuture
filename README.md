@@ -81,6 +81,8 @@ Stand 18.11.2026, Version 0.11.0. AsyncMeet läuft von Anfang bis Ende: Organisa
 | 7 | Beschlüsse: Beschluss mit Begründung, Folgerunden, Lesebestätigung, Oberfläche | fertig |
 | 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, mehrere Zielpersonen je Frage, Prüfschritt mit eigenen Fragen, Antworten je Frage zusammengefasst, Rückfragen, Zusammenfassung je Frage und Antworten je Person, Frist optional, Beschlüsse vorerst ausgeblendet ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)) | fertig |
 | 8 | Wissensspeicher: 8a Speicher, Rechte und Embeddings, 8b Suche (Seite „Wissen“) fertig; 8c Frage mit Belegen offen ([Roadmap](docs/roadmap.md#8-wissensspeicher-mvp), [ADR 013](docs/adr/013-wissensspeicher.md)) | in Arbeit |
+| 7c | Austausch mit mehreren Fragen: einsprechen und abgleichen, mehrere Zielpersonen je Frage, Prüfschritt mit eigenen Fragen, Antworten je Frage zusammengefasst, Rückfragen, Zusammenfassung je Frage und Antworten je Person, Frist optional, Beschlüsse seit 24.11.2026 wieder eingeblendet ([ADR 012](docs/adr/012-austausch-mehrere-fragen.md)) | fertig |
+| 8 | Wissensspeicher: 8a Speicher, Rechte und Embeddings fertig; 8b Suche und 8c Frage mit Belegen offen ([Roadmap](docs/roadmap.md#8-wissensspeicher-mvp), [ADR 013](docs/adr/013-wissensspeicher.md)) | in Arbeit |
 | 9 | Rückkanal ([Roadmap](docs/roadmap.md#9-rückkanal-mvp)) | offen |
 
 ### Offene Aufgaben im Betrieb

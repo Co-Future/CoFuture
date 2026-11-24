@@ -34,6 +34,7 @@ Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](adr/012-aust
 - **Rückfragen an die Leitung** im Austausch, sichtbar nur für die fragende Person und die Leitung. *Fertig.*
 - **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten *(fertig)*. Offen sind Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
 - **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*).
+- **Beschlüsse im Austausch** wieder eingeblendet: festhalten mit Begründung und Verweis auf die Zusammenfassung, Lesebestätigung, Archiv *(fertig, 24.11.2026)*
 - **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*
 
 **Umsetzung:** Tabellen `round_questions`, `round_question_targets`, `response_answers`, `round_clarifications`. Die KI-Schritte liegen in `lib/ai/exchange.ts` und laufen über den Transkriptions-Job. Die Gewichtung soll der Code aus den Quell-IDs zählen, nicht das LLM.
