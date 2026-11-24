@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createAdminClient } from "@/lib/db/admin";
 import { runTranscribeJobs } from "@/lib/jobs/transcribe";
-import { signUp, testRun as run, type TestUser } from "./helpers";
+import { setUpTeam, signUp, startExchange, type TestUser } from "./helpers";
 
 /** Voice upload rules and the transcription worker, against staging and the real Groq API. */
 describe("voice answers", () => {
@@ -13,13 +13,8 @@ describe("voice answers", () => {
 
   beforeAll(async () => {
     [lead, outsider] = await Promise.all([signUp("v-lead"), signUp("v-out")]);
-    const teamId = (await lead.client.rpc("create_team", { p_name: `Voice ${run}` })).data!.id;
-    const round = await lead.client
-      .from("rounds")
-      .insert({ team_id: teamId, question: "Sprachtest?", deadline: new Date(Date.now() + 3_600_000).toISOString() })
-      .select("id")
-      .single();
-    roundId = round.data!.id;
+    const { teamId } = await setUpTeam(lead, [], "Voice");
+    ({ roundId } = await startExchange(lead, teamId, ["Wie findest du die Vier-Tage-Woche?"], { deadlineMs: 3_600_000 }));
   });
 
   const upload = (user: TestUser, folder: string) =>
@@ -36,7 +31,9 @@ describe("voice answers", () => {
 
   it("queues jobs only for your own file in an open round of your team", async () => {
     const path = `${lead.userId}/${crypto.randomUUID()}.ogg`;
-    const foreignPath = await outsider.client.from("analysis_jobs").insert({ kind: "transcribe", round_id: roundId, payload: { path, mime: "audio/ogg" } });
+    const foreignPath = await outsider.client
+      .from("analysis_jobs")
+      .insert({ kind: "transcribe", round_id: roundId, payload: { path, mime: "audio/ogg" } });
     expect(foreignPath.error).not.toBeNull();
     const outsiderOwn = await outsider.client
       .from("analysis_jobs")
@@ -49,40 +46,40 @@ describe("voice answers", () => {
     expect(claim.error).not.toBeNull();
   });
 
-  it(
-    "the worker transcribes, stores the text in the job and deletes the audio",
-    async () => {
-      const uploaded = await upload(lead, lead.userId);
-      const path = uploaded.data!.path;
-      const job = await lead.client
-        .from("analysis_jobs")
-        .insert({ kind: "transcribe", round_id: roundId, payload: { path, mime: "audio/ogg", durationMs: 12_000 } })
-        .select("id")
-        .single();
-      expect(job.error).toBeNull();
+  it("the worker transcribes, stores the text in the job and deletes the audio", async () => {
+    const uploaded = await upload(lead, lead.userId);
+    const path = uploaded.data!.path;
+    const job = await lead.client
+      .from("analysis_jobs")
+      .insert({ kind: "transcribe", round_id: roundId, payload: { path, mime: "audio/ogg", durationMs: 12_000 } })
+      .select("id")
+      .single();
+    expect(job.error).toBeNull();
 
-      const result = await runTranscribeJobs({ jobId: job.data!.id });
-      expect(result).toEqual({ processed: 1, done: 1, failed: 0 });
+    const result = await runTranscribeJobs({ jobId: job.data!.id });
+    expect(result).toEqual({ processed: 1, done: 1, failed: 0 });
 
-      const done = await lead.client.from("analysis_jobs").select("status, result").eq("id", job.data!.id).single();
-      expect(done.data?.status).toBe("done");
-      const transcript = done.data?.result as { text: string; provider: string };
-      expect(transcript.text.toLowerCase()).toMatch(/vier.?tage.?woche/);
-      expect(transcript.provider).toBe("groq");
+    const done = await lead.client.from("analysis_jobs").select("status, result").eq("id", job.data!.id).single();
+    expect(done.data?.status).toBe("done");
+    const transcript = done.data?.result as { text: string; provider: string };
+    expect(transcript.text.toLowerCase()).toMatch(/vier.?tage.?woche/);
+    expect(transcript.provider).toBe("groq");
 
-      const leftover = await createAdminClient().storage.from("voice").download(path);
-      expect(leftover.data).toBeNull();
+    const leftover = await createAdminClient().storage.from("voice").download(path);
+    expect(leftover.data).toBeNull();
 
-      // Claiming the same job again does nothing: it is done.
-      expect(await runTranscribeJobs({ jobId: job.data!.id })).toEqual({ processed: 0, done: 0, failed: 0 });
-    },
-    60_000,
-  );
+    // Claiming the same job again does nothing: it is done.
+    expect(await runTranscribeJobs({ jobId: job.data!.id })).toEqual({ processed: 0, done: 0, failed: 0 });
+  }, 60_000);
 
   it("a missing file fails the job with a clear message", async () => {
     const job = await lead.client
       .from("analysis_jobs")
-      .insert({ kind: "transcribe", round_id: roundId, payload: { path: `${lead.userId}/${crypto.randomUUID()}.ogg`, mime: "audio/ogg" } })
+      .insert({
+        kind: "transcribe",
+        round_id: roundId,
+        payload: { path: `${lead.userId}/${crypto.randomUUID()}.ogg`, mime: "audio/ogg" },
+      })
       .select("id")
       .single();
     expect(await runTranscribeJobs({ jobId: job.data!.id })).toEqual({ processed: 1, done: 0, failed: 1 });
