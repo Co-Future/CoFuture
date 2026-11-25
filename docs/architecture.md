@@ -93,6 +93,13 @@ sequenceDiagram
   J->>S: analyses
   S--)L: Realtime: Karte erscheint
 
+  opt Vorschlag oder Diktat
+    L->>N: POST /api/rounds/{id}/decision/proposal
+    N->>K: Vorschlag aus Zusammenfassung und Themengruppen (lib/ai/decision.ts)
+    N-->>L: bis zu 2 Vorschläge mit Themengruppen, nichts gespeichert
+    L->>N: POST /api/rounds/{id}/decision/voice
+    N-)J: transcribe, purpose decision: Beschluss und Begründung getrennt
+  end
   L->>N: POST /api/rounds/{id}/decision
   N->>S: decide_round(): decisions, rounds.status = decided
   P->>N: POST /api/decisions/{id}/read
@@ -117,7 +124,7 @@ stateDiagram-v2
 
 | Job-Typ | Code | Was passiert |
 | --- | --- | --- |
-| `transcribe` | `lib/jobs/transcribe.ts`, danach `lib/jobs/structure.ts` | Audio → Text (`lib/stt`), dann Fragen herausziehen (Team-Job) oder Antwort den Fragen zuordnen (`lib/ai/exchange.ts`), Audio löschen |
+| `transcribe` | `lib/jobs/transcribe.ts`, danach `lib/jobs/structure.ts` | Audio → Text (`lib/stt`), dann Fragen herausziehen (Team-Job), Antwort den Fragen zuordnen (`lib/ai/exchange.ts`) oder einen eingesprochenen Beschluss in Beschluss und Begründung teilen (`purpose: decision`, `lib/ai/decision.ts`), Audio löschen |
 | `analyze` | `lib/jobs/analyze.ts` | Perspektivenkarte je Frage (`lib/ai/perspective-map.ts`), Quellenprüfung mit `finalizeMap()` |
 | Embeddings (kein Eintrag in `analysis_jobs`) | `lib/jobs/embed.ts` | Trigger legen Einträge in `knowledge_items` an, der Job holt über `claim_knowledge_items()` alle ohne Vektor und berechnet sie (`lib/ai/embed.ts`). Start nach Analyse und Beschluss, Sicherheitsnetz `/api/worker`. Einträge mit anderem `embedding_model`-Kennzeichen (`EMBEDDING_MARKER`) rechnet der Job von selbst neu |
 
@@ -212,6 +219,7 @@ Größere Änderungen an der Architektur, neueste oben. Kleinere stehen nur im [
 
 | Datum | Version | Änderung | ADR / PR |
 | --- | --- | --- | --- |
+| 25.11.2026 | – | Beschlussvorschläge und Beschluss einsprechen (7c): Vorschlag im Request über `lib/ai/decision.ts`, Diktat als Transkriptions-Job mit `purpose: decision`, RLS-Regel `jobs_insert_transcribe_decision` | dieser PR |
 | 24.11.2026 | – | Frage mit Belegen (8c): Hybridsuche, dann Antwort über `lib/ai/knowledge-answer.ts` mit Quellenprüfung, im Request, `POST /api/knowledge/ask` | [013](adr/013-wissensspeicher.md), dieser PR |
 | 24.11.2026 | – | Wissenssuche (8b): `search_knowledge()` (Volltext und Vektor, Reciprocal Rank Fusion, mit den Rechten der Person), Seite `/app/wissen`, `GET /api/knowledge` | [013](adr/013-wissensspeicher.md), dieser PR |
 | 24.11.2026 | – | Wissensspeicher (8a): `knowledge_items` mit pgvector und Volltext, Trigger auf `analyses` und `decisions`, Embedding-Job | [013](adr/013-wissensspeicher.md), dieser PR |

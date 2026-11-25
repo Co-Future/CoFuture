@@ -10,7 +10,7 @@ Alle geplanten Funktionen laufen ohne neue Dienste auf Vercel und Supabase, mit 
 
 | Schritt | Funktion | Kurz: was sie können soll | Scope | Status |
 | --- | --- | --- | --- | --- |
-| [7c](#7c-asyncmeet-ausbauen-mehrere-fragen-gewichtung-beschlussvorschläge) | AsyncMeet ausbauen | mehrere Fragen, Gewichtung der Sichten, Beschlussvorschläge mit Belegen | MVP | in Arbeit |
+| [7c](#7c-asyncmeet-ausbauen-mehrere-fragen-gewichtung-beschlussvorschläge) | AsyncMeet ausbauen | mehrere Fragen, Gewichtung der Sichten, Beschlussvorschläge mit Belegen | MVP | fertig |
 | [8](#8-wissensspeicher-mvp) | Wissensspeicher | Beschlüsse und Ergebnisse durchsuchen, Fragen mit Belegen beantworten | MVP | fertig |
 | [9](#9-rückkanal-mvp) | Rückkanal | Fragen und Hinweise an die Leitung, Antworten für alle sichtbar | MVP | offen |
 | [–](#statusrunden) | Statusrunden | wiederkehrende Kurzrunden mit Zusammenfassung zu Fortschritt und Blockern | Danach | offen |
@@ -35,7 +35,7 @@ Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](adr/012-aust
 - **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten, kurze Zusammenfassung aller Antworten *(fertig)*. **Gewichtung** *(fertig, 25.11.2026)*: je Punkt „5 von 8 Antworten · 63 %“, vom Code aus den Quell-IDs gezählt (`lib/exchange/weights.ts`), dazu je Frage „6 von 8 Gefragten haben geantwortet“.
 - **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*). *Fertig als „Antworten je Person“.*
 - **Beschlüsse im Austausch** wieder eingeblendet: festhalten mit Begründung und Verweis auf die Zusammenfassung, Lesebestätigung, Archiv *(fertig, 24.11.2026)*
-- **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*
+- **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Fertig (25.11.2026): „Vorschlag von AsyncMeet“ und „Beschluss einsprechen“ im Beschlussformular, nichts wird ohne Menschen gespeichert.*
 
 **Umsetzung:** Tabellen `round_questions`, `round_question_targets`, `response_answers`, `round_clarifications`. Die KI-Schritte liegen in `lib/ai/exchange.ts` und laufen über den Transkriptions-Job. Die Gewichtung soll der Code aus den Quell-IDs zählen, nicht das LLM.
 

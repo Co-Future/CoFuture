@@ -1,3 +1,4 @@
+import { splitDictatedDecision } from "@/lib/ai/decision";
 import { extractQuestions, mapAnswers, type DraftQuestion } from "@/lib/ai/exchange";
 import type { createAdminClient } from "@/lib/db/admin";
 import type { Database, Json } from "@/lib/db/types";
@@ -29,10 +30,27 @@ export async function questionsFor(admin: Admin, roundId: string, userId: string
  * After transcription: turn the text into structure, as far as the job asks for it.
  * - Team job (new exchange): the question list, reconciled with the questions so far.
  * - Exchange job: the answer summarised per question (all your questions, or one card).
+ * - Decision job (purpose "decision"): the dictated decision split into decision and rationale.
  * Returns null when there is nothing to do. Throws on LLM errors; the caller keeps the transcript.
  */
 export async function structureTranscript(admin: Admin, job: Job, text: string): Promise<Json | null> {
-  const payload = (job.payload ?? {}) as { mode?: "replace" | "merge"; questions?: DraftQuestion[]; scope?: string; questionId?: string };
+  const payload = (job.payload ?? {}) as {
+    mode?: "replace" | "merge";
+    questions?: DraftQuestion[];
+    scope?: string;
+    questionId?: string;
+    purpose?: string;
+  };
+
+  if (payload.purpose === "decision") {
+    // Dictated decision: only the transcript goes to the model, split into decision and rationale.
+    const result = await splitDictatedDecision(text);
+    return {
+      decision: { body: result.body, rationale: result.rationale },
+      model: result.model,
+      promptVersion: result.promptVersion,
+    } as Json;
+  }
 
   if (!job.round_id && job.team_id) {
     // Display names only: no e-mail addresses, no ids go to the model.
@@ -43,7 +61,12 @@ export async function structureTranscript(admin: Admin, job: Job, text: string):
     const people = (members ?? []).map((m) => ({ userId: m.user_id, name: m.profiles?.display_name ?? "Unbekannt" }));
     const existing = payload.mode === "merge" ? (payload.questions ?? []) : [];
     const result = await extractQuestions({ transcript: text, existing, people });
-    return { questions: result.questions, mode: payload.mode ?? "replace", model: result.model, promptVersion: result.promptVersion } as Json;
+    return {
+      questions: result.questions,
+      mode: payload.mode ?? "replace",
+      model: result.model,
+      promptVersion: result.promptVersion,
+    } as Json;
   }
 
   if (job.round_id) {
@@ -52,7 +75,12 @@ export async function structureTranscript(admin: Admin, job: Job, text: string):
     const questions = payload.scope === "question" ? all.filter((q) => q.id === payload.questionId) : all;
     if (questions.length === 0) return null;
     const result = await mapAnswers({ transcript: text, questions });
-    return { answers: result.answers, unassigned: result.unassigned, model: result.model, promptVersion: result.promptVersion } as Json;
+    return {
+      answers: result.answers,
+      unassigned: result.unassigned,
+      model: result.model,
+      promptVersion: result.promptVersion,
+    } as Json;
   }
   return null;
 }
