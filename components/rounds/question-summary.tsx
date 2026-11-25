@@ -1,5 +1,6 @@
 import { CircleHelp, MessageSquareQuote, Split, User, Users } from "lucide-react";
 import { PersonChip } from "@/components/rounds/exchange-ui";
+import { weightLabel, weightOf } from "@/lib/exchange/weights";
 
 export type SummaryPoint = { title: string; kind: string; summary: string; source_ids: string[] };
 type Props = {
@@ -8,7 +9,8 @@ type Props = {
   openQuestions: { question: string; source_ids: string[] }[];
   /** Internal source id (pseudonym) → display name. */
   names: Record<string, string>;
-  answered: number;
+  /** Source ids (pseudonyms) of everyone who answered this question. */
+  answerIds: string[];
 };
 
 const KIND = {
@@ -23,7 +25,8 @@ const KIND = {
  * Cross-section of all answers to one question ("Stimmungsbild"): a short summary, the main points
  * with how many people back each one and who, and questions that stay open. Every statement shows its sources.
  */
-export function QuestionSummary({ overview, points, openQuestions, names, answered }: Props) {
+export function QuestionSummary({ overview, points, openQuestions, names, answerIds }: Props) {
+  const answered = answerIds.length;
   const who = (ids: string[]) => ids.map((id) => names[id]).filter(Boolean);
   return (
     <div className="flex flex-col gap-4">
@@ -32,7 +35,7 @@ export function QuestionSummary({ overview, points, openQuestions, names, answer
           <p className="mb-1 text-label text-success-ink">Zusammenfassung</p>
           <p className="text-body-lg text-ink">{overview.text}</p>
           <p className="mt-2 text-body-sm text-ink-muted">
-            Aus {overview.source_ids.length} von {answered} {answered === 1 ? "Antwort" : "Antworten"}
+            Aus {weightOf(overview.source_ids, answerIds).count} von {answered} {answered === 1 ? "Antwort" : "Antworten"}
           </p>
         </div>
       ) : null}
@@ -41,7 +44,7 @@ export function QuestionSummary({ overview, points, openQuestions, names, answer
         <ul className="flex flex-col gap-3">
           {points.map((p, i) => {
             const k = KIND[p.kind as keyof typeof KIND] ?? KIND.off_topic;
-            const share = answered > 0 ? Math.round((p.source_ids.length / answered) * 100) : 0;
+            const weight = weightOf(p.source_ids, answerIds);
             return (
               <li key={`${p.title}-${i}`} className="flex flex-col gap-2 rounded-lg border border-line bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -49,14 +52,12 @@ export function QuestionSummary({ overview, points, openQuestions, names, answer
                     <k.Icon size={16} strokeWidth={1.75} aria-hidden />
                     {k.label}
                   </span>
-                  <span className="text-body-sm text-ink-muted">
-                    {p.source_ids.length === 1 ? "1 Person" : `${p.source_ids.length} Personen`}
-                  </span>
+                  <span className="text-body-sm text-ink-muted">{weightLabel(weight)}</span>
                 </div>
                 <p className="font-display text-body font-semibold text-ink">{p.title}</p>
                 <p className="text-body text-ink">{p.summary}</p>
                 <div className="h-2 overflow-hidden rounded-full bg-sunken" aria-hidden>
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${share}%` }} />
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${weight.percent}%` }} />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {who(p.source_ids).map((n, j) => (

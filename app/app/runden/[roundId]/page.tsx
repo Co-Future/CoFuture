@@ -15,6 +15,7 @@ import { Countdown } from "@/components/rounds/countdown";
 import { AnswerBox, Audience, Avatar, Card, QuestionNumber } from "@/components/rounds/exchange-ui";
 import { RoundsLiveRefresh } from "@/components/rounds/live-refresh";
 import { QuestionSummary, type SummaryPoint } from "@/components/rounds/question-summary";
+import { participationLabel } from "@/lib/exchange/weights";
 import { StatusBadge } from "@/components/rounds/status-badge";
 import { buttonStyles } from "@/components/ui/form";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -295,6 +296,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                 <ol className="flex flex-col gap-4">
                   {questions.map((q) => {
                     const qAnswers = answers.filter((a) => a.questionId === q.id);
+                    const asked = people.filter((p) => isFor(q, p.userId)).length;
                     const points = (map?.clusters ?? []).flatMap((c) => (c && belongs(c, q.id) ? [c] : []));
                     const overview = (map?.overviews ?? []).find((v) => belongs(v, q.id)) ?? null;
                     return (
@@ -304,9 +306,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                             <QuestionNumber n={q.number} />
                             <div className="flex min-w-0 flex-1 flex-col gap-2">
                               <p className="font-display text-h3 text-ink">{q.body}</p>
-                              <p className="text-body-sm text-ink-muted">
-                                {qAnswers.length === 1 ? "1 Antwort" : `${qAnswers.length} Antworten`}
-                              </p>
+                              <p className="text-body-sm text-ink-muted">{participationLabel(qAnswers.length, asked)}</p>
                             </div>
                           </div>
                           {qAnswers.length === 0 ? (
@@ -321,7 +321,7 @@ async function RoundDetail({ params }: { params: Promise<{ roundId: string }> })
                               points={points}
                               openQuestions={(map?.open_questions ?? []).filter((o) => belongs(o, q.id))}
                               names={names}
-                              answered={qAnswers.length}
+                              answerIds={qAnswers.map((a) => a.key)}
                             />
                           )}
                         </Card>

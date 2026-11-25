@@ -32,8 +32,8 @@ Zielbild (Constantin, 17. und 18.11.2026), umgesetzt nach [ADR 012](adr/012-aust
 - **Zielpersonen:** „Die Frage geht nur an Tom“ wird erkannt, Personen lassen sich je Frage wählen. Rechts stehen alle Personen im Team. Gezielte Fragen sehen nur die Gefragten und wer den Austausch gestartet hat. *Fertig.* Gruppen ab etwa 30 Personen kommen später.
 - **Alles auf einmal beantworten:** AsyncMeet ordnet eine eingesprochene Antwort den Fragen zu. Jede Antwort steht als Karte unter ihrer Frage und lässt sich ändern, per Sprache ergänzen oder komplett neu einsprechen. *Fertig.*
 - **Rückfragen an die Leitung** im Austausch, sichtbar nur für die fragende Person und die Leitung. *Fertig.*
-- **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten *(fertig)*. Offen sind Gewichtung (wie viele Antworten stützen welche Sicht, Anteil am Team), kurze Zusammenfassung aller Antworten und die Originalantworten.
-- **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*).
+- **Auswertung je Frage:** Perspektivenkarte je Frage mit Quellen und Originalantworten, kurze Zusammenfassung aller Antworten *(fertig)*. **Gewichtung** *(fertig, 25.11.2026)*: je Punkt „5 von 8 Antworten · 63 %“, vom Code aus den Quell-IDs gezählt (`lib/exchange/weights.ts`), dazu je Frage „6 von 8 Gefragten haben geantwortet“.
+- **Übersicht Pseudonym × Frage:** Wer hat zu welcher Frage was gesagt, als Zitat. Keine Bewertung einzelner Personen (Gestaltungsprinzip *Inhalte statt Personen bewerten*). *Fertig als „Antworten je Person“.*
 - **Beschlüsse im Austausch** wieder eingeblendet: festhalten mit Begründung und Verweis auf die Zusammenfassung, Lesebestätigung, Archiv *(fertig, 24.11.2026)*
 - **Beschlussvorschläge:** AsyncMeet schlägt Beschlüsse mit Belegen vor, Menschen beschließen. Beschluss und Begründung lassen sich einsprechen. *Daran arbeitet Luca.*
 
