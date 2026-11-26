@@ -8,6 +8,8 @@ Die Versionen bis 0.10.1 wurden am 19.11.2026 nachträglich aus der Git-Historie
 
 ### Neu
 
+- Beschlussvorschläge: „Vorschlag von AsyncMeet“ im Beschlussformular formuliert bis zu zwei Beschlüsse mit Begründung und Verweis auf die Themengruppen. Übernehmen füllt das Formular, beschließen muss ein Mensch
+- Beschluss einsprechen: Die Aufnahme wird transkribiert und in Beschluss und Begründung geteilt
 - Gewichtung in der Zusammenfassung: je Punkt „5 von 8 Antworten · 63 %“ als Text, vom Code aus den Quellen gezählt statt von der KI, und je Frage „6 von 8 Gefragten haben geantwortet“
 - Wissen (8c): „Frage beantworten“ auf der Seite „Wissen“. AsyncMeet antwortet nur aus dem Wissensspeicher, jede Aussage mit nummerierten Quellen, ohne passende Einträge keine Antwort. `POST /api/knowledge/ask` (ADR 013)
 - Wissen (8b): neue Seite „Wissen“ in der Seitenleiste mit Suche nach Stichwort und nach Bedeutung über alle Teams der Organisation, Filter nach Team, markierte Fundstellen, Link zum Austausch. `GET /api/knowledge` (ADR 013)

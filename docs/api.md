@@ -103,6 +103,8 @@ Eine geschlossene Runde endet mit einem Beschluss, den ein Mensch schreibt. Die 
 | --- | --- | --- | --- | --- |
 | `POST` | `/api/rounds/{roundId}/decision` | `{ "body": string, "rationale": string, "clusterRefs"?: number[] }` | `201 { id }` | wer die Runde gestartet hat, Leitung; keine Gäste |
 | `POST` | `/api/decisions/{decisionId}/read` | – | `204` | Teammitglieder (eigene Lesebestätigung) |
+| `POST` | `/api/rounds/{roundId}/decision/proposal` | – | `200 { proposals, model, promptVersion }` | wer den Austausch gestartet hat, Leitung; keine Gäste |
+| `POST` | `/api/rounds/{roundId}/decision/voice` | `{ path, mime, durationMs }` | `202 { jobId }` | wie oben, nur geschlossen und ohne Beschluss |
 | `POST` | `/api/teams/{teamId}/rounds` mit `parentRoundId` | wie oben | `201 { id }` | Folgerunde oder Rückfrage zu einer geschlossenen Runde |
 
 Fehler: `round_open` (409, Runde läuft noch), `already_decided` (409), `parent_open` (409, Ursprungsrunde läuft noch), `invalid_parent` (400, anderes Team).
@@ -111,6 +113,8 @@ Regeln in der Datenbank:
 
 - `decide_round()` schreibt den Beschluss und setzt die Runde in einem Schritt auf `decided`. Ohne Beschluss lässt sich `decided` nicht setzen.
 - Ein Beschluss pro Runde. Beschlüsse lassen sich nicht ändern oder löschen, damit sie nachvollziehbar bleiben.
+- **Vorschläge:** AsyncMeet schlägt aus Zusammenfassung und Themengruppen (mit Gewichtung, vom Code gezählt) bis zu zwei Beschlüsse vor. Jeder Vorschlag hat `clusterRefs`, ohne gültige Themengruppe wird er verworfen. Gespeichert wird nichts: Erst `POST …/decision` mit dem (geänderten) Text hält den Beschluss fest. Fehler `no_summary` (409), `proposal_failed` (503).
+- **Einsprechen:** Der Transkriptions-Job (`purpose: decision`) teilt den Text in `result.structured.decision = { body, rationale }`. An das Modell geht nur das Transkript.
 - `cluster_refs` sind die Positionen der Cluster in `analyses.map.clusters`, auf die sich die Begründung stützt.
 - Alle im Team sehen den Beschluss (`decisions`, Realtime). Lesebestätigungen sieht jede Person nur für sich; `decision_read_count()` liefert nur Zahlen („3 von 5 gelesen“), nie Namen.
 - Folgerunden (`rounds.parent_round_id`) gehören zum selben Team, die Ursprungsrunde muss geschlossen oder entschieden sein.
